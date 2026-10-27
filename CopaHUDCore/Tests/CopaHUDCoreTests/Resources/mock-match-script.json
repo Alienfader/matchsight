@@ -1,0 +1,1470 @@
+{
+  "fixture": {
+    "id": 1489371,
+    "home": {
+      "id": 42,
+      "name": "Arsenal",
+      "logo": "https://media.api-sports.io/football/teams/42.png"
+    },
+    "away": {
+      "id": 49,
+      "name": "Chelsea",
+      "logo": "https://media.api-sports.io/football/teams/49.png"
+    },
+    "groupLabel": "Premier League",
+    "venue": "Emirates Stadium"
+  },
+  "keyframes": [
+    {
+      "at": 0,
+      "status": "1H",
+      "elapsed": 0,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "events": []
+    },
+    {
+      "at": 600,
+      "status": "1H",
+      "elapsed": 10,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "events": []
+    },
+    {
+      "at": 1080,
+      "status": "1H",
+      "elapsed": 18,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 1680,
+      "status": "1H",
+      "elapsed": 28,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 2160,
+      "status": "1H",
+      "elapsed": 36,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        }
+      ]
+    },
+    {
+      "at": 2520,
+      "status": "1H",
+      "elapsed": 42,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 42,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 2640,
+      "status": "1H",
+      "elapsed": 44,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        }
+      ]
+    },
+    {
+      "at": 2700,
+      "status": "HT",
+      "elapsed": 45,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        }
+      ]
+    },
+    {
+      "at": 2760,
+      "status": "2H",
+      "elapsed": 46,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        }
+      ]
+    },
+    {
+      "at": 3300,
+      "status": "2H",
+      "elapsed": 55,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 3780,
+      "status": "2H",
+      "elapsed": 63,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        }
+      ]
+    },
+    {
+      "at": 4020,
+      "status": "2H",
+      "elapsed": 67,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 4320,
+      "status": "2H",
+      "elapsed": 72,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 72,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": null,
+          "player": "João Pedro",
+          "assist": "D. Welbeck",
+          "type": "subst",
+          "detail": "Substitution 1"
+        }
+      ]
+    },
+    {
+      "at": 4680,
+      "status": "2H",
+      "elapsed": 78,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 72,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": null,
+          "player": "João Pedro",
+          "assist": "D. Welbeck",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 78,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 116117,
+          "player": "M. Caicedo",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        }
+      ]
+    },
+    {
+      "at": 4800,
+      "status": "2H",
+      "elapsed": 80,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 72,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": null,
+          "player": "João Pedro",
+          "assist": "D. Welbeck",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 78,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 116117,
+          "player": "M. Caicedo",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 80,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "Martín Zubimendi",
+          "assist": "Bruno Guimarães",
+          "type": "subst",
+          "detail": "Substitution 2"
+        }
+      ]
+    },
+    {
+      "at": 5340,
+      "status": "2H",
+      "elapsed": 89,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 72,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": null,
+          "player": "João Pedro",
+          "assist": "D. Welbeck",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 78,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 116117,
+          "player": "M. Caicedo",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 80,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "Martín Zubimendi",
+          "assist": "Bruno Guimarães",
+          "type": "subst",
+          "detail": "Substitution 2"
+        },
+        {
+          "minute": 89,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 19586,
+          "player": "E. Eze",
+          "assist": "V. Gyökeres",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 5400,
+      "status": "FT",
+      "elapsed": 90,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "events": [
+        {
+          "minute": 18,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 1460,
+          "player": "B. Saka",
+          "assist": "E. Eze",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 28,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 425733,
+          "player": "Estêvão",
+          "assist": "M. Gusto",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 36,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 47315,
+          "player": "Martín Zubimendi",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 44,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 10329,
+          "player": "João Pedro",
+          "assist": null,
+          "type": "Var",
+          "detail": "Goal Disallowed - Offside"
+        },
+        {
+          "minute": 55,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 18979,
+          "player": "V. Gyökeres",
+          "assist": "D. Rice",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 63,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "M. Ødegaard",
+          "assist": "Mikel Merino",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 67,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 161907,
+          "player": "M. Gusto",
+          "assist": "Estêvão",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 72,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": null,
+          "player": "João Pedro",
+          "assist": "D. Welbeck",
+          "type": "subst",
+          "detail": "Substitution 1"
+        },
+        {
+          "minute": 78,
+          "extraMinute": null,
+          "teamId": 49,
+          "teamName": "Chelsea",
+          "playerId": 116117,
+          "player": "M. Caicedo",
+          "assist": null,
+          "type": "Card",
+          "detail": "Yellow Card"
+        },
+        {
+          "minute": 80,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": null,
+          "player": "Martín Zubimendi",
+          "assist": "Bruno Guimarães",
+          "type": "subst",
+          "detail": "Substitution 2"
+        },
+        {
+          "minute": 89,
+          "extraMinute": null,
+          "teamId": 42,
+          "teamName": "Arsenal",
+          "playerId": 19586,
+          "player": "E. Eze",
+          "assist": "V. Gyökeres",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    }
+  ],
+  "lineups": [
+    {
+      "teamId": 42,
+      "teamName": "Arsenal",
+      "formation": "4-3-3",
+      "coach": "Mikel Arteta",
+      "startXI": [
+        {
+          "name": "David Raya",
+          "number": 1,
+          "position": "G",
+          "grid": "1:1",
+          "playerId": 19465
+        },
+        {
+          "name": "J. Timber",
+          "number": 12,
+          "position": "D",
+          "grid": "2:4",
+          "playerId": 38746
+        },
+        {
+          "name": "W. Saliba",
+          "number": 2,
+          "position": "D",
+          "grid": "2:3",
+          "playerId": 22090
+        },
+        {
+          "name": "Gabriel Magalhães",
+          "number": 6,
+          "position": "D",
+          "grid": "2:2",
+          "playerId": 22224
+        },
+        {
+          "name": "R. Calafiori",
+          "number": 33,
+          "position": "D",
+          "grid": "2:1",
+          "playerId": 157052
+        },
+        {
+          "name": "Martín Zubimendi",
+          "number": 36,
+          "position": "M",
+          "grid": "3:3",
+          "playerId": 47315
+        },
+        {
+          "name": "D. Rice",
+          "number": 41,
+          "position": "M",
+          "grid": "3:2",
+          "playerId": 2937
+        },
+        {
+          "name": "M. Ødegaard",
+          "number": 8,
+          "position": "M",
+          "grid": "3:1",
+          "playerId": 37127
+        },
+        {
+          "name": "B. Saka",
+          "number": 7,
+          "position": "F",
+          "grid": "4:3",
+          "playerId": 1460
+        },
+        {
+          "name": "V. Gyökeres",
+          "number": 14,
+          "position": "F",
+          "grid": "4:2",
+          "playerId": 18979
+        },
+        {
+          "name": "E. Eze",
+          "number": 10,
+          "position": "F",
+          "grid": "4:1",
+          "playerId": 19586
+        }
+      ]
+    },
+    {
+      "teamId": 49,
+      "teamName": "Chelsea",
+      "formation": "4-3-3",
+      "coach": "Xabi Alonso",
+      "startXI": [
+        {
+          "name": "E. Martínez",
+          "number": 1,
+          "position": "G",
+          "grid": "1:1",
+          "playerId": 19599
+        },
+        {
+          "name": "M. Gusto",
+          "number": 27,
+          "position": "D",
+          "grid": "2:4",
+          "playerId": 161907
+        },
+        {
+          "name": "W. Fofana",
+          "number": 3,
+          "position": "D",
+          "grid": "2:3",
+          "playerId": 22094
+        },
+        {
+          "name": "L. Colwill",
+          "number": 6,
+          "position": "D",
+          "grid": "2:2",
+          "playerId": 152953
+        },
+        {
+          "name": "J. Hato",
+          "number": 21,
+          "position": "D",
+          "grid": "2:1",
+          "playerId": 341642
+        },
+        {
+          "name": "M. Caicedo",
+          "number": 25,
+          "position": "M",
+          "grid": "3:3",
+          "playerId": 116117
+        },
+        {
+          "name": "R. Lavia",
+          "number": 45,
+          "position": "M",
+          "grid": "3:2",
+          "playerId": 282125
+        },
+        {
+          "name": "C. Palmer",
+          "number": 10,
+          "position": "M",
+          "grid": "3:1",
+          "playerId": 152982
+        },
+        {
+          "name": "Estêvão",
+          "number": 41,
+          "position": "F",
+          "grid": "4:3",
+          "playerId": 425733
+        },
+        {
+          "name": "João Pedro",
+          "number": 9,
+          "position": "F",
+          "grid": "4:2",
+          "playerId": 10329
+        },
+        {
+          "name": "Pedro Neto",
+          "number": 7,
+          "position": "F",
+          "grid": "4:1",
+          "playerId": 1864
+        }
+      ]
+    }
+  ],
+  "other": {
+    "id": 1002,
+    "home": {
+      "id": 40,
+      "name": "Liverpool",
+      "logo": "https://media.api-sports.io/football/teams/40.png"
+    },
+    "away": {
+      "id": 50,
+      "name": "Manchester City",
+      "logo": "https://media.api-sports.io/football/teams/50.png"
+    },
+    "groupLabel": "Premier League",
+    "venue": "Anfield"
+  },
+  "otherKeyframes": [
+    {
+      "at": 0,
+      "status": "1H",
+      "elapsed": 0,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "events": []
+    },
+    {
+      "at": 1200,
+      "status": "1H",
+      "elapsed": 20,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "events": [
+        {
+          "minute": 20,
+          "extraMinute": null,
+          "teamId": 40,
+          "teamName": "Liverpool",
+          "playerId": 2864,
+          "player": "A. Isak",
+          "assist": null,
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 3000,
+      "status": "2H",
+      "elapsed": 50,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "events": [
+        {
+          "minute": 20,
+          "extraMinute": null,
+          "teamId": 40,
+          "teamName": "Liverpool",
+          "playerId": 2864,
+          "player": "A. Isak",
+          "assist": null,
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 50,
+          "extraMinute": null,
+          "teamId": 40,
+          "teamName": "Liverpool",
+          "playerId": 203224,
+          "player": "F. Wirtz",
+          "assist": "D. Szoboszlai",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    },
+    {
+      "at": 5400,
+      "status": "FT",
+      "elapsed": 90,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "events": [
+        {
+          "minute": 20,
+          "extraMinute": null,
+          "teamId": 40,
+          "teamName": "Liverpool",
+          "playerId": 2864,
+          "player": "A. Isak",
+          "assist": null,
+          "type": "Goal",
+          "detail": "Normal Goal"
+        },
+        {
+          "minute": 50,
+          "extraMinute": null,
+          "teamId": 40,
+          "teamName": "Liverpool",
+          "playerId": 203224,
+          "player": "F. Wirtz",
+          "assist": "D. Szoboszlai",
+          "type": "Goal",
+          "detail": "Normal Goal"
+        }
+      ]
+    }
+  ]
+}

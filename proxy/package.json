@@ -1,0 +1,10 @@
+{
+  "name": "copahud-ai-proxy",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker that holds the Meta Model API key for the CopaHUD iPhone app.",
+  "scripts": {
+    "test": "node --test",
+    "deploy": "npx wrangler deploy"
+  }
+}

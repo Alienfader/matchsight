@@ -1,0 +1,67 @@
+{
+  "get": "fixtures",
+  "parameters": { "date": "2026-06-11" },
+  "errors": [],
+  "results": 2,
+  "paging": { "current": 1, "total": 1 },
+  "response": [
+    {
+      "fixture": {
+        "id": 1001,
+        "referee": "Clément Turpin",
+        "timezone": "UTC",
+        "date": "2026-06-11T16:00:00+00:00",
+        "timestamp": 1781193600,
+        "venue": { "id": 205, "name": "MetLife Stadium", "city": "East Rutherford" },
+        "status": { "long": "Not Started", "short": "NS", "elapsed": null }
+      },
+      "league": {
+        "id": 1,
+        "name": "World Cup",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 1"
+      },
+      "teams": {
+        "home": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png", "winner": null },
+        "away": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png", "winner": null }
+      },
+      "goals": { "home": null, "away": null },
+      "score": {
+        "halftime": { "home": null, "away": null },
+        "fulltime": { "home": null, "away": null },
+        "extratime": { "home": null, "away": null },
+        "penalty": { "home": null, "away": null }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1002,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-06-11T19:00:00+00:00",
+        "timestamp": 1781204400,
+        "venue": { "id": 210, "name": "SoFi Stadium", "city": "Inglewood" },
+        "status": { "long": "Not Started", "short": "NS", "elapsed": null }
+      },
+      "league": {
+        "id": 1,
+        "name": "World Cup",
+        "country": "World",
+        "season": 2026,
+        "round": "Group Stage - 1"
+      },
+      "teams": {
+        "home": { "id": 2, "name": "France", "logo": "https://media.api-sports.io/football/teams/2.png", "winner": null },
+        "away": { "id": 25, "name": "Germany", "logo": "https://media.api-sports.io/football/teams/25.png", "winner": null }
+      },
+      "goals": { "home": null, "away": null },
+      "score": {
+        "halftime": { "home": null, "away": null },
+        "fulltime": { "home": null, "away": null },
+        "extratime": { "home": null, "away": null },
+        "penalty": { "home": null, "away": null }
+      }
+    }
+  ]
+}

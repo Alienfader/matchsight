@@ -1,0 +1,495 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 70;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CH01000000000001 /* CopaHUDApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000001 /* CopaHUDApp.swift */; };
+		CH01000000000002 /* SecretsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000002 /* SecretsStore.swift */; };
+		CH01000000000021 /* VoiceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000021 /* VoiceRecorder.swift */; };
+		CH01000000000022 /* FavouritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000022 /* FavouritesStore.swift */; };
+		CH01000000000003 /* GlassesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000003 /* GlassesViewModel.swift */; };
+		CH01000000000004 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000004 /* AppModel.swift */; };
+		CH01000000000005 /* HUDBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000005 /* HUDBuilder.swift */; };
+		CH01000000000F01 /* ImageHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000F01 /* ImageHUD.swift */; };
+		CH01000000000006 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000006 /* ContentView.swift */; };
+		CH01000000000007 /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000007 /* PairingView.swift */; };
+		CH01000000000008 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000008 /* TodayView.swift */; };
+		CH01000000000009 /* LiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000009 /* LiveView.swift */; };
+		CH01000000000023 /* TeamPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000023 /* TeamPickerView.swift */; };
+		CH0100000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH0200000000000A /* SettingsView.swift */; };
+		CH0100000000000B /* ErrorBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH0200000000000B /* ErrorBanner.swift */; };
+		CH01000000000020 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000020 /* DesignSystem.swift */; };
+		CH0100000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CH0200000000000C /* Assets.xcassets */; };
+		CH0100000000000D /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000001 /* MWDATCore */; };
+		CH0100000000000E /* MWDATDisplay in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000002 /* MWDATDisplay */; };
+		CH01000000000030 /* MWDATInputs in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000010 /* MWDATInputs */; };
+		CH0100000000000F /* CopaHUDCore in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000003 /* CopaHUDCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CH05000000000004 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		CH02000000000000 /* CopaHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopaHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CH02000000000001 /* CopaHUDApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopaHUDApp.swift; sourceTree = "<group>"; };
+		CH02000000000002 /* SecretsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsStore.swift; sourceTree = "<group>"; };
+		CH02000000000021 /* VoiceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorder.swift; sourceTree = "<group>"; };
+		CH02000000000022 /* FavouritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesStore.swift; sourceTree = "<group>"; };
+		CH02000000000003 /* GlassesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesViewModel.swift; sourceTree = "<group>"; };
+		CH02000000000004 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		CH02000000000005 /* HUDBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDBuilder.swift; sourceTree = "<group>"; };
+		CH02000000000F01 /* ImageHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageHUD.swift; sourceTree = "<group>"; };
+		CH02000000000006 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CH02000000000007 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		CH02000000000008 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		CH02000000000009 /* LiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveView.swift; sourceTree = "<group>"; };
+		CH02000000000023 /* TeamPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamPickerView.swift; sourceTree = "<group>"; };
+		CH0200000000000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CH0200000000000B /* ErrorBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBanner.swift; sourceTree = "<group>"; };
+		CH02000000000020 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		CH0200000000000C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CH0200000000000D /* CopaHUD.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CopaHUD.entitlements; sourceTree = "<group>"; };
+		CH0200000000000E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CH05000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CH0100000000000D /* MWDATCore in Frameworks */,
+				CH0100000000000E /* MWDATDisplay in Frameworks */,
+				CH01000000000030 /* MWDATInputs in Frameworks */,
+				CH0100000000000F /* CopaHUDCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CH03000000000001 = {
+			isa = PBXGroup;
+			children = (
+				CH03000000000003 /* CopaHUD */,
+				CH03000000000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CH03000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CH02000000000000 /* CopaHUD.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CH03000000000003 /* CopaHUD */ = {
+			isa = PBXGroup;
+			children = (
+				CH03000000000004 /* ViewModels */,
+				CH03000000000005 /* Views */,
+				CH03000000000006 /* HUD */,
+				CH0200000000000C /* Assets.xcassets */,
+				CH0200000000000D /* CopaHUD.entitlements */,
+				CH02000000000001 /* CopaHUDApp.swift */,
+				CH0200000000000E /* Info.plist */,
+			);
+			path = CopaHUD;
+			sourceTree = "<group>";
+		};
+		CH03000000000004 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				CH02000000000002 /* SecretsStore.swift */,
+				CH02000000000021 /* VoiceRecorder.swift */,
+				CH02000000000022 /* FavouritesStore.swift */,
+				CH02000000000003 /* GlassesViewModel.swift */,
+				CH02000000000004 /* AppModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		CH03000000000005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CH02000000000006 /* ContentView.swift */,
+				CH02000000000007 /* PairingView.swift */,
+				CH02000000000008 /* TodayView.swift */,
+				CH02000000000009 /* LiveView.swift */,
+				CH02000000000023 /* TeamPickerView.swift */,
+				CH0200000000000A /* SettingsView.swift */,
+				CH0200000000000B /* ErrorBanner.swift */,
+			CH02000000000020 /* DesignSystem.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		CH03000000000006 /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				CH02000000000005 /* HUDBuilder.swift */,
+				CH02000000000F01 /* ImageHUD.swift */,
+			);
+			path = HUD;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CH04000000000001 /* CopaHUD */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CH07000000000001 /* Build configuration list for PBXNativeTarget "CopaHUD" */;
+			buildPhases = (
+				CH05000000000001 /* Sources */,
+				CH05000000000002 /* Frameworks */,
+				CH05000000000003 /* Resources */,
+				CH05000000000004 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CopaHUD;
+			packageProductDependencies = (
+				CH0A000000000001 /* MWDATCore */,
+				CH0A000000000002 /* MWDATDisplay */,
+				CH0A000000000010 /* MWDATInputs */,
+				CH0A000000000003 /* CopaHUDCore */,
+			);
+			productName = CopaHUD;
+			productReference = CH02000000000000 /* CopaHUD.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CH08000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+					CH04000000000001 = {
+						CreatedOnToolsVersion = 12.5;
+					};
+				};
+			};
+			buildConfigurationList = CH07000000000002 /* Build configuration list for PBXProject "CopaHUD" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CH03000000000001;
+			packageReferences = (
+				CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */,
+				CH09000000000002 /* XCLocalSwiftPackageReference "CopaHUDCore" */,
+			);
+			productRefGroup = CH03000000000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CH04000000000001 /* CopaHUD */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CH05000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CH0100000000000C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CH05000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CH01000000000001 /* CopaHUDApp.swift in Sources */,
+				CH01000000000002 /* SecretsStore.swift in Sources */,
+				CH01000000000021 /* VoiceRecorder.swift in Sources */,
+				CH01000000000022 /* FavouritesStore.swift in Sources */,
+				CH01000000000003 /* GlassesViewModel.swift in Sources */,
+				CH01000000000004 /* AppModel.swift in Sources */,
+				CH01000000000005 /* HUDBuilder.swift in Sources */,
+				CH01000000000F01 /* ImageHUD.swift in Sources */,
+				CH01000000000006 /* ContentView.swift in Sources */,
+				CH01000000000007 /* PairingView.swift in Sources */,
+				CH01000000000008 /* TodayView.swift in Sources */,
+				CH01000000000009 /* LiveView.swift in Sources */,
+				CH01000000000023 /* TeamPickerView.swift in Sources */,
+				CH0100000000000A /* SettingsView.swift in Sources */,
+				CH0100000000000B /* ErrorBanner.swift in Sources */,
+				CH01000000000020 /* DesignSystem.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CH06000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(MATCHSIGHT_ENTITLEMENTS)";
+				MATCHSIGHT_ENTITLEMENTS = CopaHUD/CopaHUD.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 9WDZ4749PN;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				INFOPLIST_FILE = CopaHUD/Info.plist;
+				META_APP_ID = 0;
+				META_APP_LINK = "copahud://";
+				META_CLIENT_TOKEN = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alienfader.CopaHUD;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CH06000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(MATCHSIGHT_ENTITLEMENTS)";
+				MATCHSIGHT_ENTITLEMENTS = CopaHUD/CopaHUD.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 9WDZ4749PN;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = CopaHUD/Info.plist;
+				META_APP_ID = 0;
+				META_APP_LINK = "copahud://";
+				META_CLIENT_TOKEN = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alienfader.CopaHUD;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CH06000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CH06000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CH07000000000001 /* Build configuration list for PBXNativeTarget "CopaHUD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CH06000000000001 /* Debug */,
+				CH06000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CH07000000000002 /* Build configuration list for PBXProject "CopaHUD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CH06000000000003 /* Debug */,
+				CH06000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CH09000000000002 /* XCLocalSwiftPackageReference "CopaHUDCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = CopaHUDCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/meta-wearables-dat-ios";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CH0A000000000001 /* MWDATCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATCore;
+		};
+		CH0A000000000002 /* MWDATDisplay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATDisplay;
+		};
+		CH0A000000000010 /* MWDATInputs */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATInputs;
+		};
+		CH0A000000000003 /* CopaHUDCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CH09000000000002 /* XCLocalSwiftPackageReference "CopaHUDCore" */;
+			productName = CopaHUDCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = CH08000000000001 /* Project object */;
+}

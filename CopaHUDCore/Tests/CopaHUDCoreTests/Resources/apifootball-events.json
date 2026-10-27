@@ -1,0 +1,81 @@
+{
+  "get": "fixtures/events",
+  "parameters": { "fixture": "1001" },
+  "errors": [],
+  "results": 8,
+  "paging": { "current": 1, "total": 1 },
+  "response": [
+    {
+      "time": { "elapsed": 23, "extra": null },
+      "team": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png" },
+      "player": { "id": 276, "name": "Raphinha" },
+      "assist": { "id": 1485, "name": "Vinícius Júnior" },
+      "type": "Goal",
+      "detail": "Normal Goal",
+      "comments": null
+    },
+    {
+      "time": { "elapsed": 34, "extra": null },
+      "team": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png" },
+      "player": { "id": 154, "name": "Lionel Messi" },
+      "assist": { "id": null, "name": null },
+      "type": "Goal",
+      "detail": "Penalty",
+      "comments": null
+    },
+    {
+      "time": { "elapsed": 39, "extra": null },
+      "team": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png" },
+      "player": { "id": 200, "name": "Rodrigo De Paul" },
+      "assist": { "id": null, "name": null },
+      "type": "Card",
+      "detail": "Yellow Card",
+      "comments": "Foul"
+    },
+    {
+      "time": { "elapsed": 65, "extra": null },
+      "team": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png" },
+      "player": { "id": 290, "name": "Casemiro" },
+      "assist": { "id": null, "name": null },
+      "type": "Card",
+      "detail": "Red Card",
+      "comments": "Violent Conduct"
+    },
+    {
+      "time": { "elapsed": 71, "extra": null },
+      "team": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png" },
+      "player": { "id": 201, "name": "Enzo Fernández" },
+      "assist": { "id": null, "name": null },
+      "type": "Card",
+      "detail": "Second Yellow card",
+      "comments": null
+    },
+    {
+      "time": { "elapsed": 73, "extra": null },
+      "team": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png" },
+      "player": { "id": 1485, "name": "Vinícius Júnior" },
+      "assist": { "id": 277, "name": "Rodrygo" },
+      "type": "subst",
+      "detail": "Substitution 1",
+      "comments": null
+    },
+    {
+      "time": { "elapsed": 80, "extra": 2 },
+      "team": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png" },
+      "player": { "id": 277, "name": "Rodrygo" },
+      "assist": { "id": null, "name": null },
+      "type": "Var",
+      "detail": "Goal cancelled",
+      "comments": "Offside"
+    },
+    {
+      "time": { "elapsed": 88, "extra": null },
+      "team": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png" },
+      "player": { "id": 999, "name": "Referee" },
+      "assist": { "id": null, "name": null },
+      "type": "Whistle",
+      "detail": "Cooling Break",
+      "comments": null
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+.DS_Store
+xcuserdata/
+*.log
+.env
+.dev.vars
+build/
+DerivedData/
+.build/
+*.zip

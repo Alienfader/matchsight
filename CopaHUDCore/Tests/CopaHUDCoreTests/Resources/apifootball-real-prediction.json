@@ -1,0 +1,45 @@
+{
+ "get": "predictions",
+ "parameters": {
+  "fixture": "1557450"
+ },
+ "errors": [],
+ "results": 1,
+ "paging": {
+  "current": 1,
+  "total": 1
+ },
+ "response": [
+  {
+   "predictions": {
+    "winner": {
+     "id": 49,
+     "name": "Chelsea",
+     "comment": "Win or draw"
+    },
+    "win_or_draw": true,
+    "under_over": null,
+    "goals": {
+     "home": "-3.5",
+     "away": "-2.5"
+    },
+    "advice": "Double chance : Chelsea or draw",
+    "percent": {
+     "home": "45%",
+     "draw": "45%",
+     "away": "10%"
+    }
+   },
+   "teams": {
+    "home": {
+     "id": 49,
+     "name": "Chelsea"
+    },
+    "away": {
+     "id": 33,
+     "name": "Manchester United"
+    }
+   }
+  }
+ ]
+}

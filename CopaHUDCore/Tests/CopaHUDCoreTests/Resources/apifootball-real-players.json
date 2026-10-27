@@ -1,0 +1,418 @@
+{
+ "get": "fixtures/players",
+ "parameters": {
+  "fixture": "1557446"
+ },
+ "errors": [],
+ "results": 2,
+ "paging": {
+  "current": 1,
+  "total": 1
+ },
+ "response": [
+  {
+   "team": {
+    "id": 746,
+    "name": "Sunderland",
+    "logo": "https://media.api-sports.io/football/teams/746.png",
+    "update": "2026-10-26T14:08:48+00:00"
+   },
+   "players": [
+    {
+     "player": {
+      "id": 194536,
+      "name": "Robin Roefs",
+      "photo": "https://media.api-sports.io/football/players/194536.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 90,
+        "number": 22,
+        "position": "G",
+        "rating": "7.5",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": null,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 3
+       },
+       "passes": {
+        "total": 22,
+        "key": null,
+        "accuracy": "11"
+       },
+       "tackles": {
+        "total": 0,
+        "blocks": 0,
+        "interceptions": 0
+       },
+       "duels": {
+        "total": 2,
+        "won": 2
+       },
+       "dribbles": {
+        "attempts": 0,
+        "success": 0,
+        "past": 0
+       },
+       "fouls": {
+        "drawn": 0,
+        "committed": 0
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": 0
+       }
+      }
+     ]
+    },
+    {
+     "player": {
+      "id": 119121,
+      "name": "Trai Hume",
+      "photo": "https://media.api-sports.io/football/players/119121.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 90,
+        "number": 32,
+        "position": "D",
+        "rating": "6.9",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": null,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 0
+       },
+       "passes": {
+        "total": 38,
+        "key": null,
+        "accuracy": "29"
+       },
+       "tackles": {
+        "total": 0,
+        "blocks": 0,
+        "interceptions": 1
+       },
+       "duels": {
+        "total": 7,
+        "won": 2
+       },
+       "dribbles": {
+        "attempts": 1,
+        "success": 0,
+        "past": 2
+       },
+       "fouls": {
+        "drawn": 0,
+        "committed": 2
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": null
+       }
+      }
+     ]
+    },
+    {
+     "player": {
+      "id": 1146,
+      "name": "Nordi Mukiele",
+      "photo": "https://media.api-sports.io/football/players/1146.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 52,
+        "number": 20,
+        "position": "D",
+        "rating": "7.2",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": 1,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 0
+       },
+       "passes": {
+        "total": 24,
+        "key": null,
+        "accuracy": "20"
+       },
+       "tackles": {
+        "total": 2,
+        "blocks": 0,
+        "interceptions": 2
+       },
+       "duels": {
+        "total": 4,
+        "won": 4
+       },
+       "dribbles": {
+        "attempts": 1,
+        "success": 1,
+        "past": 0
+       },
+       "fouls": {
+        "drawn": 0,
+        "committed": 0
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": null
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "team": {
+    "id": 63,
+    "name": "Leeds",
+    "logo": "https://media.api-sports.io/football/teams/63.png",
+    "update": "2026-10-26T14:08:48+00:00"
+   },
+   "players": [
+    {
+     "player": {
+      "id": 162489,
+      "name": "James Trafford",
+      "photo": "https://media.api-sports.io/football/players/162489.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 90,
+        "number": 1,
+        "position": "G",
+        "rating": "8.5",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": null,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 4
+       },
+       "passes": {
+        "total": 35,
+        "key": null,
+        "accuracy": "23"
+       },
+       "tackles": {
+        "total": 0,
+        "blocks": 0,
+        "interceptions": 0
+       },
+       "duels": {
+        "total": 1,
+        "won": 1
+       },
+       "dribbles": {
+        "attempts": 0,
+        "success": 0,
+        "past": 0
+       },
+       "fouls": {
+        "drawn": 0,
+        "committed": 0
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": 0
+       }
+      }
+     ]
+    },
+    {
+     "player": {
+      "id": 19760,
+      "name": "James Justin",
+      "photo": "https://media.api-sports.io/football/players/19760.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 90,
+        "number": 24,
+        "position": "D",
+        "rating": "7",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": 1,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 0
+       },
+       "passes": {
+        "total": 23,
+        "key": 1,
+        "accuracy": "16"
+       },
+       "tackles": {
+        "total": 2,
+        "blocks": 0,
+        "interceptions": 0
+       },
+       "duels": {
+        "total": 7,
+        "won": 5
+       },
+       "dribbles": {
+        "attempts": 1,
+        "success": 1,
+        "past": 1
+       },
+       "fouls": {
+        "drawn": 1,
+        "committed": 1
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": null
+       }
+      }
+     ]
+    },
+    {
+     "player": {
+      "id": 833,
+      "name": "Jaka Bijol",
+      "photo": "https://media.api-sports.io/football/players/833.png"
+     },
+     "statistics": [
+      {
+       "games": {
+        "minutes": 90,
+        "number": 15,
+        "position": "D",
+        "rating": "7.2",
+        "captain": false,
+        "substitute": false
+       },
+       "offsides": 0,
+       "shots": {
+        "total": null,
+        "on": 0
+       },
+       "goals": {
+        "total": 0,
+        "conceded": 0,
+        "assists": 0,
+        "saves": 0
+       },
+       "passes": {
+        "total": 43,
+        "key": null,
+        "accuracy": "33"
+       },
+       "tackles": {
+        "total": 2,
+        "blocks": 3,
+        "interceptions": 2
+       },
+       "duels": {
+        "total": 7,
+        "won": 5
+       },
+       "dribbles": {
+        "attempts": 0,
+        "success": 0,
+        "past": 0
+       },
+       "fouls": {
+        "drawn": 0,
+        "committed": 1
+       },
+       "cards": {
+        "yellow": 0,
+        "red": 0
+       },
+       "penalty": {
+        "won": 0,
+        "commited": 0,
+        "scored": 0,
+        "missed": 0,
+        "saved": null
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

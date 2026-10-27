@@ -1,0 +1,67 @@
+{
+  "get": "fixtures/lineups",
+  "parameters": { "fixture": "1001" },
+  "errors": [],
+  "results": 2,
+  "paging": { "current": 1, "total": 1 },
+  "response": [
+    {
+      "team": {
+        "id": 6,
+        "name": "Brazil",
+        "logo": "https://media.api-sports.io/football/teams/6.png",
+        "colors": {
+          "player": { "primary": "fbe909", "number": "1d3c95", "border": "fbe909" },
+          "goalkeeper": { "primary": "313b41", "number": "ffffff", "border": "313b41" }
+        }
+      },
+      "formation": "4-3-3",
+      "startXI": [
+        { "player": { "id": 251, "name": "Alisson", "number": 1, "pos": "G", "grid": "1:1" } },
+        { "player": { "id": 252, "name": "Danilo", "number": 2, "pos": "D", "grid": "2:4" } },
+        { "player": { "id": 253, "name": "Marquinhos", "number": 4, "pos": "D", "grid": "2:3" } },
+        { "player": { "id": 254, "name": "Gleison Bremer", "number": 3, "pos": "D", "grid": "2:2" } },
+        { "player": { "id": 255, "name": "Wendell", "number": 6, "pos": "D", "grid": "2:1" } },
+        { "player": { "id": 290, "name": "Casemiro", "number": 5, "pos": "M", "grid": "3:3" } },
+        { "player": { "id": 256, "name": "Bruno Guimarães", "number": 8, "pos": "M", "grid": "3:2" } },
+        { "player": { "id": 257, "name": "Lucas Paquetá", "number": 10, "pos": "M", "grid": "3:1" } },
+        { "player": { "id": 276, "name": "Raphinha", "number": 11, "pos": "F", "grid": "4:3" } },
+        { "player": { "id": 258, "name": "Endrick", "number": 9, "pos": "F", "grid": "4:2" } },
+        { "player": { "id": 1485, "name": "Vinícius Júnior", "number": 7, "pos": "F", "grid": "4:1" } }
+      ],
+      "substitutes": [
+        { "player": { "id": 277, "name": "Rodrygo", "number": 21, "pos": "F", "grid": null } }
+      ],
+      "coach": { "id": 30, "name": "Dorival Júnior", "photo": "https://media.api-sports.io/football/coachs/30.png" }
+    },
+    {
+      "team": {
+        "id": 26,
+        "name": "Argentina",
+        "logo": "https://media.api-sports.io/football/teams/26.png",
+        "colors": {
+          "player": { "primary": "6cabdd", "number": "ffffff", "border": "6cabdd" },
+          "goalkeeper": { "primary": "1d1d1d", "number": "ffffff", "border": "1d1d1d" }
+        }
+      },
+      "formation": "4-4-2",
+      "startXI": [
+        { "player": { "id": 150, "name": "Emiliano Martínez", "number": 23, "pos": "G", "grid": "1:1" } },
+        { "player": { "id": 151, "name": "Nahuel Molina", "number": 26, "pos": "D", "grid": "2:4" } },
+        { "player": { "id": 152, "name": "Cristian Romero", "number": 13, "pos": "D", "grid": "2:3" } },
+        { "player": { "id": 153, "name": "Nicolás Otamendi", "number": 19, "pos": "D", "grid": "2:2" } },
+        { "player": { "id": 155, "name": "Nicolás Tagliafico", "number": 3, "pos": "D", "grid": "2:1" } },
+        { "player": { "id": 200, "name": "Rodrigo De Paul", "number": 7, "pos": "M", "grid": "3:4" } },
+        { "player": { "id": 201, "name": "Enzo Fernández", "number": 24, "pos": "M", "grid": "3:3" } },
+        { "player": { "id": 202, "name": "Alexis Mac Allister", "number": 20, "pos": "M", "grid": "3:2" } },
+        { "player": { "id": 203, "name": "Giovani Lo Celso", "number": 18, "pos": "M", "grid": "3:1" } },
+        { "player": { "id": 154, "name": "Lionel Messi", "number": 10, "pos": "F", "grid": "4:2" } },
+        { "player": { "id": 156, "name": "Julián Álvarez", "number": 9, "pos": "F", "grid": "4:1" } }
+      ],
+      "substitutes": [
+        { "player": { "id": 157, "name": "Lautaro Martínez", "number": 22, "pos": "F", "grid": null } }
+      ],
+      "coach": { "id": 40, "name": "Lionel Scaloni", "photo": "https://media.api-sports.io/football/coachs/40.png" }
+    }
+  ]
+}

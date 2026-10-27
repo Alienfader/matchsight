@@ -1,0 +1,29 @@
+{
+  "get": "fixtures/statistics",
+  "parameters": { "fixture": "1001" },
+  "errors": [],
+  "results": 2,
+  "paging": { "current": 1, "total": 1 },
+  "response": [
+    {
+      "team": { "id": 6, "name": "Brazil", "logo": "https://media.api-sports.io/football/teams/6.png" },
+      "statistics": [
+        { "type": "Shots on Goal", "value": 5 },
+        { "type": "Total Shots", "value": 12 },
+        { "type": "Ball Possession", "value": "65%" },
+        { "type": "expected_goals", "value": "1.84" },
+        { "type": "Goalkeeper Saves", "value": null }
+      ]
+    },
+    {
+      "team": { "id": 26, "name": "Argentina", "logo": "https://media.api-sports.io/football/teams/26.png" },
+      "statistics": [
+        { "type": "Shots on Goal", "value": 3 },
+        { "type": "Total Shots", "value": 9 },
+        { "type": "Ball Possession", "value": "35%" },
+        { "type": "expected_goals", "value": null },
+        { "type": "Goalkeeper Saves", "value": 4 }
+      ]
+    }
+  ]
+}
