@@ -42,7 +42,7 @@ came during the World Cup.)
 
 ## Meta AI tooling
 
-- **Muse Spark (`muse-spark-1.3`) as a grounded analyst.** The phone turns the live match
+- **Muse Spark (`muse-spark-1.3`) as a grounded match assistant.** The phone turns the live match
   into numbered facts (`F1`, `F2`, …: score, events, lineups, formations, stats) and asks
   Muse Spark for one short insight under a strict JSON schema. Each answer must declare its
   basis (`observed`, `data_inference` or `general_tactics`) and cite the fact IDs it used.
@@ -62,7 +62,7 @@ came during the World Cup.)
 
 ## Honest by design
 
-- The analyst answers **only from match facts**; when the data can't answer, it says so.
+- The assistant answers **only from match facts**; when the data can't answer, it says so.
   The footer names the source (`Muse Spark · observed`, `Data only`, `Mock AI`).
 - Win probabilities are **API-Football's own pre-match prediction**, labelled as such.
 - **Demo mode** replays a scripted Arsenal v Chelsea match (real squads, invented events),
@@ -95,7 +95,7 @@ API-Football key. With a key, the app follows your clubs' real matches.
 - Xcode 26 with the Meta Wearables Device Access Toolkit 1.0.1 (Swift Package Manager).
 - An [API-Football](https://www.api-football.com/) key (entered in the app; stored in the
   iOS Keychain).
-- Optional, for the AI analyst: a Meta Model API key behind your own deployment of the
+- Optional, for voice Q&A and AI Insight: a Meta Model API key behind your own deployment of the
   Worker in `proxy/` (the app stores the Worker URL and app token in the Keychain).
 
 ## Build and test
@@ -117,7 +117,7 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 | Pinch (thumb + index) or swipe right | Next page / next player |
 | Swipe left | Previous |
 | Swipe up | Home (score capsule) |
-| Pinch and hold | Ask the analyst by voice |
+| Pinch and hold | Ask a question by voice |
 
 Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.
 
