@@ -103,6 +103,10 @@ Learned on real glasses:
 Turn on **Settings → Demo mode** to replay the scripted Arsenal v Chelsea match without an
 API-Football key. With a key, the app follows your clubs' real matches.
 
+Watching on TV? **Settings → TV delay** (0–60 s) holds the score, events and goal banners on
+the glasses so they never arrive before the broadcast shows the goal. The phone's Today list
+is not delayed.
+
 ## Requirements
 
 - iPhone with iOS 17+, Meta Ray-Ban Display glasses, the Meta AI app with Developer Mode on.

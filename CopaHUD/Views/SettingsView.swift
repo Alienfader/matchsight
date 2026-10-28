@@ -18,6 +18,7 @@ struct SettingsView: View {
   @State private var showProxyTokenSheet = false
   @State private var pastedProxyValue = ""
   @State private var takeover: Double = 8
+  @State private var tvDelay: Double = 0
   @State private var toastsEnabled = true
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
@@ -175,6 +176,31 @@ struct SettingsView: View {
               .padding(.vertical, 14)
             }
 
+            // TV delay
+            settingsGroup(
+              header: "Watching on TV",
+              footer: "Live data often arrives before the TV picture. Hold the score, events and goal banners on the glasses this long, so they never spoil what you are about to see."
+            ) {
+              VStack(spacing: 12) {
+                HStack {
+                  Text("TV delay")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white)
+                  Spacer()
+                  Text(tvDelay == 0 ? "Off" : "\(Int(tvDelay))s")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.cyan)
+                    .monospacedDigit()
+                }
+                Slider(value: $tvDelay, in: 0...60, step: 5) { editing in
+                  if !editing { appModel.setTVDelay(tvDelay) }
+                }
+                .tint(Color.actionBlue)
+              }
+              .padding(.horizontal, 12)
+              .padding(.vertical, 14)
+            }
+
             // Voice from the glasses
             settingsGroup(
               header: "Voice",
@@ -321,6 +347,7 @@ struct SettingsView: View {
 
   private func syncFromModel() {
     takeover = appModel.config.takeoverSeconds
+    tvDelay = appModel.tvDelaySeconds
     toastsEnabled = appModel.config.toastsEnabled
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode

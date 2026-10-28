@@ -54,6 +54,8 @@ final class AppModel {
   /// Keep the mic ready while the glasses are connected, so pinch-and-hold
   /// works with the phone locked (iOS shows the mic indicator meanwhile).
   private(set) var voiceReadyWhenLocked: Bool
+  /// Seconds the glasses wait so they never run ahead of the TV picture.
+  private(set) var tvDelaySeconds: Double
 
   // MARK: Bookkeeping
   @ObservationIgnored private var scheduleTask: Task<Void, Never>?
@@ -74,6 +76,17 @@ final class AppModel {
   @ObservationIgnored private var lastPrediction: WinProbability?
   @ObservationIgnored private var predictionFetched = Set<Int>()
   @ObservationIgnored private var lastFollowedPollOk: Date?
+  /// One followed-match poll, held back by the TV delay before it is shown.
+  private struct FollowedUpdate {
+    let fixtureId: Int
+    let snapshot: MatchSnapshot
+    let events: [MatchEvent]
+    let stats: MatchStats?
+    let playerStats: [Int: PlayerStats]?
+  }
+  @ObservationIgnored private var tvDelayLine = BroadcastDelay<FollowedUpdate>()
+  /// The latest polled status (ahead of the TV delay), for the poll interval.
+  @ObservationIgnored private var lastPolledStatus: MatchStatus?
 
   /// The fan's favourite clubs (team picker). Drives auto-follow and toasts.
   private(set) var favourites: [Team] = []
@@ -91,6 +104,8 @@ final class AppModel {
     self.config = cfg
     self.demoMode = demo
     self.voiceReadyWhenLocked = d.object(forKey: Keys.voiceReadyWhenLocked) as? Bool ?? true
+    self.tvDelaySeconds = d.double(forKey: Keys.tvDelaySeconds)
+    self.tvDelayLine = BroadcastDelay(seconds: d.double(forKey: Keys.tvDelaySeconds))
     self.composer = HUDComposer(config: cfg)
     self.feed = AppModel.makeFeed(demoMode: demo, apiKey: SecretsStore.apiFootballKey)
     self.insights = InsightCoordinator(service: AppModel.makeInsightService())
@@ -181,6 +196,7 @@ final class AppModel {
     // Data from the previous feed (e.g. the scripted demo match) must never
     // reach the analyst labelled as the new source — drop it and re-poll.
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    tvDelayLine.clear(); lastPolledStatus = nil
     analystReady = false
     if wasDemo || feed is MockFeed {
       // Into, out of, or restarting the scripted match: the followed fixture
@@ -225,6 +241,13 @@ final class AppModel {
     updateVoiceReadiness()
   }
 
+  func setTVDelay(_ value: Double) {
+    tvDelaySeconds = value
+    UserDefaults.standard.set(value, forKey: Keys.tvDelaySeconds)
+    tvDelayLine.seconds = value
+    Task { await deliverDueUpdates() }
+  }
+
   func setDemoMode(_ value: Bool) {
     demoMode = value
     UserDefaults.standard.set(value, forKey: Keys.demoMode)
@@ -254,6 +277,7 @@ final class AppModel {
     lineupsFetched.remove(fixtureId)
     halfTimeLineupRefreshed = false
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    tvDelayLine.clear(); lastPolledStatus = nil
     lastFollowedPollOk = nil
     analystReady = false
     insights.reset(fixtureId: fixtureId)
@@ -271,6 +295,7 @@ final class AppModel {
     followedFixtureId = nil
     followedTask?.cancel(); followedTask = nil
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    tvDelayLine.clear(); lastPolledStatus = nil
     analystReady = false
     insights.reset(fixtureId: nil)
   }
@@ -711,7 +736,7 @@ final class AppModel {
 
         // Stats for the stats deck page — served from the feed's 60s cache,
         // so this costs no extra API requests. Best-effort.
-        lastStats = (try? await feed.stats(fixtureId: id)) ?? lastStats
+        let freshStats = try? await feed.stats(fixtureId: id)
         // Player-card stats once the ball is rolling — the feed caches them
         // for 60 s, so at most one request a minute. Best-effort.
         let ballRolled = snap.elapsedMinutes != nil
@@ -728,32 +753,24 @@ final class AppModel {
         // the analyst about it) after the user switched.
         guard !Task.isCancelled, followedFixtureId == id else { break }
 
-        let moments = engine.ingestFollowed(snapshot: snap, events: events)
-        record(moments)
-        lastSnapshot = snap
-        analystReady = true
-        lastEvents = events
-        if let freshPlayerStats, !freshPlayerStats.isEmpty { playerStats = freshPlayerStats }
         if let freshPrediction { lastPrediction = freshPrediction }
+        lastPolledStatus = snap.status
         lastFollowedPollOk = Date()
         isStale = false
         clearBannerIfRecovered()
-
-        applyToComposer()
-        // Crest intro on the first poll of a newly followed match (the
-        // composer never repeats it for the same fixture).
-        composer.showMatchIntro(now: Date())
-        composer.enqueue(moments, now: Date())
-        glasses?.dbg("poll \(id): \(snap.status.rawValue) \(snap.elapsedMinutes.map { "\($0)'" } ?? "–") \(snap.score.home)-\(snap.score.away), \(events.count) events")
-        if let context = insightContext() { insights.contextChanged(context) }
-        await renderNow()
+        glasses?.dbg("poll \(id): \(snap.status.rawValue) \(snap.elapsedMinutes.map { "\($0)'" } ?? "–") \(snap.score.home)-\(snap.score.away), \(events.count) events"
+                     + (tvDelaySeconds > 0 ? " (shown after \(Int(tvDelaySeconds)) s TV delay)" : ""))
+        // Score, events and stats wait out the TV delay (none by default).
+        tvDelayLine.push(FollowedUpdate(fixtureId: id, snapshot: snap, events: events,
+                                        stats: freshStats, playerStats: freshPlayerStats), at: Date())
+        await deliverDueUpdates()
       } catch let e as FeedError {
         banner = e   // glasses stay on last frame; phone shows the banner
       } catch {
         // transient network: silent retry; staleness surfaces via the tick loop
       }
 
-      let status = lastSnapshot?.status ?? .notStarted
+      let status = lastPolledStatus ?? .notStarted
       // followedInterval is nil pre-kickoff/finished; poll at 60s until kickoff,
       // and stop entirely once the match is over (finished, abandoned, postponed…).
       let interval = PollPlanner.followedInterval(status: status)
@@ -761,6 +778,29 @@ final class AppModel {
       guard let interval else { break }
       try? await Task.sleep(for: .seconds(interval))
     }
+  }
+
+  /// Shows the followed-match polls whose TV delay is over, oldest first.
+  /// Called after each poll and by the 1 Hz tick.
+  private func deliverDueUpdates() async {
+    let due = tvDelayLine.due(now: Date())
+    guard !due.isEmpty else { return }
+    for update in due where update.fixtureId == followedFixtureId {
+      let moments = engine.ingestFollowed(snapshot: update.snapshot, events: update.events)
+      record(moments)
+      lastSnapshot = update.snapshot
+      analystReady = true
+      lastEvents = update.events
+      lastStats = update.stats ?? lastStats
+      if let fresh = update.playerStats, !fresh.isEmpty { playerStats = fresh }
+      applyToComposer()
+      // Crest intro on the first poll of a newly followed match (the
+      // composer never repeats it for the same fixture).
+      composer.showMatchIntro(now: Date())
+      composer.enqueue(moments, now: Date())
+    }
+    if let context = insightContext() { insights.contextChanged(context) }
+    await renderNow()
   }
 
   private func runOthersLoop() async {
@@ -813,6 +853,7 @@ final class AppModel {
     while !Task.isCancelled {
       let now = Date()
       updateStaleness(now: now)
+      await deliverDueUpdates()
       composer.tick(now: now)
       let f = composer.frame(now: now)
       if f != frame {
@@ -890,6 +931,7 @@ final class AppModel {
     static let toastsEnabled = "toastsEnabled"
     static let demoMode = "demoMode"
     static let voiceReadyWhenLocked = "voiceReadyWhenLocked"
+    static let tvDelaySeconds = "tvDelaySeconds"
   }
 }
 
