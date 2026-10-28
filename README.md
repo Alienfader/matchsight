@@ -102,7 +102,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 381 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 393 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
