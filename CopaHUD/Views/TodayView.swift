@@ -4,7 +4,7 @@ import CopaHUDCore
 /// Today's fixtures: hero card for the followed/first-live match, LIVE NOW
 /// section for remaining live matches, then "My teams" (fixtures involving a
 /// favourite) and the rest grouped by competition — Premier League, then
-/// Champions League. Tap any row to follow it — the followed match drives the
+/// Champions League, then DFB-Pokal. Tap any row to follow it — the followed match drives the
 /// HUD on the glasses (and wins over auto-follow until it ends).
 struct TodayView: View {
   @Bindable var glasses: GlassesViewModel
@@ -331,7 +331,7 @@ struct TodayView: View {
       buckets[label, default: []].append(fixture)
     }
     // Favourites' fixtures get their own pinned group; competitions follow in
-    // Premier League → Champions League → anything else order.
+    // Premier League → Champions League → DFB-Pokal → anything else order.
     let favourites = Set(appModel.favourites.map(\.id))
     let mine = sorted.filter {
       (favourites.contains($0.home.id) || favourites.contains($0.away.id))
@@ -340,7 +340,8 @@ struct TodayView: View {
     func rank(_ label: String) -> Int {
       if label.localizedCaseInsensitiveContains("premier league") { return 0 }
       if label.localizedCaseInsensitiveContains("champions league") { return 1 }
-      return 2
+      if label.localizedCaseInsensitiveContains("pokal") { return 2 }
+      return 3
     }
     let mineIds = Set(mine.map(\.id))
     var groups = order.enumerated()

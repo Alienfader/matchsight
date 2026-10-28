@@ -140,6 +140,30 @@ final class InsightCoordinatorTests: XCTestCase {
     XCTAssertEqual(c.state, .idle)
   }
 
+  func testSpokenAskShowsTheQuestionWhileThinkingThenWithTheAnswer() async {
+    let c = coordinator(ScriptedService([.answer("TIMBER", delay: .milliseconds(50))]))
+    c.ask(.spoken("who is Timber?"), context: context(scripted: true))
+    XCTAssertEqual(c.state.hudContent,
+                   InsightContent(title: "Thinking…", body: "", footer: "Muse Spark · scripted",
+                                  question: "who is Timber?"))
+    await c.currentTask?.value
+    XCTAssertEqual(c.state.hudContent?.title, "TIMBER")
+    XCTAssertEqual(c.state.hudContent?.question, "who is Timber?")
+    XCTAssertEqual(c.state.hudContent?.footer, "Muse Spark · inferred · scripted")
+  }
+
+  func testPresetAndAutoAnswersHaveNoQuestionLine() async {
+    let c = coordinator(ScriptedService())
+    c.ask(.spoken("who scored?"), context: context())
+    await c.currentTask?.value
+    c.ask(.formation, context: context(home: 2))
+    // A preset in flight keeps the spoken answer on screen, marked updating.
+    XCTAssertEqual(c.state.hudContent?.question, "who scored?")
+    XCTAssertEqual(c.state.hudContent?.footer, "Muse Spark · inferred · updating…")
+    await c.currentTask?.value
+    XCTAssertNil(c.state.hudContent?.question)
+  }
+
   func testSetServiceClearsCache() async {
     let c = coordinator(ScriptedService([.answer("OLD")]))
     c.ask(.formation, context: context())

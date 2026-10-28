@@ -4,6 +4,8 @@ import Foundation
 public struct InsightState: Sendable, Equatable {
   public var insight: MatchInsight?
   public var question: InsightQuestion?
+  /// The question in flight while `isUpdating` (nil when idle).
+  public var asking: InsightQuestion?
   /// A request is in flight (the glasses footer shows "updating…").
   public var isUpdating: Bool
   /// Why the last answer fell back to the template; phone-only detail.
@@ -15,17 +17,24 @@ public struct InsightState: Sendable, Equatable {
                                         lastError: nil, isScripted: false)
 
   public init(insight: MatchInsight?, question: InsightQuestion?, isUpdating: Bool,
-              lastError: InsightError?, isScripted: Bool) {
+              lastError: InsightError?, isScripted: Bool, asking: InsightQuestion? = nil) {
     self.insight = insight
     self.question = question
+    self.asking = asking
     self.isUpdating = isUpdating
     self.lastError = lastError
     self.isScripted = isScripted
   }
 
   /// The glasses page content, or nil before the first insight ("warming up").
-  /// Footer says honestly where the words came from.
+  /// Footer says honestly where the words came from. A spoken question in
+  /// flight shows the transcript and "Thinking…" until the answer lands.
   public var hudContent: InsightContent? {
+    if isUpdating, case let .spoken(text)? = asking {
+      return InsightContent(title: "Thinking…", body: "",
+                            footer: (["Muse Spark"] + (isScripted ? ["scripted"] : [])).joined(separator: " · "),
+                            question: text)
+    }
     guard let insight else { return nil }
     var parts: [String]
     switch insight.source {
@@ -35,8 +44,10 @@ public struct InsightState: Sendable, Equatable {
     }
     if isScripted { parts.append("scripted") }
     if isUpdating { parts.append("updating…") }
+    var spoken: String?
+    if case let .spoken(text)? = question { spoken = text }
     return InsightContent(title: insight.title, body: insight.body,
-                          footer: parts.joined(separator: " · "))
+                          footer: parts.joined(separator: " · "), question: spoken)
   }
 
   private static func basisLabel(_ basis: InsightBasis) -> String {
@@ -86,6 +97,7 @@ public final class InsightCoordinator {
     scheduler.reset()
     if state.isUpdating || state.lastError == .unauthorized {
       state.isUpdating = false
+      state.asking = nil
       state.lastError = nil
       publish()
     }
@@ -116,6 +128,7 @@ public final class InsightCoordinator {
       state.insight = cached
       state.question = question
       state.isUpdating = false
+      state.asking = nil
       state.lastError = nil
       state.isScripted = context.isScripted
       publish()
@@ -148,6 +161,7 @@ public final class InsightCoordinator {
     generation += 1
     let gen = generation
     state.isUpdating = true
+    state.asking = question
     state.isScripted = context.isScripted
     publish()
 
@@ -174,6 +188,7 @@ public final class InsightCoordinator {
       state.lastError = nil
     case .failure(let error) where error is CancellationError:
       state.isUpdating = false
+      state.asking = nil
       publish()
       return
     case .failure(let error):
@@ -183,6 +198,7 @@ public final class InsightCoordinator {
     }
     state.question = question
     state.isUpdating = false
+    state.asking = nil
     publish()
   }
 

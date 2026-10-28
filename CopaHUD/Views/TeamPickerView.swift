@@ -9,10 +9,22 @@ struct TeamPickerView: View {
   var onDone: () -> Void
 
   private enum League: Int, CaseIterable, Identifiable {
-    case premierLeague, championsLeague
+    case premierLeague, championsLeague, germanCup
     var id: Int { rawValue }
-    var title: String { self == .premierLeague ? "Premier League" : "Champions League" }
-    var apiId: Int { self == .premierLeague ? ApiFootballFeed.premierLeague : ApiFootballFeed.championsLeague }
+    var title: String {
+      switch self {
+      case .premierLeague: return "Premier League"
+      case .championsLeague: return "Champions League"
+      case .germanCup: return "DFB-Pokal"
+      }
+    }
+    var apiId: Int {
+      switch self {
+      case .premierLeague: return ApiFootballFeed.premierLeague
+      case .championsLeague: return ApiFootballFeed.championsLeague
+      case .germanCup: return ApiFootballFeed.germanCup
+      }
+    }
   }
 
   @State private var league: League = .premierLeague

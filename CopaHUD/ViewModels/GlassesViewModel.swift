@@ -120,9 +120,26 @@ final class GlassesViewModel {
     } while renderPending
   }
 
+  /// "card Saka detail", "insight", … for the debug log: what the glasses got.
+  private static func pageName(_ frame: HUDFrame) -> String {
+    switch frame.body {
+    case .panel: return "panel"
+    case .insight: return "insight"
+    case .events: return "events"
+    case .lineup: return "XI board"
+    case let .playerCard(c): return "card \(c.lastName)\(c.isDetail ? " detail" : "")"
+    case .stats: return "stats"
+    case .otherLive: return "other live"
+    case .takeover: return "takeover"
+    case .intro: return "intro"
+    case .message: return "message"
+    }
+  }
+
   private func send(_ frame: HUDFrame, to display: Display) async {
     do {
       if let picture = picture(for: frame) {
+        dbg("render: \(Self.pageName(frame))")
         // Phone-drawn page: one picture, with the same single whole-card tap
         // target as HUDBuilder (the fallback when Inputs is unavailable).
         try await display.send(MWDATDisplay.FlexBox(direction: .column) {
@@ -227,7 +244,7 @@ final class GlassesViewModel {
     switch frame.body {
     case let .panel(p):
       remoteImages.prefetch([p.homeCrestURL, p.awayCrestURL], onLoad: redraw)
-      return ImageHUD.scorePanel(p, toast: frame.toast,
+      return ImageHUD.scorePanel(p, toast: frame.toast, deck: frame.deck,
                                  homeCrest: remoteImages.image(p.homeCrestURL),
                                  awayCrest: remoteImages.image(p.awayCrestURL))
     case let .playerCard(card):
@@ -241,21 +258,23 @@ final class GlassesViewModel {
         let heat = appModel.isScripted ? spot.map { SimulatedHeat.points(for: $0) } : nil
         return ImageHUD.playerDetail(player: player, photo: player.playerId.flatMap(photos),
                                      stats: player.playerId.flatMap { appModel.playerStats[$0] },
-                                     spot: spot, heat: heat,
-                                     teamLine: card.teamLine, counter: card.counter, toast: frame.toast)
+                                     spot: spot, heat: heat, scripted: appModel.isScripted,
+                                     teamLine: card.teamLine, counter: card.counter, toast: frame.toast,
+                                     deck: frame.deck)
       }
       return ImageHUD.carousel(xi: xi, index: index, teamLine: card.teamLine, counter: card.counter,
-                               toast: frame.toast, photos: photos, stats: appModel.playerStats)
+                               toast: frame.toast, deck: frame.deck, photos: photos, stats: appModel.playerStats)
     case let .insight(c):
-      return ImageHUD.insight(c, toast: frame.toast, score: score)
+      return ImageHUD.insight(c, toast: frame.toast, score: score, deck: frame.deck)
     case let .events(title, lines), let .stats(title, lines), let .otherLive(title, lines):
-      return ImageHUD.list(title: title, lines: lines, toast: frame.toast, score: score)
+      return ImageHUD.list(title: title, lines: lines, toast: frame.toast, score: score,
+                           deck: frame.deck)
     case let .lineup(c):
       let xi = appModel?.currentXI
       let crestURL = appModel?.currentXITeam.flatMap { TeamStyle.style(for: $0).crestURL }
       remoteImages.prefetch([crestURL] + (xi ?? []).map { $0.playerId.flatMap(photoURL) }, onLoad: redraw)
       return ImageHUD.roster(c, xi: xi, crest: remoteImages.image(crestURL), photos: photos,
-                             stats: appModel?.playerStats ?? [:], toast: frame.toast)
+                             stats: appModel?.playerStats ?? [:], toast: frame.toast, deck: frame.deck)
     case let .takeover(t):
       let url = t.imageURL.flatMap(URL.init(string:))
       remoteImages.prefetch([url], onLoad: redraw)
@@ -265,7 +284,7 @@ final class GlassesViewModel {
       return ImageHUD.intro(i, homeCrest: remoteImages.image(i.homeCrestURL),
                             awayCrest: remoteImages.image(i.awayCrestURL))
     case let .message(text):
-      return ImageHUD.message(text, toast: frame.toast, score: score)
+      return ImageHUD.message(text, toast: frame.toast, score: score, deck: frame.deck)
     }
   }
 

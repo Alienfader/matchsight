@@ -312,4 +312,13 @@ public final class MockFeed: MatchFeed, @unchecked Sendable {
     return MatchStats(home: side(goals: frame.score.home, lean: possession),
                       away: side(goals: frame.score.away, lean: 100 - possession))
   }
+
+  /// Scripted per-player figures for the detail card (see ScriptedPlayerStats).
+  public func playerStats(fixtureId: Int) async throws -> [Int: PlayerStats] {
+    guard fixtureId == script.fixture.id,
+          let frame = currentKeyframe(script.keyframes) else { return [:] }
+    return ScriptedPlayerStats.make(lineups: script.lineups.map { $0.toLineup(fixtureId: fixtureId) },
+                                    events: frame.events.map { $0.toEvent(fixtureId: fixtureId) },
+                                    elapsed: frame.elapsed ?? 0)
+  }
 }

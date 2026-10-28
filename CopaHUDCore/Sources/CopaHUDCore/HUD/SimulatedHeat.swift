@@ -34,7 +34,7 @@ public enum SimulatedHeat {
 }
 
 /// SplitMix64: tiny, deterministic across runs and platforms.
-private struct SeededGenerator {
+struct SeededGenerator {
   private var state: UInt64
   init(seed: UInt64) { state = seed }
 

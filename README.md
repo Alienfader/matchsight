@@ -2,7 +2,7 @@
 
 Your team's live match, floating in front of you on **Meta Ray-Ban Display** glasses.
 
-Pick your Premier League and Champions League clubs once. When one of them plays,
+Pick your Premier League, Champions League and DFB-Pokal clubs once. When one of them plays,
 Matchsight follows the match automatically and shows it in a frosted, cyan-to-lavender
 glass style: the score capsule with the event timeline, goal / red-card / VAR
 celebrations, a stacked starting-XI card carousel with live player stats, and a line-art
@@ -56,7 +56,9 @@ came during the World Cup.)
   hold on the Neural Band records up to 15 s of 16 kHz audio; the transcript (up to 200
   characters) goes to Muse Spark. Spoken answers about the match must cite at least one fact;
   a general question no fact covers ("Where is Chelsea from?") may be answered from Muse
-  Spark's general knowledge, uncited and labelled `general knowledge` on the glasses.
+  Spark's general knowledge, uncited and labelled `general knowledge` on the glasses. The
+  glasses show each step: listening, transcribing, the question as heard with "Thinking…",
+  then the answer under the question.
 - **Cost-aware scheduling.** Insights refresh automatically as the match changes, but
   unchanged data never re-asks the model (up to 10 minutes), a burst of events waits at
   least 30 s, and repeat questions on unchanged data are answered from a cache.
@@ -76,6 +78,9 @@ came during the World Cup.)
 - The player card's heat map is **simulated, in demo mode only**, and labelled `SIMULATED`
   on the glasses: API-Football has no positional data, so a real match shows only the
   player's formation spot. The model never sees the heat map.
+- In demo mode the player detail card's figures are **scripted** and marked `scripted`:
+  goals, assists, cards and minutes follow the script's events; the other counts are
+  invented, scaled by minutes played and position. The model never sees them.
 
 ## Engineering notes
 
@@ -90,7 +95,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 355 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 366 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -131,6 +136,10 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 | Pinch and hold | Ask a question by voice |
 
 Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.
+
+Dots along the bottom of each page show where you are in the deck, and the current dot
+lights up cyan for a moment whenever a gesture reaches the app. If a swipe doesn't light it,
+the band didn't send it: swipe again, or pinch, which moves through every page.
 
 ## Data and trademarks
 

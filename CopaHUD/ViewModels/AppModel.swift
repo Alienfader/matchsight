@@ -118,8 +118,9 @@ final class AppModel {
 
   // MARK: - Feed selection
 
-  /// Matchsight polls the Premier League and the Champions League only.
-  static let leagueIds = [ApiFootballFeed.premierLeague, ApiFootballFeed.championsLeague]
+  /// Matchsight polls the Premier League, the Champions League and the DFB-Pokal.
+  static let leagueIds = [ApiFootballFeed.premierLeague, ApiFootballFeed.championsLeague,
+                          ApiFootballFeed.germanCup]
 
   static func makeFeed(demoMode: Bool, apiKey: String?) -> any MatchFeed {
     if !demoMode, let key = apiKey, !key.isEmpty {
@@ -295,21 +296,39 @@ final class AppModel {
   /// Ask by voice: Muse Voice Transcribe (biased toward this match's names)
   /// turns the recording into text, then Muse Spark answers it like a preset.
   func askByVoice(wav: Data) {
-    guard let transcriber else { voiceLog("no transcriber"); voiceStatus = "Voice needs Meta AI (Settings)"; return }
-    guard analystReady else { voiceLog("no match data yet"); voiceStatus = "Waiting for match data…"; return }
+    guard let transcriber else {
+      voiceLog("no transcriber"); voiceStatus = "Voice needs Meta AI (Settings)"
+      flashListening("🎙 Voice needs Meta AI (Settings)"); return
+    }
+    guard analystReady else {
+      voiceLog("no match data yet"); voiceStatus = "Waiting for match data…"
+      flashListening("🎙 Waiting for match data…"); return
+    }
     voiceStatus = "Transcribing…"
+    // The glasses show each step: Transcribing… → the question with
+    // "Thinking…" on the insight page → the answer.
+    setListening("🎙 Transcribing…")
+    composer.showInsightPage()
+    Task { await renderNow() }
     let keywords = voiceKeywords()
     Task { [weak self] in
       do {
         let text = try await transcriber.transcribe(wav: wav, keywords: keywords)
         guard let self else { return }
-        guard !text.isEmpty else { self.voiceLog("empty transcript"); self.voiceStatus = "Didn't catch that"; return }
+        guard !text.isEmpty else {
+          self.voiceLog("empty transcript"); self.voiceStatus = "Didn't catch that"
+          self.flashListening("🎙 Didn't catch that. Hold and ask again", seconds: 3)
+          return
+        }
         self.voiceLog("heard \"\(text)\"")
         self.voiceStatus = "Heard: \u{201C}\(text)\u{201D}"
+        self.setListening(nil)
         self.askAnalyst(.spoken(text))
       } catch {
-        self?.voiceLog("transcribe failed: \(error)")
-        self?.voiceStatus = "Couldn't transcribe (\(AppModel.describe(error)))"
+        guard let self else { return }
+        self.voiceLog("transcribe failed: \(error)")
+        self.voiceStatus = "Couldn't transcribe (\(AppModel.describe(error)))"
+        self.flashListening("🎙 Couldn't hear the question (\(AppModel.describe(error)))", seconds: 3)
       }
     }
   }
@@ -377,7 +396,11 @@ final class AppModel {
 
   /// Released: stop, transcribe and ask (the answer lands on the insight page).
   func voiceHoldEnded() async {
-    guard let wav = await finishVoiceCapture() else { voiceLog("nothing captured"); return }
+    guard let wav = await finishVoiceCapture() else {
+      voiceLog("nothing captured")
+      if recorder.lastError == nil { flashListening("🎙 Didn't hear anything. Hold and ask again", seconds: 3) }
+      return
+    }
     voiceLog("captured \(wav.count) bytes")
     askByVoice(wav: wav)
   }
@@ -448,13 +471,13 @@ final class AppModel {
     composer.setListening(text)
   }
 
-  /// Shows a short push-to-talk message on the glasses for 2 s.
-  private func flashListening(_ text: String) {
+  /// Shows a short push-to-talk message on the glasses (2 s by default).
+  private func flashListening(_ text: String, seconds: Int = 2) {
     setListening(text)
     let token = listeningToken
     Task { [weak self] in
       await self?.renderNow()
-      try? await Task.sleep(for: .seconds(2))
+      try? await Task.sleep(for: .seconds(seconds))
       guard let self, self.listeningToken == token else { return }
       self.setListening(nil)
       await self.renderNow()

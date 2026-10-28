@@ -17,7 +17,7 @@ import CopaHUDCore
 enum ImageHUD {
   static let renderScale: CGFloat = 0.6
 
-  @MainActor static func scorePanel(_ p: PanelContent, toast: String?,
+  @MainActor static func scorePanel(_ p: PanelContent, toast: String?, deck: DeckPosition?,
                                     homeCrest: UIImage?, awayCrest: UIImage?) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
       if p.isPreMatch {
@@ -25,44 +25,47 @@ enum ImageHUD {
       } else {
         LiveScoreCapsule(p: p, homeCrest: homeCrest, awayCrest: awayCrest)
       }
-    })
+    }, deck: deck)
   }
 
   @MainActor static func carousel(xi: [LineupPlayer], index: Int, teamLine: String,
-                                  counter: String, toast: String?,
+                                  counter: String, toast: String?, deck: DeckPosition?,
                                   photos: @escaping (Int) -> UIImage?, stats: [Int: PlayerStats]) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
       PlayerCardStack(xi: xi, index: index, teamLine: teamLine, counter: counter,
                       photos: photos, stats: stats)
-    })
+    }, deck: deck)
   }
 
   @MainActor static func playerDetail(player: LineupPlayer, photo: UIImage?, stats: PlayerStats?,
-                                      spot: FormationSpot?, heat: [HeatPoint]?,
-                                      teamLine: String, counter: String, toast: String?) -> UIImage? {
+                                      spot: FormationSpot?, heat: [HeatPoint]?, scripted: Bool,
+                                      teamLine: String, counter: String, toast: String?,
+                                      deck: DeckPosition?) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
       PlayerDetailPage(player: player, photo: photo, stats: stats, spot: spot, heat: heat,
-                       teamLine: teamLine, counter: counter)
-    })
+                       scripted: scripted, teamLine: teamLine, counter: counter)
+    }, deck: deck)
   }
 
-  @MainActor static func insight(_ c: InsightContent, toast: String?, score: CompactScore?) -> UIImage? {
-    render(PageFrame(toast: toast, score: score) { InsightPage(c: c) })
+  @MainActor static func insight(_ c: InsightContent, toast: String?, score: CompactScore?,
+                                 deck: DeckPosition?) -> UIImage? {
+    render(PageFrame(toast: toast, score: score) { InsightPage(c: c) }, deck: deck)
   }
 
   /// Events, Stats and Other Live: a titled list of pre-formatted lines.
-  @MainActor static func list(title: String, lines: [String], toast: String?, score: CompactScore?) -> UIImage? {
-    render(PageFrame(toast: toast, score: score) { ListPage(title: title, lines: lines) })
+  @MainActor static func list(title: String, lines: [String], toast: String?, score: CompactScore?,
+                              deck: DeckPosition?) -> UIImage? {
+    render(PageFrame(toast: toast, score: score) { ListPage(title: title, lines: lines) }, deck: deck)
   }
 
   /// The STARTING XI board (first card of a lineup page): the formation when
   /// the XI is known, else the text rows ("lineup not available").
   @MainActor static func roster(_ c: LineupContent, xi: [LineupPlayer]?, crest: UIImage?,
                                 photos: @escaping (Int) -> UIImage?, stats: [Int: PlayerStats],
-                                toast: String?) -> UIImage? {
+                                toast: String?, deck: DeckPosition?) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
       FormationBoard(c: c, xi: xi, crest: crest, photos: photos, stats: stats)
-    })
+    }, deck: deck)
   }
 
   @MainActor static func takeover(_ t: TakeoverContent, photo: UIImage?, score: CompactScore?) -> UIImage? {
@@ -78,12 +81,16 @@ enum ImageHUD {
     })
   }
 
-  @MainActor static func message(_ text: String, toast: String?, score: CompactScore?) -> UIImage? {
-    render(PageFrame(toast: toast, score: score) { MessagePage(text: text) })
+  @MainActor static func message(_ text: String, toast: String?, score: CompactScore?,
+                                 deck: DeckPosition?) -> UIImage? {
+    render(PageFrame(toast: toast, score: score) { MessagePage(text: text) }, deck: deck)
   }
 
-  @MainActor private static func render(_ view: some View) -> UIImage? {
-    let r = ImageRenderer(content: view.frame(width: 600, height: 600).background(.black))
+  /// Deck pages carry the page dots along the bottom edge.
+  @MainActor private static func render(_ view: some View, deck: DeckPosition? = nil) -> UIImage? {
+    let page = view.frame(width: 600, height: 600)
+      .overlay(alignment: .bottom) { if let deck { PageDots(deck: deck).padding(.bottom, 8) } }
+    let r = ImageRenderer(content: page.background(.black))
     r.scale = renderScale
     return r.uiImage
   }
@@ -246,6 +253,27 @@ private struct PageFrame<Content: View>: View {
     }
     .foregroundStyle(.white)
     .padding(.horizontal, 22)
+  }
+}
+
+/// One dot per deck page, the current one a wider bar. Every gesture that
+/// reaches the app lights the bar cyan for a moment, so a swipe the band
+/// never sent reads as "try again", not "broken".
+private struct PageDots: View {
+  let deck: DeckPosition
+
+  var body: some View {
+    HStack(spacing: 9) {
+      ForEach(0..<deck.count, id: \.self) { i in
+        if i == deck.index {
+          Capsule().fill(deck.pulse ? Palette.cyan : .white)
+            .frame(width: 26, height: 9)
+            .shadow(color: deck.pulse ? Palette.cyan : .clear, radius: 6)
+        } else {
+          Circle().fill(.white.opacity(0.45)).frame(width: 9, height: 9)
+        }
+      }
+    }
   }
 }
 
@@ -676,6 +704,8 @@ private struct PlayerDetailPage: View {
   let stats: PlayerStats?
   let spot: FormationSpot?
   let heat: [HeatPoint]?
+  /// Demo mode: the figures are scripted, and the card says so.
+  let scripted: Bool
   let teamLine: String
   let counter: String
 
@@ -712,7 +742,9 @@ private struct PlayerDetailPage: View {
             .lineLimit(1).minimumScaleFactor(0.5)
           Text(subtitle).font(.system(size: 19, weight: .semibold)).opacity(0.8)
           if let summary = HUDFormat.playerSummary(stats) {
-            Text(summary).font(.system(size: 19, weight: .bold)).foregroundStyle(Palette.sky)
+            Text(scripted ? "\(summary) · scripted" : summary)
+              .font(.system(size: 19, weight: .bold)).foregroundStyle(Palette.sky)
+              .lineLimit(1).minimumScaleFactor(0.7)
           }
         }
         Spacer(minLength: 0)
@@ -723,12 +755,14 @@ private struct PlayerDetailPage: View {
           .font(.system(size: 22, weight: .medium)).opacity(0.75)
           .frame(maxWidth: .infinity, alignment: .center).padding(.vertical, 24)
       } else {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible())],
+        // Three columns: a full outfield card (nine figures) is three rows,
+        // so the card stays inside the frame with the page dots below it.
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3),
                   alignment: .leading, spacing: 10) {
           ForEach(rows, id: \.label) { row in
             VStack(alignment: .leading, spacing: 0) {
               Text(row.value).font(.system(size: 24, weight: .bold))
-                .lineLimit(1).minimumScaleFactor(0.6)
+                .lineLimit(1).minimumScaleFactor(0.55)
               Text(row.label.uppercased()).font(.system(size: 13, weight: .semibold)).opacity(0.75)
             }
           }
@@ -1017,13 +1051,21 @@ private struct InsightPage: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
+      // The transcript, so the fan sees what was heard before the answer.
+      if let question = c.question {
+        Text("\u{201C}\(question)\u{201D}")
+          .font(.system(size: 22, weight: .semibold)).opacity(0.8)
+          .lineLimit(2).minimumScaleFactor(0.7)
+      }
       CardTitle(icon: "sparkles", title: c.title)
       // Bodies are ≤ 150 characters (MatchInsight.maxBody): about six
       // lines at 34 pt, so the shrink is only a safety margin.
-      Text(c.body)
-        .font(.system(size: 34, weight: .medium))
-        .lineSpacing(2).minimumScaleFactor(0.85)
-        .fixedSize(horizontal: false, vertical: true)
+      if !c.body.isEmpty {
+        Text(c.body)
+          .font(.system(size: 34, weight: .medium))
+          .lineSpacing(2).minimumScaleFactor(0.85)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       Text(c.footer)
         .font(.system(size: 18, weight: .semibold))
         .padding(.horizontal, 12).padding(.vertical, 5)

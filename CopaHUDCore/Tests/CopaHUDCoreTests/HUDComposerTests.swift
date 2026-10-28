@@ -258,6 +258,39 @@ final class HUDComposerTests: XCTestCase {
     guard case .panel = c.frame(now: t0).body else { return XCTFail("expected panel from index card") }
   }
 
+  // MARK: page dots
+
+  func testFrameCarriesDeckPosition() {
+    var c = loaded()
+    XCTAssertEqual(c.frame(now: t0).deck, DeckPosition(index: 0, count: 7, pulse: false))
+    c.handleTapBurst(count: 1, now: t0)
+    XCTAssertEqual(c.frame(now: t0).deck, DeckPosition(index: 1, count: 7, pulse: true))
+    c.handle(.insight, now: t0)
+    XCTAssertEqual(c.frame(now: t0).deck?.index, 1)
+    c.handle(.home, now: t0)
+    XCTAssertEqual(c.frame(now: t0).deck?.index, 0)
+  }
+
+  func testEveryGesturePulsesTheDotsBriefly() {
+    for input: HUDInput in [.next, .previous, .home, .insight, .select] {
+      var c = loaded()
+      c.handle(input, now: t0)
+      XCTAssertEqual(c.frame(now: t0.addingTimeInterval(0.5)).deck?.pulse, true, "\(input)")
+      XCTAssertEqual(c.frame(now: t0.addingTimeInterval(HUDComposer.inputPulse + 0.1)).deck?.pulse,
+                     false, "\(input)")
+    }
+  }
+
+  func testTakeoverAndIntroHideTheDots() {
+    var c = loaded()
+    c.showMatchIntro(now: t0)
+    XCTAssertNil(c.frame(now: t0).deck)
+    c.handle(.next, now: t0)   // dismisses the intro
+    XCTAssertNotNil(c.frame(now: t0).deck)
+    c.enqueue([goalMoment()], now: t0)
+    XCTAssertNil(c.frame(now: t0).deck)
+  }
+
   // MARK: AI insight page
 
   func testInsightPageIsOnePinchFromPanel() {

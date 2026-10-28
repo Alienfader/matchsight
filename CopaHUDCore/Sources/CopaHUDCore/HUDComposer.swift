@@ -51,6 +51,11 @@ public struct HUDComposer: Sendable {
   private var insight: InsightContent?
   /// Push-to-talk banner ("🎙 Listening…"); overrides the toast while set.
   private var listening: String?
+  /// Last Neural Band gesture, for the page dots' pulse.
+  private var lastInputAt: Date?
+
+  /// How long the page dots stay lit after a gesture.
+  public static let inputPulse: TimeInterval = 0.8
 
   // Clock interpolation.
   private var followedReceivedAt: Date = .distantPast
@@ -224,6 +229,7 @@ public struct HUDComposer: Sendable {
   public mutating func handle(_ input: HUDInput, now: Date) {
     // Any gesture dismisses the intro and acts as usual.
     dismissIntro()
+    lastInputAt = now
     switch input {
     case .next:
       handleTapBurst(count: 1, now: now)
@@ -270,6 +276,7 @@ public struct HUDComposer: Sendable {
   /// 350ms window on the phone side).
   public mutating func handleTapBurst(count: Int, now: Date) {
     guard count > 0 else { return }
+    lastInputAt = now
     switch count {
     case 1:
       // On a lineup page the pinch advances the STARTING XI carousel first
@@ -325,14 +332,17 @@ public struct HUDComposer: Sendable {
   /// The frame the glasses should show right now. Pure read — no expiry here.
   public func frame(now: Date) -> HUDFrame {
     let body: HUDFrame.Body
+    var deck: DeckPosition?
     if let takeover = currentTakeover {
       body = .takeover(takeover)
     } else if let intro {
       body = .intro(intro)
     } else {
       body = pageBody(now: now)
+      let pulse = lastInputAt.map { now.timeIntervalSince($0) < Self.inputPulse } ?? false
+      deck = DeckPosition(index: page.rawValue, count: DeckPage.allCases.count, pulse: pulse)
     }
-    return HUDFrame(body: body, toast: listening ?? currentToast)
+    return HUDFrame(body: body, toast: listening ?? currentToast, deck: deck)
   }
 
   // MARK: - Takeovers

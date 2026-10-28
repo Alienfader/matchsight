@@ -16,6 +16,8 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
   /// API-Football league ids and the season value (start year) Matchsight uses.
   public static let premierLeague = 39
   public static let championsLeague = 2
+  /// DFB-Pokal, the German cup.
+  public static let germanCup = 81
   public static let clubSeason = 2026
   /// Champions League round whose fixtures list exactly the league-phase clubs.
   static let leaguePhaseRound = "League Stage - 1"

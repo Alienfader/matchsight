@@ -173,11 +173,15 @@ public struct InsightContent: Sendable, Equatable {
   public var title: String
   public var body: String
   public var footer: String
+  /// The fan's spoken question as transcribed ("who is Timber?"), shown
+  /// above the answer so a mishearing is obvious. Nil for presets and auto.
+  public var question: String?
 
-  public init(title: String, body: String, footer: String) {
+  public init(title: String, body: String, footer: String, question: String? = nil) {
     self.title = title
     self.body = body
     self.footer = footer
+    self.question = question
   }
 }
 
@@ -205,6 +209,21 @@ public struct IntroContent: Sendable, Equatable {
   }
 }
 
+/// Where the current page sits in the deck, for the page dots. `pulse` is
+/// true just after a gesture arrived, so the fan can tell a gesture the band
+/// never sent from one the app ignored.
+public struct DeckPosition: Sendable, Equatable {
+  public var index: Int
+  public var count: Int
+  public var pulse: Bool
+
+  public init(index: Int, count: Int, pulse: Bool) {
+    self.index = index
+    self.count = count
+    self.pulse = pulse
+  }
+}
+
 /// Everything the glasses should currently show. One frame == one display.send.
 public struct HUDFrame: Sendable, Equatable {
   public enum Body: Sendable, Equatable {
@@ -226,10 +245,13 @@ public struct HUDFrame: Sendable, Equatable {
   public var body: Body
   /// Cross-match toast line overlaying the body, e.g. "⚽ FRA 2·0 GER · Mbappé 84'".
   public var toast: String?
+  /// Page dots; nil while a takeover or the crest intro covers the deck.
+  public var deck: DeckPosition?
 
-  public init(body: Body, toast: String? = nil) {
+  public init(body: Body, toast: String? = nil, deck: DeckPosition? = nil) {
     self.body = body
     self.toast = toast
+    self.deck = deck
   }
 }
 
