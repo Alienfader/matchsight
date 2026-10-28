@@ -81,13 +81,13 @@ struct SettingsView: View {
             // Meta AI key (AI Match Analyst)
             settingsGroup(
               header: "Meta AI key",
-              footer: "Meta Model API key for the AI Match Analyst (Muse Spark). Without it the analyst runs in mock mode and says so on the glasses. Keychain, this device only."
+              footer: "Meta Model API key for AI Insight and voice questions (Muse Spark). Without it the app runs in mock mode and says so on the glasses. Keychain, this device only."
             ) {
               settingsRow(last: true) {
                 Image(systemName: hasMetaKey ? "sparkles" : "exclamationmark.shield.fill")
                   .font(.system(size: 20))
                   .foregroundStyle(hasMetaKey ? Color.live : Color.goalDeep)
-                Text(hasMetaKey ? "Stored in Keychain" : "Not set — mock analyst")
+                Text(hasMetaKey ? "Stored in Keychain" : "Not set — mock AI")
                   .font(.system(size: 15))
                   .foregroundStyle(.white)
                   .frame(maxWidth: .infinity, alignment: .leading)

@@ -99,7 +99,7 @@ final class MatchInsightTests: XCTestCase {
   func testTemplateWithNoFacts() {
     let empty = MatchInsightContext(fixtureId: 1, headline: "", facts: [], isScripted: false)
     let t = InsightTemplate.make(context: empty)
-    XCTAssertEqual(t.title, "ANALYST")
+    XCTAssertEqual(t.title, "AI INSIGHT")
     XCTAssertEqual(t.body, "Waiting for match data.")
     XCTAssertEqual(t.factIds, [])
   }

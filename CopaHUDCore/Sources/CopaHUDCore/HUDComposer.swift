@@ -397,7 +397,7 @@ public struct HUDComposer: Sendable {
 
   private func insightBody() -> HUDFrame.Body {
     guard followed != nil else { return .message("No match followed") }
-    guard let insight else { return .message("AI Analyst warming up…") }
+    guard let insight else { return .message("AI Insight warming up…") }
     return .insight(insight)
   }
 

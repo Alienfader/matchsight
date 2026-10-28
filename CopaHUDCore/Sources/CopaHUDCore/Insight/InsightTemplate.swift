@@ -16,7 +16,7 @@ public enum InsightTemplate {
       used.removeLast()
     }
     guard !used.isEmpty else {
-      return MatchInsight(title: "ANALYST", body: "Waiting for match data.",
+      return MatchInsight(title: "AI INSIGHT", body: "Waiting for match data.",
                           basis: .observed, factIds: [], source: .template,
                           fingerprint: context.fingerprint)
     }
