@@ -268,13 +268,14 @@ private struct CompactScoreboard: View {
 
 // MARK: - Score capsules
 
-/// Two-section capsule: a bright pill on top, a frostier smoky band below.
+/// Two-section capsule: a bright pill on top, a frostier smoky band below,
+/// with a clear gap so they read as two separate bubbles.
 private struct TwoSectionCapsule<Top: View, Lower: View>: View {
   @ViewBuilder let top: () -> Top
   @ViewBuilder let lower: () -> Lower
 
   var body: some View {
-    VStack(spacing: 0) {
+    VStack(spacing: 12) {
       top()
         .frame(maxWidth: .infinity).frame(height: 132)
         .background(Glass(tint: .signature, radius: 56, opacity: 0.55))
@@ -282,7 +283,6 @@ private struct TwoSectionCapsule<Top: View, Lower: View>: View {
       lower()
         .frame(maxWidth: .infinity).padding(.vertical, 14).padding(.horizontal, 26)
         .background(Glass(tint: .smoky, radius: 30, opacity: 0.4).padding(.horizontal, 22))
-        .padding(.top, -6)
     }
   }
 }
