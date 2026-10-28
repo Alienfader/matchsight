@@ -1,14 +1,24 @@
 # Matchsight
 
-Your team's live match on **Meta Ray-Ban Display** glasses, with an AI match analyst you
-can ask out loud.
+Your team's live match, floating in front of you on **Meta Ray-Ban Display** glasses.
 
 Pick your Premier League and Champions League clubs once. When one of them plays,
-Matchsight follows the match automatically and floats it in front of you in a frosted,
-cyan-to-lavender glass style: the score capsule with the event timeline, goal / red-card /
-VAR celebrations, a stacked starting-XI card carousel with live player stats, a line-art
-formation board, and **AI Insight** pages from Meta's Muse Spark. Navigate with the
-**Neural Band**; pinch and hold to ask a question by voice.
+Matchsight follows the match automatically and shows it in a frosted, cyan-to-lavender
+glass style: the score capsule with the event timeline, goal / red-card / VAR
+celebrations, a stacked starting-XI card carousel with live player stats, and a line-art
+formation board. Navigate with the **Neural Band**. Pinch and hold to ask a question about
+the match by voice; Meta's Muse Spark answers from the live match data only.
+
+Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
+
+**Demo video:** <!-- FOUNDER: video link -->
+
+## Who it's for
+
+Fans who want to follow their team's match while away from a screen. Matchsight puts the
+score, events and lineups in view, and answers spoken questions about the match, without
+the fan taking out a phone. It picks the match itself, so there is nothing to set up on
+match day.
 
 ## How it works
 
@@ -27,18 +37,57 @@ API-Football ──▶ iPhone app ──(Meta Wearables Device Access Toolkit)�
 - **AI proxy** (`proxy/`, Cloudflare Worker): keeps the Meta Model API key off the phone and
   allows only the two models the app uses. See `proxy/README.md`.
 
-(Internal names — the Xcode project, bundle ID and Swift package — are still `CopaHUD`:
-the app started in June 2026 as a World Cup companion.)
+(Internal names — the Xcode project, bundle ID and Swift package — are `CopaHUD`: the idea
+came during the World Cup.)
+
+## Meta AI tooling
+
+- **Muse Spark (`muse-spark-1.3`) as a grounded match assistant.** The phone turns the live match
+  into numbered facts (`F1`, `F2`, …: score, events, lineups, formations, stats) and asks
+  Muse Spark for one short insight under a strict JSON schema. Each answer must declare its
+  basis (`observed`, `data_inference` or `general_tactics`) and cite the fact IDs it used.
+- **A validator between the model and the glasses.** `InsightValidator` rejects answers that
+  cite unknown facts, cite nothing when they should, run past the 150-character limit (it
+  never truncates a claim), or describe things only video could show ("pressing",
+  "positioning"…). A rejected or failed call falls back to a data-only template, so the
+  insight page never goes blank.
+- **Muse Voice Transcribe (`muse-voice-transcribe-1.0`) for spoken questions.** Pinch and
+  hold on the Neural Band records up to 15 s of 16 kHz audio; the transcript (up to 200
+  characters) goes to Muse Spark, and spoken answers must cite at least one fact.
+- **Cost-aware scheduling.** Insights refresh automatically as the match changes, but
+  unchanged data never re-asks the model (up to 10 minutes), a burst of events waits at
+  least 30 s, and repeat questions on unchanged data are answered from a cache.
+- **Meta Wearables Device Access Toolkit 1.0.1** for the display and the Neural Band, and a
+  Cloudflare Worker that holds the Meta key and allows only the two models above.
 
 ## Honest by design
 
-- The AI analyst answers **only from numbered match facts** (score, events, lineups,
-  formations, stats). Every answer is validated before it reaches the glasses; when the
-  data can't answer, it says so. The footer names the source (`Muse Spark · observed`,
-  `Data only`, `Mock AI`).
+- The assistant answers **only from match facts**; when the data can't answer, it says so.
+  The footer names the source (`Muse Spark · observed`, `Data only`, `Mock AI`).
 - Win probabilities are **API-Football's own pre-match prediction**, labelled as such.
 - **Demo mode** replays a scripted Arsenal v Chelsea match (real squads, invented events),
-  labelled `scripted` on the glasses.
+  labelled `scripted` on the glasses and flagged as scripted to the model.
+
+## Engineering notes
+
+Learned on real glasses:
+
+- The toolkit's display DSL couldn't carry this design, so every page is drawn on the phone
+  with SwiftUI `ImageRenderer` and sent as one image. At 360 px a send takes about 0.33 s
+  (about 0.9 s at 600 px).
+- Overlapping sends caused "Timed out waiting for display response" errors (9 in testing).
+  Serialising sends, latest frame wins, brought that to 0 in testing.
+- The display is additive: black is transparent and dark colours look faint, so the style
+  uses bright fills on black.
+- AI calls never block rendering or gestures; they run behind the current page and fail
+  back to data.
+- `CopaHUDCore` holds the logic as a plain Swift package with 304 unit tests, using recorded
+  API-Football responses as fixtures.
+
+## Demo
+
+Turn on **Settings → Demo mode** to replay the scripted Arsenal v Chelsea match without an
+API-Football key. With a key, the app follows your clubs' real matches.
 
 ## Requirements
 
@@ -46,7 +95,7 @@ the app started in June 2026 as a World Cup companion.)
 - Xcode 26 with the Meta Wearables Device Access Toolkit 1.0.1 (Swift Package Manager).
 - An [API-Football](https://www.api-football.com/) key (entered in the app; stored in the
   iOS Keychain).
-- Optional, for the AI analyst: a Meta Model API key behind your own deployment of the
+- Optional, for voice Q&A and AI Insight: a Meta Model API key behind your own deployment of the
   Worker in `proxy/` (the app stores the Worker URL and app token in the Keychain).
 
 ## Build and test
@@ -70,7 +119,7 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 | Swipe left | Previous |
 | Swipe up | Home (score capsule) |
 | Swipe down | AI Insight page |
-| Pinch and hold | Ask the analyst by voice |
+| Pinch and hold | Ask a question by voice |
 
 Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.
 
@@ -79,3 +128,21 @@ Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.
 Match data, crests and player photos come from API-Football at run time and belong to their
 respective owners; club names and crests are trademarks of their clubs. The recorded API
 responses under `CopaHUDCore/Tests/CopaHUDCoreTests/Resources/` are test fixtures.
+
+## Project history
+
+The idea for Matchsight came during the World Cup, which is why the Xcode project, bundle
+ID and Swift package are named CopaHUD.
+
+The Muse Spark and Muse Voice Transcribe integration was added during the hackathon, once
+Meta issued the API credits.
+
+<!-- FOUNDER: what was built during the hackathon window -->
+
+<!-- FOUNDER: AI-tools disclosure wording -->
+
+## License
+
+MIT. See [LICENSE](LICENSE). Match data, crests and player photos are not covered; see
+[Data and trademarks](#data-and-trademarks).
+
