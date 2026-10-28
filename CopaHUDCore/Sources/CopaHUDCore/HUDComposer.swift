@@ -234,12 +234,20 @@ public struct HUDComposer: Sendable {
     case .home:
       page = .panel
       playerIndex = 0
-      if currentTakeover != nil {
-        currentTakeover = nil
-        takeoverDeadline = nil
-        startTakeoverIfIdle(now: now)
-      }
+      dismissTakeover(now: now)
+    case .insight:
+      page = .insight
+      playerIndex = 0
+      dismissTakeover(now: now)
     }
+  }
+
+  /// Drop the takeover on screen; the next queued one (if any) starts.
+  private mutating func dismissTakeover(now: Date) {
+    guard currentTakeover != nil else { return }
+    currentTakeover = nil
+    takeoverDeadline = nil
+    startTakeoverIfIdle(now: now)
   }
 
   /// Show (or clear with nil) the push-to-talk banner on the glasses.

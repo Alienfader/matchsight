@@ -68,6 +68,7 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 | Pinch (thumb + index) or swipe right | Next page / next player |
 | Swipe left | Previous |
 | Swipe up | Home (score capsule) |
+| Swipe down | AI Insight page |
 | Pinch and hold | Ask the analyst by voice |
 
 Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.

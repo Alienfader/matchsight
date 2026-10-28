@@ -222,7 +222,7 @@ public struct HUDFrame: Sendable, Equatable {
 /// A resolved Neural Band gesture (DAT 1.0 Inputs), mapped by the app from
 /// raw select / nav events.
 public enum HUDInput: Sendable, Equatable {
-  case next, previous, home
+  case next, previous, home, insight
 }
 
 /// User-tunable HUD behaviour (Settings).

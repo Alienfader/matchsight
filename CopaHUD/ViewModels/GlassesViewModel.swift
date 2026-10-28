@@ -564,7 +564,7 @@ final class GlassesViewModel {
       case .right: dbg("input → next (swipe)"); appModel?.hudInput(.next)
       case .left: dbg("input → previous (swipe)"); appModel?.hudInput(.previous)
       case .up: dbg("input → home (swipe)"); appModel?.hudInput(.home)
-      case .down: break
+      case .down: dbg("input → insight (swipe)"); appModel?.hudInput(.insight)
       }
     case .drag(let action, _, _, _, _, _, _):
       switch action {

@@ -802,6 +802,49 @@ final class HUDComposerTests: XCTestCase {
     XCTAssertEqual(bodyKind(c), "panel")
   }
 
+  func testInputInsightJumpsToInsightFromAnyPage() {
+    var c = loaded()
+    c.handle(.insight, now: t0)                   // from the panel
+    XCTAssertEqual(bodyKind(c), "insight")
+    for _ in 1...3 { c.handle(.next, now: t0) }   // events, home index, home card 1
+    XCTAssertEqual(bodyKind(c), "playerCard")
+    c.handle(.insight, now: t0)                   // from the lineup carousel
+    XCTAssertEqual(bodyKind(c), "insight")
+    c.handle(.previous, now: t0)
+    c.handle(.previous, now: t0)                  // panel, then wraps to other live
+    c.handle(.previous, now: t0)
+    XCTAssertEqual(bodyKind(c), "stats")
+    c.handle(.insight, now: t0)                   // from stats
+    XCTAssertEqual(bodyKind(c), "insight")
+  }
+
+  func testInputInsightResetsCarouselPosition() {
+    var c = loaded()
+    for _ in 1...4 { c.handle(.next, now: t0) }   // home card 1
+    c.handle(.insight, now: t0)
+    for _ in 1...2 { c.handle(.next, now: t0) }   // events, home lineup
+    XCTAssertEqual(bodyKind(c), "lineup")         // roster index card, not a player
+  }
+
+  func testInputInsightRepeatStaysOnInsight() {
+    var c = loaded()
+    c.handle(.insight, now: t0)
+    let frame = c.frame(now: t0)
+    c.handle(.insight, now: t0)
+    XCTAssertEqual(c.frame(now: t0), frame)
+  }
+
+  func testInputInsightDismissesTakeoverAndQueuedOnesStillPlay() {
+    var c = loaded()
+    c.enqueue([goalMoment(score: ScoreLine(home: 1, away: 0)),
+               goalMoment(score: ScoreLine(home: 2, away: 0))], now: t0)
+    XCTAssertEqual(bodyKind(c), "takeover")
+    c.handle(.insight, now: t0)
+    XCTAssertEqual(bodyKind(c), "takeover")       // the queued second goal plays
+    c.handle(.insight, now: t0)
+    XCTAssertEqual(bodyKind(c), "insight")
+  }
+
   func testListeningBannerOverridesToastUntilCleared() {
     var c = loaded()
     c.enqueue([otherGoal()], now: t0)
