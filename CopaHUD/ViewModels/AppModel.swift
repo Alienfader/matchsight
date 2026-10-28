@@ -21,6 +21,14 @@ final class AppModel {
   private(set) var fixtures: [Fixture] = []
   /// Favourites' scheduled matches after today (the Today tab's Coming up).
   private(set) var upcoming: [Fixture] = []
+  /// The day picked in the Today tab's day strip (local midnight).
+  private(set) var selectedDay = Calendar.current.startOfDay(for: Date())
+  /// Fixtures on `selectedDay` when it isn't today; today's list is `fixtures`.
+  private(set) var dayFixtures: [Fixture] = []
+  private(set) var isLoadingDay = false
+  /// Other days' lists, refetched after 10 minutes. Cleared on a feed change.
+  @ObservationIgnored private var dayCache: [Date: (fixtures: [Fixture], at: Date)] = [:]
+  @ObservationIgnored private var dayTask: Task<Void, Never>?
   private(set) var followedFixtureId: Int?
   /// Newest last. LiveView shows these (reversed for newest-first).
   private(set) var lastMoments: [MatchMoment] = []
@@ -177,6 +185,8 @@ final class AppModel {
   func refreshFeed() {
     let wasDemo = feed is MockFeed
     feed = AppModel.makeFeed(demoMode: demoMode, apiKey: SecretsStore.apiFootballKey)
+    dayCache = [:]
+    selectDay(selectedDay)
     // Data from the previous feed (e.g. the scripted demo match) must never
     // reach the analyst labelled as the new source — drop it and re-poll.
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
@@ -648,6 +658,46 @@ final class AppModel {
                                      state: followState, shownFixtureId: lastSnapshot?.fixtureId,
                                      now: Date())
     glasses?.dbg(FollowAudit.logLine(findings, followed: followedFixtureId))
+  }
+
+  // MARK: - Day strip
+
+  var isShowingToday: Bool { DayStrip.isToday(selectedDay, now: Date()) }
+
+  /// Show another day's fixtures on the Today tab. Today keeps its live list;
+  /// following and the glasses only ever use today's matches.
+  func selectDay(_ day: Date, forceReload: Bool = false) {
+    selectedDay = day
+    dayTask?.cancel()
+    guard !isShowingToday else { dayFixtures = []; isLoadingDay = false; return }
+    if !forceReload, let cached = dayCache[day], Date().timeIntervalSince(cached.at) < 600 {
+      dayFixtures = cached.fixtures; isLoadingDay = false; return
+    }
+    dayFixtures = []
+    isLoadingDay = true
+    dayTask = Task { [weak self] in
+      guard let self else { return }
+      let feed = self.feed
+      do {
+        let list = try await feed.fixtures(on: day)
+        guard !Task.isCancelled, self.selectedDay == day else { return }
+        self.dayCache[day] = (list, Date())
+        self.dayFixtures = list
+      } catch let e as FeedError {
+        guard !Task.isCancelled else { return }
+        self.banner = e
+      } catch {
+        // Transient network: the empty list says so; pull to refresh retries.
+      }
+      if self.selectedDay == day { self.isLoadingDay = false }
+    }
+  }
+
+  /// Pull to refresh: today's live list, or the selected day's.
+  func refreshSelectedDay() async {
+    if isShowingToday { await refreshFixtures(); return }
+    selectDay(selectedDay, forceReload: true)
+    await dayTask?.value
   }
 
   // MARK: - Poll loops

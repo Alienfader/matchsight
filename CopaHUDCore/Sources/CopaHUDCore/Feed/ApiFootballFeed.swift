@@ -51,10 +51,14 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
 
   // MARK: - MatchFeed
 
+  public func todaysFixtures() async throws -> [Fixture] {
+    try await fixtures(on: now())
+  }
+
   /// One request per league (the API takes a single `league`), run
   /// concurrently and merged by kickoff.
-  public func todaysFixtures() async throws -> [Fixture] {
-    let date = URLQueryItem(name: "date", value: FeedDate.yyyymmdd(now()))
+  public func fixtures(on day: Date) async throws -> [Fixture] {
+    let date = URLQueryItem(name: "date", value: FeedDate.yyyymmdd(day))
     guard !leagueIds.isEmpty else {
       let env: ApiResponse<FixtureDTO> = try await get(path: "fixtures", query: [date])
       return env.response.map { $0.toFixture() }

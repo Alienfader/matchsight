@@ -18,35 +18,48 @@ struct TodayView: View {
         LinearGradient.appBackground.ignoresSafeArea()
         ScrollView {
           VStack(spacing: 20) {
+            dayStrip
             if let banner = appModel.banner {
               ErrorBanner(message: bannerText(banner)) { appModel.dismissBanner() }
             }
-            if let hero = heroMatch {
-              heroCard(hero)
-            }
-            if !liveNowFiltered.isEmpty {
-              liveNowSection
-            }
-            if appModel.fixtures.isEmpty && liveNowFiltered.isEmpty {
-              emptyState
-            } else if groupedFixtures.isEmpty && liveNowFiltered.isEmpty && heroMatch == nil {
+            if appModel.isShowingToday {
+              if let hero = heroMatch {
+                heroCard(hero)
+              }
+              if !liveNowFiltered.isEmpty {
+                liveNowSection
+              }
+              if appModel.fixtures.isEmpty && liveNowFiltered.isEmpty {
+                emptyState
+              } else if groupedFixtures.isEmpty && liveNowFiltered.isEmpty && heroMatch == nil {
+                noResults
+              } else {
+                ForEach(groupedFixtures, id: \.label) { group in
+                  fixtureGroup(group)
+                }
+              }
+              if !isSearching && !appModel.upcoming.isEmpty {
+                comingUpSection
+              }
+            } else if appModel.isLoadingDay {
+              ProgressView().tint(.white).padding(.top, 60)
+            } else if appModel.dayFixtures.isEmpty {
+              noMatchesOnDay
+            } else if groupedFixtures.isEmpty {
               noResults
             } else {
               ForEach(groupedFixtures, id: \.label) { group in
                 fixtureGroup(group)
               }
             }
-            if !isSearching && !appModel.upcoming.isEmpty {
-              comingUpSection
-            }
           }
           .padding(.horizontal, 16)
           .padding(.top, 12)
           .padding(.bottom, 32)
         }
-        .refreshable { await appModel.refreshFixtures() }
+        .refreshable { await appModel.refreshSelectedDay() }
       }
-      .navigationTitle("Today")
+      .navigationTitle(appModel.isShowingToday ? "Today" : Self.dayFormatter.string(from: appModel.selectedDay))
       .navigationBarTitleDisplayMode(.large)
       .toolbarColorScheme(.dark, for: .navigationBar)
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always),
@@ -241,6 +254,8 @@ struct TodayView: View {
 
   private func fixtureRow(_ fixture: Fixture) -> some View {
     let isFollowed = appModel.followedFixtureId == fixture.id
+    // Only today's matches can be followed: the glasses show the live match.
+    let canFollow = appModel.isShowingToday
     return SwiftUI.Button {
       appModel.follow(fixtureId: fixture.id)
     } label: {
@@ -266,9 +281,11 @@ struct TodayView: View {
               .foregroundStyle(.white.opacity(0.90))
               .monospacedDigit()
           }
-          Image(systemName: isFollowed ? "star.fill" : "star")
-            .font(.system(size: 14))
-            .foregroundStyle(isFollowed ? Color.goal : Color.white.opacity(0.30))
+          if canFollow {
+            Image(systemName: isFollowed ? "star.fill" : "star")
+              .font(.system(size: 14))
+              .foregroundStyle(isFollowed ? Color.goal : Color.white.opacity(0.30))
+          }
         }
         .frame(minWidth: 54)
       }
@@ -284,6 +301,7 @@ struct TodayView: View {
       )
     }
     .buttonStyle(.plain)
+    .disabled(!canFollow)
   }
 
   private func twoLineTeam(_ team: Team, score: Int?, win: Bool, losing: Bool) -> some View {
@@ -321,7 +339,8 @@ struct TodayView: View {
   }
 
   private var groupedFixtures: [FixtureGroup] {
-    let sorted = appModel.fixtures.sorted { $0.kickoff < $1.kickoff }
+    let shown = appModel.isShowingToday ? appModel.fixtures : appModel.dayFixtures
+    let sorted = shown.sorted { $0.kickoff < $1.kickoff }
     var order: [String] = []
     var buckets: [String: [Fixture]] = [:]
     for fixture in sorted {
@@ -353,6 +372,7 @@ struct TodayView: View {
 
   private func isExpanded(_ group: FixtureGroup) -> Bool {
     isSearching
+      || !appModel.isShowingToday
       || expanded.contains(group.label)
       || group.label == Self.myTeamsLabel
       || group.fixtures.contains { $0.status.isLive }
@@ -391,6 +411,75 @@ struct TodayView: View {
       }
     }
   }
+
+  // MARK: - Day strip
+
+  /// Yesterday through a week ahead. A dot marks days a favourite plays.
+  private var dayStrip: some View {
+    let now = Date()
+    let days = DayStrip.days(now: now)
+    return ScrollViewReader { proxy in
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(days, id: \.self) { day in
+            dayChip(day, isToday: DayStrip.isToday(day, now: now))
+              .id(day)
+          }
+        }
+      }
+      .onAppear { proxy.scrollTo(appModel.selectedDay, anchor: .center) }
+    }
+  }
+
+  private func dayChip(_ day: Date, isToday: Bool) -> some View {
+    let selected = Calendar.current.isDate(day, inSameDayAs: appModel.selectedDay)
+    return SwiftUI.Button {
+      appModel.selectDay(day)
+    } label: {
+      VStack(spacing: 3) {
+        Text(isToday ? "Today" : Self.weekdayFormatter.string(from: day))
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundStyle(.white.opacity(selected ? 0.85 : 0.50))
+        Text(Self.dayNumberFormatter.string(from: day))
+          .font(.system(size: 17, weight: .bold))
+          .foregroundStyle(.white.opacity(selected ? 1 : 0.80))
+          .monospacedDigit()
+        Circle()
+          .fill(favouritePlays(on: day) ? Color.cyan : Color.clear)
+          .frame(width: 5, height: 5)
+      }
+      .frame(width: 52)
+      .padding(.vertical, 8)
+      .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .fill(Color.white.opacity(selected ? 0.16 : 0.05)))
+      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(selected ? Color.cyan.opacity(0.60) : Color.white.opacity(0.10), lineWidth: 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(isToday ? "Today" : Self.dayFormatter.string(from: day))
+    .accessibilityAddTraits(selected ? .isSelected : [])
+  }
+
+  private func favouritePlays(on day: Date) -> Bool {
+    let ids = Set(appModel.favourites.map(\.id))
+    guard !ids.isEmpty else { return false }
+    return (appModel.fixtures + appModel.upcoming).contains {
+      Calendar.current.isDate($0.kickoff, inSameDayAs: day)
+        && (ids.contains($0.home.id) || ids.contains($0.away.id))
+    }
+  }
+
+  private static let weekdayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.setLocalizedDateFormatFromTemplate("EEE")
+    return f
+  }()
+
+  private static let dayNumberFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.setLocalizedDateFormatFromTemplate("d")
+    return f
+  }()
 
   // MARK: - Coming up
 
@@ -458,6 +547,21 @@ struct TodayView: View {
         .foregroundStyle(.white)
     }
     .padding(.top, 60)
+  }
+
+  private var noMatchesOnDay: some View {
+    VStack(spacing: 10) {
+      Text("📅").font(.system(size: 44))
+      Text("No matches on \(Self.dayFormatter.string(from: appModel.selectedDay))")
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(.white)
+      Text("Premier League and Champions League fixtures appear here.")
+        .font(.system(size: 13))
+        .foregroundStyle(.white.opacity(0.6))
+        .multilineTextAlignment(.center)
+    }
+    .padding(.top, 60)
+    .padding(.horizontal, 24)
   }
 
   private var emptyState: some View {

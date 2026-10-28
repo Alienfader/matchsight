@@ -146,6 +146,32 @@ final class ApiFootballFeedTests: XCTestCase {
     XCTAssertNotNil(q["date"])
   }
 
+  // MARK: - fixtures(on:)
+
+  func testFixturesOnDateQueriesThatDayPerLeague() async throws {
+    installDefaultRouter()
+    let clock = Clock(Date(timeIntervalSince1970: 1781193600)) // 2026-06-11 16:00 UTC
+    let feed = ApiFootballFeed(apiKey: "K", leagueIds: [39, 2], season: 2026,
+                               session: makeSession(), now: { clock.date })
+    let day = clock.date.addingTimeInterval(3 * 86400)
+
+    _ = try await feed.fixtures(on: day)
+    XCTAssertEqual(MockURLProtocol.requests.count, 2)
+    let queries = MockURLProtocol.requests.map(query)
+    XCTAssertEqual(Set(queries.map { $0["league"] ?? "" }), ["39", "2"])
+    XCTAssertTrue(queries.allSatisfy { $0["date"] == FeedDate.yyyymmdd(day) && $0["season"] == "2026" })
+  }
+
+  func testTodaysFixturesIsFixturesOnNow() async throws {
+    installDefaultRouter()
+    let clock = Clock(Date(timeIntervalSince1970: 1781193600))
+    let feed = ApiFootballFeed(apiKey: "K", leagueIds: [39], season: 2026,
+                               session: makeSession(), now: { clock.date })
+    let today = try await feed.todaysFixtures()
+    let onNow = try await feed.fixtures(on: clock.date)
+    XCTAssertEqual(today, onNow)
+  }
+
   // MARK: - liveSnapshot + endpoints
 
   func testLiveSnapshotReturnsScoreAndPossession() async throws {
