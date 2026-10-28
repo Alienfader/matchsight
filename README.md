@@ -1,14 +1,13 @@
 # Matchsight
 
-Your team's live match on **Meta Ray-Ban Display** glasses, with an AI match analyst you
-can ask out loud.
+Your team's live match, floating in front of you on **Meta Ray-Ban Display** glasses.
 
 Pick your Premier League and Champions League clubs once. When one of them plays,
-Matchsight follows the match automatically and floats it in front of you in a frosted,
-cyan-to-lavender glass style: the score capsule with the event timeline, goal / red-card /
-VAR celebrations, a stacked starting-XI card carousel with live player stats, a line-art
-formation board, and **AI Insight** pages from Meta's Muse Spark. Navigate with the
-**Neural Band**; pinch and hold to ask a question by voice.
+Matchsight follows the match automatically and shows it in a frosted, cyan-to-lavender
+glass style: the score capsule with the event timeline, goal / red-card / VAR
+celebrations, a stacked starting-XI card carousel with live player stats, and a line-art
+formation board. Navigate with the **Neural Band**. Pinch and hold to ask a question about
+the match by voice; Meta's Muse Spark answers from the live match data only.
 
 Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
 
