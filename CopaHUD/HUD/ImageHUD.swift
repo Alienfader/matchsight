@@ -381,19 +381,25 @@ private struct LiveScoreCapsule: View {
         HStack(spacing: 12) {
           Crest(image: homeCrest, fallback: p.homeCode, size: 66)
           Text(p.homeCode).font(.system(size: 30, weight: .heavy))
+            .lineLimit(1).minimumScaleFactor(0.6)
           Spacer(minLength: 4)
+          // The score never wraps or shrinks; the codes give way instead.
           HStack(spacing: 18) {
             Text("\(p.score.home)")
             Rectangle().fill(.white.opacity(0.45)).frame(width: 1.2, height: 34)
             Text("\(p.score.away)")
           }
           .font(.system(size: 40, weight: .heavy))
+          .lineLimit(1)
+          .fixedSize()
           .padding(.horizontal, 16).padding(.vertical, 4)
           .background(RoundedRectangle(cornerRadius: 13)
             .fill(.white.opacity(0.12))
             .overlay(RoundedRectangle(cornerRadius: 13).strokeBorder(.white.opacity(0.6), lineWidth: 1.3)))
+          .layoutPriority(1)
           Spacer(minLength: 4)
           Text(p.awayCode).font(.system(size: 30, weight: .heavy))
+            .lineLimit(1).minimumScaleFactor(0.6)
           Crest(image: awayCrest, fallback: p.awayCode, size: 66)
         }
         .padding(.horizontal, 26)
