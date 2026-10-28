@@ -20,10 +20,14 @@ public protocol MatchFeed: Sendable {
   func playerStats(fixtureId: Int) async throws -> [Int: PlayerStats]
   /// Pre-match win/draw/win percentages. Best-effort: nil when unavailable.
   func prediction(fixtureId: Int) async throws -> WinProbability?
+  /// The next fixtures of these teams, any competition, by kickoff (the
+  /// phone's Coming up list). Best-effort: empty by default.
+  func upcomingFixtures(teamIds: [Int]) async throws -> [Fixture]
 }
 
 public extension MatchFeed {
   func stats(fixtureId: Int) async throws -> MatchStats? { nil }
   func playerStats(fixtureId: Int) async throws -> [Int: PlayerStats] { [:] }
   func prediction(fixtureId: Int) async throws -> WinProbability? { nil }
+  func upcomingFixtures(teamIds: [Int]) async throws -> [Fixture] { [] }
 }

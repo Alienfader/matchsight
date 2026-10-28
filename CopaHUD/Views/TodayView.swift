@@ -36,6 +36,9 @@ struct TodayView: View {
                 fixtureGroup(group)
               }
             }
+            if !isSearching && !appModel.upcoming.isEmpty {
+              comingUpSection
+            }
           }
           .padding(.horizontal, 16)
           .padding(.top, 12)
@@ -388,6 +391,62 @@ struct TodayView: View {
       }
     }
   }
+
+  // MARK: - Coming up
+
+  private var comingUpSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Text("Coming up")
+        .font(.system(size: 13, weight: .bold))
+        .foregroundStyle(.white.opacity(0.55))
+      VStack(spacing: 8) {
+        ForEach(appModel.upcoming) { fixture in
+          comingUpRow(fixture)
+        }
+      }
+    }
+  }
+
+  private func comingUpRow(_ fixture: Fixture) -> some View {
+    HStack(alignment: .center, spacing: 14) {
+      VStack(alignment: .leading, spacing: 11) {
+        twoLineTeam(fixture.home, score: nil, win: false, losing: false)
+        twoLineTeam(fixture.away, score: nil, win: false, losing: false)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      Rectangle().fill(Color.white.opacity(0.10)).frame(width: 1).frame(maxHeight: .infinity)
+
+      VStack(alignment: .center, spacing: 4) {
+        Text(Self.dayFormatter.string(from: fixture.kickoff))
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(.white.opacity(0.60))
+        Text(Self.timeFormatter.string(from: fixture.kickoff))
+          .font(.system(size: 16, weight: .bold))
+          .foregroundStyle(.white.opacity(0.90))
+          .monospacedDigit()
+        if let competition = fixture.competition {
+          Text(competition)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.40))
+            .lineLimit(1).minimumScaleFactor(0.7)
+        }
+      }
+      .frame(minWidth: 72)
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(0.05)))
+    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+      .stroke(Color.white.opacity(0.10), lineWidth: 1))
+  }
+
+  /// "Sat 1 Nov" in the user's locale.
+  private static let dayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.setLocalizedDateFormatFromTemplate("EEEdMMM")
+    return f
+  }()
 
   // MARK: - Empty / No-results
 

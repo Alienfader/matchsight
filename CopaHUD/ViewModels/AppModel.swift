@@ -19,6 +19,8 @@ final class AppModel {
 
   // MARK: Observable state (mirrored by the phone views)
   private(set) var fixtures: [Fixture] = []
+  /// Favourites' scheduled matches after today (the Today tab's Coming up).
+  private(set) var upcoming: [Fixture] = []
   private(set) var followedFixtureId: Int?
   /// Newest last. LiveView shows these (reversed for newest-first).
   private(set) var lastMoments: [MatchMoment] = []
@@ -648,6 +650,10 @@ final class AppModel {
     catch { /* transient network — leave fixtures as-is */ }
     if let live = try? await feed.otherLive() {
       liveNow = live.sorted { ($0.elapsedMinutes ?? 0) > ($1.elapsedMinutes ?? 0) }
+    }
+    // The feed fetches the same favourites at most every 6 h.
+    if let next = try? await feed.upcomingFixtures(teamIds: favourites.map(\.id)) {
+      upcoming = ComingUp.list(next, now: Date())
     }
   }
 

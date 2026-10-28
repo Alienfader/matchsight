@@ -34,6 +34,7 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
   private var statsCache: [Int: StatsEntry] = [:]
   private var playerStatsCache: [Int: (value: [Int: PlayerStats], at: Date)] = [:]
   private var predictionCache: [Int: WinProbability] = [:]
+  private var upcomingCache: (teamIds: Set<Int>, value: [Fixture], at: Date)?
   private let lock = NSLock()
 
   public init(apiKey: String,
@@ -85,6 +86,38 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
     // Home/away orientation needs the fixture's home team id; reuse whatever
     // the cache learned during liveSnapshot polling rather than refetching.
     await cachedStats(fixtureId: fixtureId, homeTeamId: nil)
+  }
+
+  /// `fixtures?team=…&next=10` per team, run concurrently and merged by
+  /// kickoff. The same team set is fetched at most once every 6 hours.
+  public func upcomingFixtures(teamIds: [Int]) async throws -> [Fixture] {
+    let teams = Set(teamIds)
+    guard !teams.isEmpty else { return [] }
+    let nowDate = now()
+    lock.lock()
+    if let cached = upcomingCache, cached.teamIds == teams,
+       nowDate.timeIntervalSince(cached.at) < 6 * 3600 {
+      lock.unlock()
+      return cached.value
+    }
+    lock.unlock()
+    let fixtures = try await withThrowingTaskGroup(of: [Fixture].self) { group in
+      for team in teams {
+        group.addTask {
+          let env: ApiResponse<FixtureDTO> = try await self.get(
+            path: "fixtures", query: [URLQueryItem(name: "team", value: String(team)),
+                                      URLQueryItem(name: "next", value: "10")])
+          return env.response.map { $0.toFixture() }
+        }
+      }
+      return try await group.reduce(into: []) { $0 += $1 }
+    }
+    let unique = Dictionary(fixtures.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }).values
+    let value = unique.sorted { ($0.kickoff, $0.id) < ($1.kickoff, $1.id) }
+    lock.lock()
+    upcomingCache = (teams, value, nowDate)
+    lock.unlock()
+    return value
   }
 
   /// At most one `fixtures/players` request per fixture per 60 s.

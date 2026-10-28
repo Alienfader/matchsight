@@ -271,6 +271,66 @@ final class ApiFootballFeedTests: XCTestCase {
     "{\"team\":{\"id\":\(id),\"name\":\"\(name)\",\"code\":\"\(code)\",\"logo\":\"https://media.api-sports.io/football/teams/\(id).png\"}}"
   }
 
+  // MARK: - upcoming fixtures (Coming up)
+
+  private func installUpcomingRouter() {
+    MockURLProtocol.handler = { [self] request in
+      let q = query(request)
+      let shared = fixtureJSON(id: 3, kickoff: "2026-11-08T16:30:00+00:00", league: 39, round: "R11",
+                               home: (42, "Arsenal"), away: (49, "Chelsea"))
+      let items: [String]
+      switch q["team"] {
+      case "42":
+        items = [fixtureJSON(id: 1, kickoff: "2026-11-01T15:00:00+00:00", league: 39, round: "R10",
+                             home: (42, "Arsenal"), away: (40, "Liverpool")), shared]
+      case "49":
+        items = [shared, fixtureJSON(id: 2, kickoff: "2026-11-04T20:00:00+00:00", league: 2, round: "MD4",
+                                     home: (49, "Chelsea"), away: (541, "Real Madrid"))]
+      default:
+        items = []
+      }
+      return ok(request.url, envelope(items))
+    }
+  }
+
+  func testUpcomingFixturesAskEachTeamForItsNextTenAndMerge() async throws {
+    installUpcomingRouter()
+    let feed = ApiFootballFeed(apiKey: "K", leagueIds: [39, 2], season: 2026, session: makeSession())
+    let fixtures = try await feed.upcomingFixtures(teamIds: [42, 49])
+    XCTAssertEqual(fixtures.map(\.id), [1, 2, 3], "merged, one copy of the shared match, by kickoff")
+    XCTAssertEqual(MockURLProtocol.requests.count, 2)
+    for req in MockURLProtocol.requests {
+      XCTAssertEqual(req.url?.path, "/fixtures")
+      XCTAssertEqual(query(req)["next"], "10")
+      XCTAssertNil(query(req)["date"])
+      XCTAssertNil(query(req)["league"], "next=N is per team, across competitions")
+    }
+    XCTAssertEqual(Set(MockURLProtocol.requests.compactMap { query($0)["team"] }), ["42", "49"])
+  }
+
+  func testUpcomingFixturesAreFetchedAtMostEverySixHours() async throws {
+    installUpcomingRouter()
+    let clock = Clock(Date(timeIntervalSince1970: 1_000_000))
+    let feed = ApiFootballFeed(apiKey: "K", session: makeSession(), now: { clock.date })
+    _ = try await feed.upcomingFixtures(teamIds: [42, 49])
+    clock.date += 5 * 3600
+    _ = try await feed.upcomingFixtures(teamIds: [49, 42])
+    XCTAssertEqual(MockURLProtocol.requests.count, 2, "same teams within 6 h: served from cache")
+    _ = try await feed.upcomingFixtures(teamIds: [42])
+    XCTAssertEqual(MockURLProtocol.requests.count, 3, "a different team set refetches")
+    clock.date += 6 * 3600
+    _ = try await feed.upcomingFixtures(teamIds: [42])
+    XCTAssertEqual(MockURLProtocol.requests.count, 4)
+  }
+
+  func testUpcomingFixturesWithNoTeamsMakesNoRequest() async throws {
+    installUpcomingRouter()
+    let feed = ApiFootballFeed(apiKey: "K", session: makeSession())
+    let fixtures = try await feed.upcomingFixtures(teamIds: [])
+    XCTAssertTrue(fixtures.isEmpty)
+    XCTAssertTrue(MockURLProtocol.requests.isEmpty)
+  }
+
   func testTodaysFixturesQueriesEachLeagueAndMerges() async throws {
     MockURLProtocol.handler = { [self] request in
       let q = query(request)
