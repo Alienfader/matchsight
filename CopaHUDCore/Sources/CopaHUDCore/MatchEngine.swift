@@ -22,6 +22,10 @@ public struct MatchEngine: Sendable {
     /// Score implied by everything counted so far; the baseline for the next
     /// poll's reconstruction. Always realigned to the snapshot at poll end.
     var runningScore = ScoreLine(home: 0, away: 0)
+    /// Goals already celebrated from the score alone (the feed often raises
+    /// the score a poll or two before the goal event): their event, when it
+    /// lands, is counted silently instead of celebrating twice.
+    var unattributed = ScoreLine(home: 0, away: 0)
     var prevStatus: MatchStatus?
     var fullTimeEmitted = false
     var hasIngested = false
@@ -82,8 +86,12 @@ public struct MatchEngine: Sendable {
       switch e.kind {
       case .goal(let detail):
         guard detail != .missedPenalty else { continue }  // seen, but no moment
-        if scoresForHome(e, snapshot: snapshot) { running.home += 1 } else { running.away += 1 }
+        let home = scoresForHome(e, snapshot: snapshot)
         st.countedGoals[e.id] = e
+        // Already celebrated from the score: already in `running` too.
+        if home, st.unattributed.home > 0 { st.unattributed.home -= 1; continue }
+        if !home, st.unattributed.away > 0 { st.unattributed.away -= 1; continue }
+        if home { running.home += 1 } else { running.away += 1 }
         out.append(MatchMoment(fixtureId: fixtureId,
                                kind: .goal(scorer: e.player, assist: e.assist, detail: detail),
                                score: running, minute: e.minute, playerId: e.playerId))
@@ -117,10 +125,29 @@ public struct MatchEngine: Sendable {
     }
 
     // Feed lag: the goal sequence didn't reach the snapshot score. Trust the
-    // snapshot for the LAST goal moment.
+    // snapshot for the LAST goal moment; the goals it covers are celebrated.
     if let i = lastGoalIndex, running != snapshot.score {
       out[i] = MatchMoment(fixtureId: fixtureId, kind: out[i].kind,
                            score: snapshot.score, minute: out[i].minute)
+      st.unattributed.home += max(0, snapshot.score.home - running.home)
+      st.unattributed.away += max(0, snapshot.score.away - running.away)
+    } else if lastGoalIndex == nil, firstIngest {
+      // Followed mid-match before any events: the score is history, and so
+      // are the goal events that turn up for it later.
+      st.unattributed.home = max(0, snapshot.score.home - running.home)
+      st.unattributed.away = max(0, snapshot.score.away - running.away)
+    } else if lastGoalIndex == nil {
+      // Score first, event later: celebrate now without a scorer.
+      var score = running
+      for home in [true, false] {
+        let missing = home ? snapshot.score.home - running.home : snapshot.score.away - running.away
+        for _ in 0..<max(0, missing) {
+          if home { score.home += 1; st.unattributed.home += 1 } else { score.away += 1; st.unattributed.away += 1 }
+          out.append(MatchMoment(fixtureId: fixtureId,
+                                 kind: .goal(scorer: nil, assist: nil, detail: .normal),
+                                 score: score, minute: snapshot.elapsedMinutes))
+        }
+      }
     }
 
     // VAR goal-vanish: a counted goal absent from the feed with the score now
@@ -135,12 +162,19 @@ public struct MatchEngine: Sendable {
         st.countedGoals[g.id] = nil
         st.seen.remove(g.id)
       }
+      // Score-only goals that the score no longer shows were overturned too.
+      let droppedHome = min(st.unattributed.home, max(0, st.runningScore.home - snapshot.score.home))
+      let droppedAway = min(st.unattributed.away, max(0, st.runningScore.away - snapshot.score.away))
+      st.unattributed.home -= droppedHome
+      st.unattributed.away -= droppedAway
+      let minutes = vanished.map(\.minute as (MatchEvent) -> Int?)
+        + Array(repeating: snapshot.elapsedMinutes, count: droppedHome + droppedAway)
       // Collapse with any explicit overturn events already emitted above.
-      let synthetic = max(0, vanished.count - explicitOverturns)
-      for g in vanished.prefix(synthetic) {
+      let synthetic = max(0, minutes.count - explicitOverturns)
+      for minute in minutes.prefix(synthetic) {
         out.append(MatchMoment(fixtureId: fixtureId,
                                kind: .varDecision(.goalOverturned),
-                               score: snapshot.score, minute: g.minute))
+                               score: snapshot.score, minute: minute))
       }
     }
 
