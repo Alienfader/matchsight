@@ -38,9 +38,11 @@ enum ImageHUD {
   }
 
   @MainActor static func playerDetail(player: LineupPlayer, photo: UIImage?, stats: PlayerStats?,
+                                      spot: FormationSpot?, heat: [HeatPoint]?,
                                       teamLine: String, counter: String, toast: String?) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
-      PlayerDetailPage(player: player, photo: photo, stats: stats, teamLine: teamLine, counter: counter)
+      PlayerDetailPage(player: player, photo: photo, stats: stats, spot: spot, heat: heat,
+                       teamLine: teamLine, counter: counter)
     })
   }
 
@@ -672,6 +674,8 @@ private struct PlayerDetailPage: View {
   let player: LineupPlayer
   let photo: UIImage?
   let stats: PlayerStats?
+  let spot: FormationSpot?
+  let heat: [HeatPoint]?
   let teamLine: String
   let counter: String
 
@@ -712,6 +716,7 @@ private struct PlayerDetailPage: View {
           }
         }
         Spacer(minLength: 0)
+        if let spot { MiniPitch(spot: spot, heat: heat) }
       }
       if rows.isEmpty {
         Text("No match stats for this player yet")
@@ -735,6 +740,43 @@ private struct PlayerDetailPage: View {
     }
     .padding(22)
     .background(Glass(tint: .sky, radius: 26, opacity: 0.45))
+  }
+}
+
+/// The player's place on a small pitch (keeper end at the top, as on the
+/// formation board). Demo mode adds a SIMULATED heat cloud; a real match
+/// shows only the formation spot, because the feed has no positional data.
+private struct MiniPitch: View {
+  let spot: FormationSpot
+  let heat: [HeatPoint]?
+
+  var body: some View {
+    VStack(spacing: 4) {
+      GeometryReader { g in
+        let w = g.size.width, h = g.size.height
+        ZStack {
+          if let heat {
+            ForEach(Array(heat.enumerated()), id: \.offset) { _, p in
+              Circle()
+                .fill(RadialGradient(colors: [Palette.coral.opacity(0.55), Palette.captain.opacity(0.25), .clear],
+                                     center: .center, startRadius: 0, endRadius: 16))
+                .frame(width: 32, height: 32)
+                .position(x: p.x * w, y: p.y * h)
+            }
+            .blendMode(.plusLighter)
+          }
+          PitchLines().stroke(.white.opacity(0.5), lineWidth: 1.2)
+          Circle().fill(.white).frame(width: 12, height: 12)
+            .overlay(Circle().strokeBorder(Palette.sky, lineWidth: 2))
+            .position(x: spot.x * w, y: spot.y * h)
+        }
+      }
+      .frame(width: 112, height: 160)
+      Text(heat == nil ? "POSITION" : "SIMULATED")
+        .font(.system(size: 12, weight: .heavy)).kerning(0.5)
+        .padding(.horizontal, 6).padding(.vertical, 1)
+        .background(Capsule().fill(.white.opacity(heat == nil ? 0.12 : 0.22)))
+    }
   }
 }
 

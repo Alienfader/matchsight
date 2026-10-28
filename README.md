@@ -67,6 +67,9 @@ came during the World Cup.)
 - Win probabilities are **API-Football's own pre-match prediction**, labelled as such.
 - **Demo mode** replays a scripted Arsenal v Chelsea match (real squads, invented events),
   labelled `scripted` on the glasses and flagged as scripted to the model.
+- The player card's heat map is **simulated, in demo mode only**, and labelled `SIMULATED`
+  on the glasses: API-Football has no positional data, so a real match shows only the
+  player's formation spot. The model never sees the heat map.
 
 ## Engineering notes
 

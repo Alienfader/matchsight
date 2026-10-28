@@ -236,8 +236,12 @@ final class GlassesViewModel {
       remoteImages.prefetch(xi.map { $0.playerId.flatMap(photoURL) }, onLoad: redraw)
       if card.isDetail {
         let player = xi[index]
+        let spot = FormationLayout.spots(xi).first { $0.player == player }
+        // The feed has no positional data: heat is simulated, scripted demo only.
+        let heat = appModel.isScripted ? spot.map { SimulatedHeat.points(for: $0) } : nil
         return ImageHUD.playerDetail(player: player, photo: player.playerId.flatMap(photos),
                                      stats: player.playerId.flatMap { appModel.playerStats[$0] },
+                                     spot: spot, heat: heat,
                                      teamLine: card.teamLine, counter: card.counter, toast: frame.toast)
       }
       return ImageHUD.carousel(xi: xi, index: index, teamLine: card.teamLine, counter: card.counter,

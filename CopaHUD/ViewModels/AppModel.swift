@@ -611,6 +611,9 @@ final class AppModel {
     return clubs
   }
 
+  /// The scripted demo match is playing (MockFeed), not live data.
+  var isScripted: Bool { feed is MockFeed }
+
   /// Teams auto-follow looks for. Demo mode follows the scripted main match
   /// only — every scripted team would let the side match win the tie-break.
   private var followFavourites: Set<Int> {
