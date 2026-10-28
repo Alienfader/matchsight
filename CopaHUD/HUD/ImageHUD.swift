@@ -852,10 +852,11 @@ private struct FormationPlayer: View {
             .offset(x: -36, y: 3)
         }
       }
+      // Five players can share a row: 100 pt each fits the 516 pt pitch.
       Text(Face.surname(player.name))
-        .font(.system(size: 13, weight: .bold))
+        .font(.system(size: 18, weight: .heavy))
         .lineLimit(1).minimumScaleFactor(0.6)
-        .frame(width: 92)
+        .frame(width: 100)
     }
   }
 }
