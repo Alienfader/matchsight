@@ -362,7 +362,7 @@ struct LiveView: View {
 
   private var analystCard: some View {
     VStack(alignment: .leading, spacing: 11) {
-      SectionHeader(title: "AI Analyst")
+      SectionHeader(title: "AI Insight")
       card {
         VStack(alignment: .leading, spacing: 12) {
           LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -406,7 +406,7 @@ struct LiveView: View {
             Text(appModel.followedFixtureId == nil
                  ? "Follow a match to get AI insights."
                  : !appModel.analystReady ? "Waiting for match data…"
-                 : (state.isUpdating ? "Analyst thinking…" : "AI Analyst warming up…"))
+                 : (state.isUpdating ? "Thinking…" : "AI Insight warming up…"))
               .font(.system(size: 13))
               .foregroundStyle(.white.opacity(0.45))
           }

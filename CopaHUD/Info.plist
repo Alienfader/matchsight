@@ -47,7 +47,7 @@
 		<string>$(DEVELOPMENT_TEAM)</string>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Matchsight records your question to the AI analyst while you hold the mic button or pinch-and-hold on the glasses. While the glasses are connected the mic stays ready so this works with the phone locked; nothing is kept until you hold.</string>
+	<string>Matchsight records your question about the match while you hold the mic button or pinch-and-hold on the glasses. While the glasses are connected the mic stays ready so this works with the phone locked; nothing is kept until you hold.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Used to communicate with your Meta Display glasses.</string>
 	<key>NSBonjourServices</key>

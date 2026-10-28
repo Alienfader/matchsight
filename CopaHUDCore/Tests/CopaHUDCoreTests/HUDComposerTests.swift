@@ -227,7 +227,7 @@ final class HUDComposerTests: XCTestCase {
     var c = HUDComposer()
     c.update(followed: snapshot(), events: [], lineups: [], others: [], isStale: false, now: t0)
     c.handleTapBurst(count: 1, now: t0) // insight
-    guard case .message("AI Analyst warming up…") = c.frame(now: t0).body else { return XCTFail() }
+    guard case .message("AI Insight warming up…") = c.frame(now: t0).body else { return XCTFail() }
     c.handleTapBurst(count: 1, now: t0)
     guard case let .events(_, lines) = c.frame(now: t0).body else { return XCTFail() }
     XCTAssertEqual(lines, ["no events yet"])
@@ -271,7 +271,7 @@ final class HUDComposerTests: XCTestCase {
   func testInsightPageWarmingWhenNil() {
     var c = loaded()
     c.handleTapBurst(count: 1, now: t0)
-    XCTAssertEqual(c.frame(now: t0).body, .message("AI Analyst warming up…"))
+    XCTAssertEqual(c.frame(now: t0).body, .message("AI Insight warming up…"))
   }
 
   func testInsightPageWithoutFollowedMatch() {
@@ -286,7 +286,7 @@ final class HUDComposerTests: XCTestCase {
     for _ in 1...3 { c.handleTapBurst(count: 1, now: t0) }   // home lineup index card
     c.showInsightPage()
     XCTAssertTrue(c.isOnInsightPage)
-    XCTAssertEqual(c.frame(now: t0).body, .message("AI Analyst warming up…"))
+    XCTAssertEqual(c.frame(now: t0).body, .message("AI Insight warming up…"))
     c.handleTapBurst(count: 1, now: t0)                      // carousel reset: next is events
     guard case .events = c.frame(now: t0).body else { return XCTFail("events after insight") }
   }
@@ -383,7 +383,7 @@ final class HUDComposerTests: XCTestCase {
     c.enqueue([goalMoment()], now: t0)
     c.handleTapBurst(count: 1, now: t0) // advance underneath panel -> insight
     c.tick(now: t0.addingTimeInterval(9)) // takeover expires
-    guard case .message("AI Analyst warming up…") = c.frame(now: t0.addingTimeInterval(9)).body else {
+    guard case .message("AI Insight warming up…") = c.frame(now: t0.addingTimeInterval(9)).body else {
       return XCTFail("should reveal the advanced page")
     }
   }
@@ -748,7 +748,7 @@ final class HUDComposerTests: XCTestCase {
     switch c.frame(now: t0).body {
     case .panel: return "panel"
     case .insight: return "insight"
-    case .message(let m): return m == "AI Analyst warming up…" ? "insight" : "message"
+    case .message(let m): return m == "AI Insight warming up…" ? "insight" : "message"
     case .events: return "events"
     case .lineup: return "lineup"
     case .playerCard: return "playerCard"
