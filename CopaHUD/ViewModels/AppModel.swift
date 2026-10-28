@@ -640,6 +640,11 @@ final class AppModel {
       glasses?.dbg("follow: auto → \(id)")
       follow(fixtureId: id, manual: false)
     }
+    // Reliability run: one line per decision, counted by `reliability-report`.
+    let findings = FollowAudit.check(fixtures: fixtures, favourites: followFavourites,
+                                     state: followState, shownFixtureId: lastSnapshot?.fixtureId,
+                                     now: Date())
+    glasses?.dbg(FollowAudit.logLine(findings, followed: followedFixtureId))
   }
 
   // MARK: - Poll loops

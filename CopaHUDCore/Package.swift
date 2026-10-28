@@ -7,6 +7,8 @@ let package = Package(
   products: [.library(name: "CopaHUDCore", targets: ["CopaHUDCore"])],
   targets: [
     .target(name: "CopaHUDCore", resources: [.process("Resources")]),
+    // Mac-side tool for the reliability run: `swift run reliability-report <log>`.
+    .executableTarget(name: "reliability-report", dependencies: ["CopaHUDCore"]),
     .testTarget(
       name: "CopaHUDCoreTests",
       dependencies: ["CopaHUDCore"],
