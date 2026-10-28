@@ -102,7 +102,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 393 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 401 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -111,8 +111,11 @@ Turn on **Settings → Demo mode** to replay the scripted Arsenal v Chelsea matc
 API-Football key. With a key, the app follows your clubs' real matches.
 
 Watching on TV? **Settings → TV delay** (up to 5 minutes) holds the score, events and goal banners on
-the glasses so they never arrive before the broadcast shows the goal. The phone's Today list
-is not delayed.
+the glasses so they never arrive before the broadcast shows the goal. **Sync with TV** sets
+it for you: pick the next whole minute the TV clock will show and tap when it gets there.
+The feed gives whole minutes, so the live clock is pinned to the moment the minute ticks over
+(within about 8 s at a 15 s poll); not available at half-time or in stoppage time. The
+phone's Today list is not delayed.
 
 ## Requirements
 

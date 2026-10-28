@@ -20,6 +20,7 @@ struct SettingsView: View {
   @State private var takeover: Double = 8
   @State private var tvDelay: Double = 0
   @State private var lookAtPlayer = false
+  @State private var showTVSync = false
   @State private var toastsEnabled = true
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
@@ -197,6 +198,13 @@ struct SettingsView: View {
                   if !editing { appModel.setTVDelay(tvDelay) }
                 }
                 .tint(Color.actionBlue)
+                SwiftUI.Button {
+                  showTVSync = true
+                } label: {
+                  Label("Sync with TV…", systemImage: "tv")
+                    .font(.system(size: 15, weight: .semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
               }
               .padding(.horizontal, 12)
               .padding(.vertical, 14)
@@ -279,6 +287,9 @@ struct SettingsView: View {
       .navigationBarTitleDisplayMode(.large)
       .toolbarColorScheme(.dark, for: .navigationBar)
       .onAppear { syncFromModel() }
+      .sheet(isPresented: $showTVSync, onDismiss: { syncFromModel() }) {
+        TVSyncSheet(appModel: appModel)
+      }
       .sheet(isPresented: $showProxyURLSheet) {
         ApiKeySheet(
           title: "AI Proxy URL",
@@ -391,6 +402,68 @@ struct SettingsView: View {
     hasMetaKey = SecretsStore.metaModelKey?.isEmpty == false
     proxyURL = SecretsStore.metaProxyURL ?? ""
     hasProxyToken = SecretsStore.metaProxyToken?.isEmpty == false
+  }
+}
+
+/// Sync with TV: pick the next whole minute the TV clock will show, tap the
+/// moment it gets there, and the TV delay is set to match.
+struct TVSyncSheet: View {
+  let appModel: AppModel
+  @Environment(\.dismiss) private var dismiss
+  @State private var tvMinute: Int?
+  @State private var message: String?
+
+  var body: some View {
+    NavigationStack {
+      TimelineView(.periodic(from: .now, by: 1)) { _ in
+        let live = appModel.liveClockSeconds()
+        VStack(alignment: .leading, spacing: 20) {
+          Text("Pick the next whole minute your TV clock will show, then tap the moment it gets there.")
+            .font(.subheadline).foregroundStyle(.secondary)
+          if let live {
+            Text("Live data is at \(Self.clock(live))")
+              .font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
+            let minute = tvMinute ?? TVSync.suggestedMinute(liveSeconds: live,
+                                                           currentDelay: appModel.tvDelaySeconds)
+            Stepper(value: Binding(get: { minute }, set: { tvMinute = $0 }), in: 1...130) {
+              Text("TV minute \(minute):00").font(.system(size: 17, weight: .semibold).monospacedDigit())
+            }
+            SwiftUI.Button {
+              message = Self.describe(appModel.syncTV(tvMinute: minute))
+            } label: {
+              Text("Tap at \(minute):00")
+                .font(.system(size: 28, weight: .heavy).monospacedDigit()).foregroundStyle(.white)
+                .padding(.vertical, 28).frame(maxWidth: .infinity)
+                .background(Color.actionBlue, in: RoundedRectangle(cornerRadius: 20))
+            }
+            .buttonStyle(.plain)
+          } else {
+            Text("Waiting for the match clock. It's ready a minute or so into a half, and not at half-time or in stoppage time.")
+              .font(.body)
+          }
+          if let message {
+            Text(message).font(.body.weight(.semibold))
+          }
+          Spacer()
+        }
+        .padding(20)
+      }
+      .navigationTitle("Sync with TV").navigationBarTitleDisplayMode(.inline)
+      .toolbar { ToolbarItem(placement: .topBarTrailing) { SwiftUI.Button("Done") { dismiss() } } }
+    }
+  }
+
+  static func clock(_ seconds: TimeInterval) -> String {
+    String(format: "%d:%02d", Int(seconds) / 60, Int(seconds) % 60)
+  }
+
+  static func describe(_ outcome: TVSync.Outcome?) -> String {
+    switch outcome {
+    case .delay(let s)?: return s == 0 ? "Your TV is live: no delay needed." : "TV delay set to \(clock(s))."
+    case .tvAhead?: return "That minute hasn't happened yet in the live data. Pick an earlier minute."
+    case .tooFarBehind?: return "That's more than 5 minutes behind. Pick a later minute."
+    case nil: return "The match clock isn't ready. Try again in a minute."
+    }
   }
 }
 

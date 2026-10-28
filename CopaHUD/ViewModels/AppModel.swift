@@ -95,6 +95,8 @@ final class AppModel {
     let playerStats: [Int: PlayerStats]?
   }
   @ObservationIgnored private var tvDelayLine = BroadcastDelay<FollowedUpdate>()
+  /// The live clock to the second (Sync with TV), from the undelayed polls.
+  @ObservationIgnored private var liveClock = LiveMatchClock()
   /// The latest polled status (ahead of the TV delay), for the poll interval.
   @ObservationIgnored private var lastPolledStatus: MatchStatus?
 
@@ -209,7 +211,7 @@ final class AppModel {
     // Data from the previous feed (e.g. the scripted demo match) must never
     // reach the analyst labelled as the new source — drop it and re-poll.
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
-    tvDelayLine.clear(); lastPolledStatus = nil
+    tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     analystReady = false
     if wasDemo || feed is MockFeed {
       // Into, out of, or restarting the scripted match: the followed fixture
@@ -266,6 +268,20 @@ final class AppModel {
     UserDefaults.standard.set(value, forKey: Keys.lookAtPlayer)
   }
 
+  /// The live match clock in seconds, once the feed's minute has ticked over
+  /// (nil at half-time, in stoppage time, or before the first tick).
+  func liveClockSeconds() -> TimeInterval? { liveClock.seconds(at: Date()) }
+
+  /// Sync with TV: the fan tapped as the TV clock reached `tvMinute`:00.
+  /// Sets the TV delay on success; nil when there is no live clock yet.
+  func syncTV(tvMinute: Int) -> TVSync.Outcome? {
+    guard let live = liveClockSeconds() else { return nil }
+    let outcome = TVSync.delay(liveSeconds: live, tvMinute: tvMinute)
+    glasses?.dbg("tv sync: live \(Int(live) / 60):\(String(format: "%02d", Int(live) % 60)), TV \(tvMinute):00 → \(outcome)")
+    if case let .delay(seconds) = outcome { setTVDelay(seconds) }
+    return outcome
+  }
+
   func setDemoMode(_ value: Bool) {
     demoMode = value
     UserDefaults.standard.set(value, forKey: Keys.demoMode)
@@ -295,7 +311,7 @@ final class AppModel {
     lineupsFetched.remove(fixtureId)
     halfTimeLineupRefreshed = false
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
-    tvDelayLine.clear(); lastPolledStatus = nil
+    tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     lastFollowedPollOk = nil
     analystReady = false
     insights.reset(fixtureId: fixtureId)
@@ -313,7 +329,7 @@ final class AppModel {
     followedFixtureId = nil
     followedTask?.cancel(); followedTask = nil
     lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
-    tvDelayLine.clear(); lastPolledStatus = nil
+    tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     analystReady = false
     insights.reset(fixtureId: nil)
   }
@@ -865,6 +881,7 @@ final class AppModel {
 
         if let freshPrediction { lastPrediction = freshPrediction }
         lastPolledStatus = snap.status
+        liveClock.observe(minute: snap.elapsedMinutes, status: snap.status, at: Date())
         lastFollowedPollOk = Date()
         isStale = false
         clearBannerIfRecovered()
