@@ -45,7 +45,8 @@ came during the World Cup.)
 - **Muse Spark (`muse-spark-1.3`) as a grounded match assistant.** The phone turns the live match
   into numbered facts (`F1`, `F2`, …: score, events, lineups, formations, stats) and asks
   Muse Spark for one short insight under a strict JSON schema. Each answer must declare its
-  basis (`observed`, `data_inference` or `general_tactics`) and cite the fact IDs it used.
+  basis (`observed`, `data_inference`, `general_tactics` or `general_knowledge`) and cite the
+  fact IDs it used.
 - **A validator between the model and the glasses.** `InsightValidator` rejects answers that
   cite unknown facts, cite nothing when they should, run past the 150-character limit (it
   never truncates a claim), or describe things only video could show ("pressing",
@@ -53,7 +54,9 @@ came during the World Cup.)
   insight page never goes blank.
 - **Muse Voice Transcribe (`muse-voice-transcribe-1.0`) for spoken questions.** Pinch and
   hold on the Neural Band records up to 15 s of 16 kHz audio; the transcript (up to 200
-  characters) goes to Muse Spark, and spoken answers must cite at least one fact.
+  characters) goes to Muse Spark. Spoken answers about the match must cite at least one fact;
+  a general question no fact covers ("Where is Chelsea from?") may be answered from Muse
+  Spark's general knowledge, uncited and labelled `general knowledge` on the glasses.
 - **Cost-aware scheduling.** Insights refresh automatically as the match changes, but
   unchanged data never re-asks the model (up to 10 minutes), a burst of events waits at
   least 30 s, and repeat questions on unchanged data are answered from a cache.
@@ -62,8 +65,11 @@ came during the World Cup.)
 
 ## Honest by design
 
-- The assistant answers **only from match facts**; when the data can't answer, it says so.
-  The footer names the source (`Muse Spark · observed`, `Data only`, `Mock AI`).
+- Anything about the match comes **only from match facts**; when the data can't answer, the
+  assistant says so. Spoken general questions (a club's city, a stadium) are answered from
+  Muse Spark's general knowledge, never for the automatic insights, and labelled as such.
+  The footer names the source (`Muse Spark · observed`, `Muse Spark · general knowledge`,
+  `Data only`, `Mock AI`).
 - Win probabilities are **API-Football's own pre-match prediction**, labelled as such.
 - **Demo mode** replays a scripted Arsenal v Chelsea match (real squads, invented events),
   labelled `scripted` on the glasses and flagged as scripted to the model.
@@ -84,7 +90,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 343 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 355 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo

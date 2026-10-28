@@ -8,6 +8,9 @@ public enum InsightBasis: String, Sendable, Equatable, Codable, CaseIterable {
   case dataInference = "data_inference"
   /// A general soccer concept (e.g. what a formation usually implies).
   case generalTactics = "general_tactics"
+  /// A stable public fact no match fact covers (a club's city, a stadium).
+  /// Spoken questions only; labelled "general knowledge" on the glasses.
+  case generalKnowledge = "general_knowledge"
 }
 
 public enum InsightSource: String, Sendable, Equatable {
@@ -59,6 +62,8 @@ public enum InsightValidationError: Error, Sendable, Equatable {
   case unknownFact(String)
   case missingFacts
   case ungroundedClaim(String)
+  /// A general-knowledge answer to anything but a spoken question.
+  case generalKnowledgeNotAllowed
 }
 
 /// The grounding gate between the model and the HUD.
@@ -72,9 +77,13 @@ public enum InsightValidator {
   /// `requireCitations`: every basis must cite a fact. Used for spoken
   /// (free-form) questions, where an uncited "general tactics" answer could
   /// carry invented specifics.
+  /// `allowGeneralKnowledge`: spoken questions may be answered from the
+  /// model's general knowledge, uncited and labelled as such. Every other
+  /// check still applies.
   public static func validate(_ raw: RawInsight, context: MatchInsightContext,
                               source: InsightSource,
-                              requireCitations: Bool = false) throws -> MatchInsight {
+                              requireCitations: Bool = false,
+                              allowGeneralKnowledge: Bool = false) throws -> MatchInsight {
     let title = collapse(raw.title)
     let body = collapse(raw.body)
     guard !title.isEmpty, !body.isEmpty else { throw InsightValidationError.empty }
@@ -87,7 +96,9 @@ public enum InsightValidator {
     if let unknown = raw.factIds.first(where: { !known.contains($0) }) {
       throw InsightValidationError.unknownFact(unknown)
     }
-    if (requireCitations || raw.basis != .generalTactics), raw.factIds.isEmpty {
+    if raw.basis == .generalKnowledge {
+      guard allowGeneralKnowledge else { throw InsightValidationError.generalKnowledgeNotAllowed }
+    } else if (requireCitations || raw.basis != .generalTactics), raw.factIds.isEmpty {
       throw InsightValidationError.missingFacts
     }
     if let term = visionTerms.first(where: { containsWord($0, in: body) }) {

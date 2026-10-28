@@ -44,6 +44,7 @@ public struct InsightState: Sendable, Equatable {
     case .observed: return "observed"
     case .dataInference: return "inferred"
     case .generalTactics: return "general"
+    case .generalKnowledge: return "general knowledge"
     }
   }
 }

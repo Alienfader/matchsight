@@ -170,6 +170,9 @@ final class InsightCoordinatorTests: XCTestCase {
     state.insight = MatchInsight(title: "T", body: "B", basis: .observed, factIds: [],
                                  source: .mock, fingerprint: "f")
     XCTAssertEqual(state.hudContent?.footer, "Mock AI")
+    state.insight = MatchInsight(title: "T", body: "B", basis: .generalKnowledge, factIds: [],
+                                 source: .model, fingerprint: "f")
+    XCTAssertEqual(state.hudContent?.footer, "Muse Spark · general knowledge")
   }
 
   // MARK: review fixes

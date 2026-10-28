@@ -234,6 +234,29 @@ final class MetaModelInsightServiceTests: XCTestCase {
     XCTAssertNotNil(ok)
   }
 
+  func testSpokenQuestionAcceptsLabelledGeneralKnowledge() async throws {
+    stubCompletion(content: #"{"title":"CHELSEA","body":"Chelsea are a London club; they play at Stamford Bridge.","basis":"general_knowledge","factIds":[]}"#)
+    let insight = try await service().insight(for: context(), question: .spoken("Where is Chelsea from?"))
+    XCTAssertEqual(insight.basis, .generalKnowledge)
+  }
+
+  func testAutomaticInsightRejectsGeneralKnowledge() async {
+    stubCompletion(content: #"{"title":"CHELSEA","body":"Chelsea are a London club.","basis":"general_knowledge","factIds":[]}"#)
+    do {
+      _ = try await service().insight(for: context(), question: .matchStory)
+      XCTFail("expected invalid")
+    } catch {
+      XCTAssertEqual(error as? InsightError, .invalid(.generalKnowledgeNotAllowed))
+    }
+  }
+
+  func testPromptsSayWhenGeneralKnowledgeIsAllowed() {
+    let spoken = InsightPrompt.user(context: context(), question: .spoken("Where is Chelsea from?"))
+    XCTAssertTrue(spoken.contains("general_knowledge"))
+    let preset = InsightPrompt.user(context: context(), question: .matchStory)
+    XCTAssertTrue(preset.contains("Do not use general_knowledge"))
+  }
+
   func testSpokenPromptAsksForCitations() {
     XCTAssertTrue(InsightPrompt.user(context: context(), question: .spoken("Who will win?"))
       .contains("Cite at least one fact"))

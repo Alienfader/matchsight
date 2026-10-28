@@ -77,7 +77,8 @@ public struct MetaModelInsightService: MatchInsightService {
 
     do {
       return try InsightValidator.validate(raw, context: context, source: .model,
-                                           requireCitations: question.isSpoken)
+                                           requireCitations: question.isSpoken,
+                                           allowGeneralKnowledge: question.isSpoken)
     } catch let error as InsightValidationError {
       throw InsightError.invalid(error)
     }

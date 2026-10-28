@@ -9,7 +9,8 @@ public enum InsightPrompt {
     - Use ONLY the numbered facts provided. Never invent players, events, numbers or tactics that are not in the facts.
     - You have no video. Never describe pressing, positioning, movement or anything that requires watching the match.
     - basis: "observed" if you restate facts; "data_inference" if you draw a conclusion from the facts; "general_tactics" if you explain a general soccer concept (for example what a formation usually implies).
-    - factIds: the IDs of the facts you used, e.g. ["F2","F7"]. Empty only when basis is "general_tactics".
+    - basis "general_knowledge": only when the request allows it, and only for stable public facts about clubs, players, competitions or stadiums that the facts do not cover (for example a club's city or stadium). Never for anything about this match: score, events, lineups, minutes, stats. If you are not sure, say you don't know.
+    - factIds: the IDs of the facts you used, e.g. ["F2","F7"]. Empty only when basis is "general_tactics" or "general_knowledge".
     - title: at most 28 characters, uppercase. body: at most 150 characters, one or two plain sentences, no emoji.
     - If the question cannot be answered from the facts, say so in one short sentence and point to the most relevant fact.
     - If the facts are marked SCRIPTED, they are demo data. Still use only them.
@@ -24,7 +25,11 @@ public enum InsightPrompt {
     }
     var lines = [asked, "Match: \(context.headline)"]
     if question.isSpoken {
-      lines.append("Cite at least one fact, whatever the basis; if the facts can't answer, say so and cite the closest one.")
+      lines.append("Cite at least one fact, whatever the basis, except general_knowledge: a question about "
+                   + "the club, a player or the competition in general that no fact covers may be answered "
+                   + "with basis general_knowledge and no facts. Anything about this match must come from the facts.")
+    } else {
+      lines.append("Do not use general_knowledge: use only the facts.")
     }
     if context.isScripted { lines.append("NOTE: all facts are SCRIPTED demo data.") }
     lines.append("Facts:")

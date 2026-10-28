@@ -116,4 +116,37 @@ final class MatchInsightTests: XCTestCase {
                                                    context: context(), source: .model,
                                                    requireCitations: true))
   }
+
+  // Spoken questions may get a general-knowledge answer (a club's city, a
+  // stadium) that no match fact covers. It is labelled as such on the glasses
+  // and is never allowed for the automatic insights.
+  func testSpokenGeneralKnowledgeNeedsNoCitation() throws {
+    let answer = raw(title: "CHELSEA", body: "Chelsea are a London club; they play at Stamford Bridge.",
+                     basis: .generalKnowledge, factIds: [])
+    let insight = try InsightValidator.validate(answer, context: context(), source: .model,
+                                                requireCitations: true, allowGeneralKnowledge: true)
+    XCTAssertEqual(insight.basis, .generalKnowledge)
+  }
+
+  func testGeneralKnowledgeRejectedOutsideSpokenQuestions() {
+    assertRejects(raw(body: "Chelsea are a London club.", basis: .generalKnowledge, factIds: []),
+                  .generalKnowledgeNotAllowed)
+  }
+
+  func testGeneralKnowledgeStillPassesTheOtherChecks() {
+    func check(_ r: RawInsight, _ expected: InsightValidationError) {
+      XCTAssertThrowsError(try InsightValidator.validate(r, context: context(), source: .model,
+                                                         requireCitations: true,
+                                                         allowGeneralKnowledge: true)) { error in
+        XCTAssertEqual(error as? InsightValidationError, expected)
+      }
+    }
+    check(raw(body: "Chelsea are known for pressing high.", basis: .generalKnowledge, factIds: []),
+          .ungroundedClaim("pressing"))
+    check(raw(body: "Chelsea are a London club.", basis: .generalKnowledge, factIds: ["F99"]),
+          .unknownFact("F99"))
+    check(raw(body: String(repeating: "x", count: 151), basis: .generalKnowledge, factIds: []),
+          .bodyTooLong(151))
+  }
 }
+
