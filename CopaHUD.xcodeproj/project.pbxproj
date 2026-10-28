@@ -27,6 +27,7 @@
 		CH0100000000000D /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000001 /* MWDATCore */; };
 		CH0100000000000E /* MWDATDisplay in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000002 /* MWDATDisplay */; };
 		CH01000000000030 /* MWDATInputs in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000010 /* MWDATInputs */; };
+		CH01000000000031 /* MWDATCamera in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000011 /* MWDATCamera */; };
 		CH0100000000000F /* CopaHUDCore in Frameworks */ = {isa = PBXBuildFile; productRef = CH0A000000000003 /* CopaHUDCore */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +75,7 @@
 				CH0100000000000D /* MWDATCore in Frameworks */,
 				CH0100000000000E /* MWDATDisplay in Frameworks */,
 				CH01000000000030 /* MWDATInputs in Frameworks */,
+				CH01000000000031 /* MWDATCamera in Frameworks */,
 				CH0100000000000F /* CopaHUDCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -168,6 +170,7 @@
 				CH0A000000000001 /* MWDATCore */,
 				CH0A000000000002 /* MWDATDisplay */,
 				CH0A000000000010 /* MWDATInputs */,
+				CH0A000000000011 /* MWDATCamera */,
 				CH0A000000000003 /* CopaHUDCore */,
 			);
 			productName = CopaHUD;
@@ -483,6 +486,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
 			productName = MWDATInputs;
+		};
+		CH0A000000000011 /* MWDATCamera */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CH09000000000001 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATCamera;
 		};
 		CH0A000000000003 /* CopaHUDCore */ = {
 			isa = XCSwiftPackageProductDependency;

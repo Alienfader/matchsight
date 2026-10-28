@@ -201,6 +201,23 @@ struct SettingsView: View {
               .padding(.vertical, 14)
             }
 
+            #if DEBUG
+            // Camera test (debug builds only)
+            settingsGroup(
+              header: "Camera test",
+              footer: "Debug: takes one photo with the glasses camera while the display stays on, to check they can run together."
+            ) {
+              settingsRow(last: true) {
+                SwiftUI.Button("Test glasses camera") { Task { await glasses.cameraTest() } }
+                  .font(.system(size: 15, weight: .semibold))
+                Spacer()
+                Text(glasses.cameraTestStatus)
+                  .font(.system(size: 13)).foregroundStyle(.white.opacity(0.6))
+                  .lineLimit(2).multilineTextAlignment(.trailing)
+              }
+            }
+            #endif
+
             // Voice from the glasses
             settingsGroup(
               header: "Voice",
