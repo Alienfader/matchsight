@@ -66,6 +66,7 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 | Gesture | Action |
 |---|---|
 | Pinch (thumb + index) or swipe right | Next page / next player |
+| Pinch on a player card | Open / close that player's match stats |
 | Swipe left | Previous |
 | Swipe up | Home (score capsule) |
 | Swipe down | AI Insight page |

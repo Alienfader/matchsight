@@ -33,7 +33,12 @@ public struct HUDComposer: Sendable {
   /// Card position within a lineup page's STARTING XI carousel. Slot 0 is
   /// the roster index card; slots 1…n are the player cards. Reset whenever
   /// the page changes.
-  private var playerIndex: Int = 0
+  private var playerIndex: Int = 0 {
+    didSet { if playerIndex == 0 { playerDetail = false } }
+  }
+  /// The focused player card shows the detail (full match stats). Closed
+  /// whenever the carousel returns to the roster index or the page changes.
+  private var playerDetail = false
 
   // Deck data (replaced wholesale on each poll).
   private var followed: MatchSnapshot?
@@ -239,6 +244,12 @@ public struct HUDComposer: Sendable {
       page = .insight
       playerIndex = 0
       dismissTakeover(now: now)
+    case .select:
+      if carouselXI() != nil, playerIndex > 0 {
+        playerDetail.toggle()
+      } else {
+        handleTapBurst(count: 1, now: now)
+      }
     }
   }
 
@@ -456,7 +467,9 @@ public struct HUDComposer: Sendable {
         return .lineup(HUDFormat.rosterIndex(lineup))
       }
       let index = min(playerIndex - 1, lineup.startXI.count - 1)
-      return .playerCard(HUDFormat.playerCard(lineup: lineup, cardIndex: index))
+      var card = HUDFormat.playerCard(lineup: lineup, cardIndex: index)
+      card.isDetail = playerDetail
+      return .playerCard(card)
     }
     let title = HUDFormat.flagged(TeamStyle.style(for: team).flag, team.name)
     return .lineup(LineupContent(title: title, rows: ["lineup not available"]))

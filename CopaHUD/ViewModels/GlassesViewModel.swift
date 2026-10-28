@@ -234,6 +234,12 @@ final class GlassesViewModel {
       guard let appModel, let xi = appModel.currentXI, appModel.currentPlayerIndex >= 1 else { return nil }
       let index = min(appModel.currentPlayerIndex - 1, xi.count - 1)
       remoteImages.prefetch(xi.map { $0.playerId.flatMap(photoURL) }, onLoad: redraw)
+      if card.isDetail {
+        let player = xi[index]
+        return ImageHUD.playerDetail(player: player, photo: player.playerId.flatMap(photos),
+                                     stats: player.playerId.flatMap { appModel.playerStats[$0] },
+                                     teamLine: card.teamLine, counter: card.counter, toast: frame.toast)
+      }
       return ImageHUD.carousel(xi: xi, index: index, teamLine: card.teamLine, counter: card.counter,
                                toast: frame.toast, photos: photos, stats: appModel.playerStats)
     case let .insight(c):
@@ -557,8 +563,8 @@ final class GlassesViewModel {
     switch event {
     case .select:
       if let ended = holdEndedAt, Date().timeIntervalSince(ended) < 0.3 { return }
-      dbg("input → next (pinch)")
-      appModel?.hudInput(.next)
+      dbg("input → select (pinch)")
+      appModel?.hudInput(.select)
     case .nav(let direction, _, _):
       switch direction {
       case .right: dbg("input → next (swipe)"); appModel?.hudInput(.next)

@@ -37,6 +37,13 @@ enum ImageHUD {
     })
   }
 
+  @MainActor static func playerDetail(player: LineupPlayer, photo: UIImage?, stats: PlayerStats?,
+                                      teamLine: String, counter: String, toast: String?) -> UIImage? {
+    render(PageFrame(toast: toast, score: nil) {
+      PlayerDetailPage(player: player, photo: photo, stats: stats, teamLine: teamLine, counter: counter)
+    })
+  }
+
   @MainActor static func insight(_ c: InsightContent, toast: String?, score: CompactScore?) -> UIImage? {
     render(PageFrame(toast: toast, score: score) { InsightPage(c: c) })
   }
@@ -654,6 +661,80 @@ private struct StatStrip: View {
       Text(label).font(.system(size: 12, weight: .semibold)).opacity(0.75)
     }
     .frame(maxWidth: .infinity)
+  }
+}
+
+// MARK: - Starting XI: player detail (pinch on a card)
+
+/// The focused player's match in full: headshot, name, rating and minutes,
+/// then every figure the feed sent, two columns.
+private struct PlayerDetailPage: View {
+  let player: LineupPlayer
+  let photo: UIImage?
+  let stats: PlayerStats?
+  let teamLine: String
+  let counter: String
+
+  private var names: (first: String, last: String) { HUDFormat.splitName(player.name) }
+  private var rows: [PlayerStatRow] { HUDFormat.playerDetailRows(stats, position: player.position) }
+  private var subtitle: String {
+    let position = ["G": "GK", "D": "DEF", "M": "MID", "F": "FWD"][player.position ?? ""]
+    return [player.number.map { "#\($0)" }, position].compactMap { $0 }.joined(separator: " · ")
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack {
+        Text(teamLine).lineLimit(1).minimumScaleFactor(0.6)
+        Spacer()
+        Text(counter)
+      }
+      .font(.system(size: 20, weight: .semibold)).opacity(0.85)
+      HStack(spacing: 18) {
+        Group {
+          if let photo {
+            Image(uiImage: photo).resizable().scaledToFill()
+          } else {
+            Image(systemName: "person.fill").resizable().scaledToFit().padding(22).opacity(0.75)
+          }
+        }
+        .frame(width: 110, height: 110).clipShape(Circle())
+        .overlay(Circle().strokeBorder(Palette.sky, lineWidth: 2))
+        VStack(alignment: .leading, spacing: 2) {
+          if !names.first.isEmpty {
+            Text(names.first).font(.system(size: 22, weight: .medium)).opacity(0.9)
+          }
+          Text(names.last).font(.system(size: 36, weight: .heavy)).kerning(-0.5)
+            .lineLimit(1).minimumScaleFactor(0.5)
+          Text(subtitle).font(.system(size: 19, weight: .semibold)).opacity(0.8)
+          if let summary = HUDFormat.playerSummary(stats) {
+            Text(summary).font(.system(size: 19, weight: .bold)).foregroundStyle(Palette.sky)
+          }
+        }
+        Spacer(minLength: 0)
+      }
+      if rows.isEmpty {
+        Text("No match stats for this player yet")
+          .font(.system(size: 22, weight: .medium)).opacity(0.75)
+          .frame(maxWidth: .infinity, alignment: .center).padding(.vertical, 24)
+      } else {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible())],
+                  alignment: .leading, spacing: 10) {
+          ForEach(rows, id: \.label) { row in
+            VStack(alignment: .leading, spacing: 0) {
+              Text(row.value).font(.system(size: 24, weight: .bold))
+                .lineLimit(1).minimumScaleFactor(0.6)
+              Text(row.label.uppercased()).font(.system(size: 13, weight: .semibold)).opacity(0.75)
+            }
+          }
+        }
+      }
+      Text("pinch to close · swipe for next player")
+        .font(.system(size: 15, weight: .medium)).opacity(0.6)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+    .padding(22)
+    .background(Glass(tint: .sky, radius: 26, opacity: 0.45))
   }
 }
 

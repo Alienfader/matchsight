@@ -845,6 +845,95 @@ final class HUDComposerTests: XCTestCase {
     XCTAssertEqual(bodyKind(c), "insight")
   }
 
+  // MARK: player detail: pinch on a player card
+
+  /// Followed match with a three-player home XI; the deck is on the home
+  /// lineup's roster index card.
+  private func onHomeLineup() -> HUDComposer {
+    var c = HUDComposer(config: HUDConfig())
+    c.update(followed: snapshot(), events: [], lineups: [
+      Lineup(fixtureId: 1, team: bra, formation: "4-3-3", startXI: [
+        LineupPlayer(name: "Alisson Becker", number: 1, position: "G", grid: "1:1"),
+        LineupPlayer(name: "Danilo Luiz", number: 2, position: "D", grid: "2:1"),
+        LineupPlayer(name: "Vinicius Junior", number: 7, position: "F", grid: "4:1"),
+      ], coach: nil),
+    ], others: [], isStale: false, now: t0)
+    for _ in 1...3 { c.handle(.next, now: t0) }   // insight, events, home roster index
+    return c
+  }
+
+  private func card(_ c: HUDComposer) -> PlayerCardContent? {
+    if case .playerCard(let p) = c.frame(now: t0).body { return p }
+    return nil
+  }
+
+  func testSelectOnRosterIndexOpensFirstPlayerCard() {
+    var c = onHomeLineup()
+    XCTAssertEqual(bodyKind(c), "lineup")
+    c.handle(.select, now: t0)
+    XCTAssertEqual(card(c)?.lastName, "Becker")
+    XCTAssertEqual(card(c)?.isDetail, false)
+  }
+
+  func testSelectOnPlayerCardTogglesDetail() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0)                    // card: Becker
+    c.handle(.select, now: t0)
+    XCTAssertEqual(card(c)?.lastName, "Becker")
+    XCTAssertEqual(card(c)?.isDetail, true)
+    c.handle(.select, now: t0)
+    XCTAssertEqual(card(c)?.isDetail, false)
+  }
+
+  func testSwipesMovePlayersAndKeepDetailOpen() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0); c.handle(.select, now: t0)   // Becker detail
+    c.handle(.next, now: t0)
+    XCTAssertEqual(card(c)?.lastName, "Luiz")
+    XCTAssertEqual(card(c)?.isDetail, true)
+    c.handle(.previous, now: t0)
+    XCTAssertEqual(card(c)?.lastName, "Becker")
+    XCTAssertEqual(card(c)?.isDetail, true)
+  }
+
+  func testLeavingTheCarouselClosesDetail() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0); c.handle(.select, now: t0)   // Becker detail
+    c.handle(.previous, now: t0)                  // back to the roster index
+    XCTAssertEqual(bodyKind(c), "lineup")
+    c.handle(.next, now: t0)
+    XCTAssertEqual(card(c)?.isDetail, false)
+
+    c.handle(.select, now: t0)                    // Becker detail again
+    for _ in 1...3 { c.handle(.next, now: t0) }   // Luiz, Junior, then past the end
+    XCTAssertNil(card(c))
+    c.handle(.previous, now: t0)                  // back to the home roster index
+    c.handle(.next, now: t0)
+    XCTAssertEqual(card(c)?.lastName, "Becker")
+    XCTAssertEqual(card(c)?.isDetail, false)
+  }
+
+  func testHomeAndInsightCloseDetail() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0); c.handle(.select, now: t0)
+    c.handle(.home, now: t0)
+    XCTAssertEqual(bodyKind(c), "panel")
+    for _ in 1...4 { c.handle(.next, now: t0) }
+    XCTAssertEqual(card(c)?.isDetail, false)
+    c.handle(.select, now: t0)
+    c.handle(.insight, now: t0)
+    XCTAssertEqual(bodyKind(c), "insight")
+  }
+
+  func testSelectOffTheLineupPagesIsNext() {
+    var a = loaded(), b = loaded()
+    for _ in 1...3 {
+      a.handle(.select, now: t0)
+      b.handle(.next, now: t0)
+      XCTAssertEqual(a.frame(now: t0), b.frame(now: t0))
+    }
+  }
+
   func testListeningBannerOverridesToastUntilCleared() {
     var c = loaded()
     c.enqueue([otherGoal()], now: t0)

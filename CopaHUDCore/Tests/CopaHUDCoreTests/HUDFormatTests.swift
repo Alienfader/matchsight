@@ -238,4 +238,63 @@ final class HUDFormatTests: XCTestCase {
     XCTAssertEqual(HUDFormat.takeover(moment: ft, home: bra, away: arg).scoreLine,
                    "🇧🇷 BRA 2 · 1 ARG 🇦🇷")
   }
+
+  // MARK: player detail (pinch on a player card)
+
+  private func detailStats(minutes: Int? = 52, rating: String? = "7.2",
+                           yellow: Int = 0, red: Int = 0) -> PlayerStats {
+    PlayerStats(playerId: 1146, passes: 24, shots: 1, tackles: 2, interceptions: 2,
+                minutes: minutes, rating: rating, goals: 1, assists: 0, saves: 0, conceded: 0,
+                shotsOnTarget: 1, keyPasses: 2, accuratePasses: 20, duels: 4, duelsWon: 3,
+                dribbles: 1, dribblesWon: 1, foulsDrawn: 0, foulsCommitted: 1,
+                yellowCards: yellow, redCards: red)
+  }
+
+  func testPlayerDetailOutfieldRows() {
+    let rows = HUDFormat.playerDetailRows(detailStats(), position: "D")
+    XCTAssertEqual(rows, [
+      PlayerStatRow(label: "Goals", value: "1"),
+      PlayerStatRow(label: "Assists", value: "0"),
+      PlayerStatRow(label: "Shots", value: "1 (1 on target)"),
+      PlayerStatRow(label: "Key passes", value: "2"),
+      PlayerStatRow(label: "Passes", value: "24 (20 accurate)"),
+      PlayerStatRow(label: "Tackles", value: "2"),
+      PlayerStatRow(label: "Interceptions", value: "2"),
+      PlayerStatRow(label: "Duels won", value: "3 of 4"),
+      PlayerStatRow(label: "Dribbles", value: "1 of 1"),
+      PlayerStatRow(label: "Fouls", value: "1"),
+    ])
+  }
+
+  func testPlayerDetailKeeperRows() {
+    let rows = HUDFormat.playerDetailRows(detailStats(), position: "G")
+    XCTAssertEqual(rows.map(\.label), ["Saves", "Conceded", "Passes", "Duels won", "Fouls"])
+  }
+
+  func testPlayerDetailCardsOnlyWhenShown() {
+    XCTAssertFalse(HUDFormat.playerDetailRows(detailStats(), position: "M").contains { $0.label == "Cards" })
+    XCTAssertEqual(HUDFormat.playerDetailRows(detailStats(yellow: 1), position: "M").last,
+                   PlayerStatRow(label: "Cards", value: "1 yellow"))
+    XCTAssertEqual(HUDFormat.playerDetailRows(detailStats(yellow: 1, red: 1), position: "M").last,
+                   PlayerStatRow(label: "Cards", value: "1 yellow · 1 red"))
+  }
+
+  func testPlayerDetailMissingFieldsAreLeftOff() {
+    let s = PlayerStats(playerId: 1, passes: 10, shots: nil, tackles: nil, interceptions: nil,
+                        minutes: 30, accuratePasses: nil)
+    XCTAssertEqual(HUDFormat.playerDetailRows(s, position: "F"),
+                   [PlayerStatRow(label: "Passes", value: "10")])
+  }
+
+  func testPlayerDetailNoStatsWithoutMinutes() {
+    XCTAssertEqual(HUDFormat.playerDetailRows(nil, position: "F"), [])
+    XCTAssertEqual(HUDFormat.playerDetailRows(detailStats(minutes: nil), position: "F"), [])
+    XCTAssertNil(HUDFormat.playerSummary(nil))
+    XCTAssertNil(HUDFormat.playerSummary(detailStats(minutes: 0)))
+  }
+
+  func testPlayerSummary() {
+    XCTAssertEqual(HUDFormat.playerSummary(detailStats()), "Rating 7.2 · 52 min")
+    XCTAssertEqual(HUDFormat.playerSummary(detailStats(rating: nil)), "52 min")
+  }
 }

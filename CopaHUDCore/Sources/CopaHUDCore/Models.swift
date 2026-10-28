@@ -252,15 +252,57 @@ public struct PlayerStats: Sendable, Equatable, Codable {
   public let interceptions: Int?
   /// Wore the armband in this match (feed `games.captain`).
   public let isCaptain: Bool
+  // Detail card (pinch on a player card). Nil when the feed has no figure.
+  public let minutes: Int?
+  /// The feed's match rating, verbatim ("7.2").
+  public let rating: String?
+  public let goals: Int?
+  public let assists: Int?
+  public let saves: Int?
+  public let conceded: Int?
+  public let shotsOnTarget: Int?
+  public let keyPasses: Int?
+  /// Accurate passes, a count (the feed's `passes.accuracy`).
+  public let accuratePasses: Int?
+  public let duels: Int?
+  public let duelsWon: Int?
+  public let dribbles: Int?
+  public let dribblesWon: Int?
+  public let foulsDrawn: Int?
+  public let foulsCommitted: Int?
+  public let yellowCards: Int?
+  public let redCards: Int?
 
   public init(playerId: Int, passes: Int?, shots: Int?, tackles: Int?, interceptions: Int?,
-              isCaptain: Bool = false) {
+              isCaptain: Bool = false, minutes: Int? = nil, rating: String? = nil,
+              goals: Int? = nil, assists: Int? = nil, saves: Int? = nil, conceded: Int? = nil,
+              shotsOnTarget: Int? = nil, keyPasses: Int? = nil, accuratePasses: Int? = nil,
+              duels: Int? = nil, duelsWon: Int? = nil, dribbles: Int? = nil, dribblesWon: Int? = nil,
+              foulsDrawn: Int? = nil, foulsCommitted: Int? = nil,
+              yellowCards: Int? = nil, redCards: Int? = nil) {
     self.isCaptain = isCaptain
     self.playerId = playerId
     self.passes = passes
     self.shots = shots
     self.tackles = tackles
     self.interceptions = interceptions
+    self.minutes = minutes
+    self.rating = rating
+    self.goals = goals
+    self.assists = assists
+    self.saves = saves
+    self.conceded = conceded
+    self.shotsOnTarget = shotsOnTarget
+    self.keyPasses = keyPasses
+    self.accuratePasses = accuratePasses
+    self.duels = duels
+    self.duelsWon = duelsWon
+    self.dribbles = dribbles
+    self.dribblesWon = dribblesWon
+    self.foulsDrawn = foulsDrawn
+    self.foulsCommitted = foulsCommitted
+    self.yellowCards = yellowCards
+    self.redCards = redCards
   }
 }
 

@@ -188,7 +188,22 @@ final class ApiFootballDecodingTests: XCTestCase {
     let stats = env.response.flatMap(\.playerStats)
     XCTAssertEqual(stats.count, 6)
     let mukiele = try XCTUnwrap(stats.first { $0.playerId == 1146 })
-    XCTAssertEqual(mukiele, PlayerStats(playerId: 1146, passes: 24, shots: 1, tackles: 2, interceptions: 2))
+    XCTAssertEqual(mukiele, PlayerStats(playerId: 1146, passes: 24, shots: 1, tackles: 2, interceptions: 2,
+                                        minutes: 52, rating: "7.2", goals: 0, assists: 0, saves: 0,
+                                        conceded: 0, shotsOnTarget: 0, keyPasses: 0, accuratePasses: 20,
+                                        duels: 4, duelsWon: 4, dribbles: 1, dribblesWon: 1,
+                                        foulsDrawn: 0, foulsCommitted: 0, yellowCards: 0, redCards: 0))
+  }
+
+  func testKeeperDetailFieldsDecode() throws {
+    let env = try decode(ApiResponse<PlayersTeamDTO>.self, from: "apifootball-real-players")
+    let roefs = try XCTUnwrap(env.response.flatMap(\.playerStats).first { $0.playerId == 194536 })
+    XCTAssertEqual(roefs.rating, "7.5")
+    XCTAssertEqual(roefs.minutes, 90)
+    XCTAssertEqual(roefs.saves, 3)
+    XCTAssertEqual(roefs.conceded, 0)
+    XCTAssertEqual(roefs.accuratePasses, 11)
+    XCTAssertEqual(roefs.keyPasses, 0)          // null for a player who played
   }
 
   func testNullCounterMeansZeroForAPlayerWhoPlayed() throws {

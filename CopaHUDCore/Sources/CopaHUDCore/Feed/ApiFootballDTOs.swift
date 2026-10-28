@@ -227,13 +227,24 @@ struct PlayersTeamDTO: Decodable {
 struct PlayerEntryDTO: Decodable {
   struct Player: Decodable { let id: Int }
   struct Stat: Decodable {
-    struct Games: Decodable { let minutes: Int?; let captain: Bool? }
-    struct Total: Decodable { let total: Int? }
+    struct Games: Decodable { let minutes: Int?; let captain: Bool?; let rating: String? }
+    struct Shots: Decodable { let total: Int?; let on: Int? }
+    struct Passes: Decodable { let total: Int?; let key: Int?; let accuracy: String? }
     struct Tackles: Decodable { let total: Int?; let interceptions: Int? }
+    struct Goals: Decodable { let total: Int?; let conceded: Int?; let assists: Int?; let saves: Int? }
+    struct Duels: Decodable { let total: Int?; let won: Int? }
+    struct Dribbles: Decodable { let attempts: Int?; let success: Int? }
+    struct Fouls: Decodable { let drawn: Int?; let committed: Int? }
+    struct Cards: Decodable { let yellow: Int?; let red: Int? }
     let games: Games?
-    let shots: Total?
-    let passes: Total?
+    let shots: Shots?
+    let passes: Passes?
     let tackles: Tackles?
+    let goals: Goals?
+    let duels: Duels?
+    let dribbles: Dribbles?
+    let fouls: Fouls?
+    let cards: Cards?
   }
   let player: Player
   let statistics: [Stat]
@@ -247,7 +258,16 @@ struct PlayerEntryDTO: Decodable {
     return PlayerStats(playerId: player.id, passes: value(s.passes?.total),
                        shots: value(s.shots?.total), tackles: value(s.tackles?.total),
                        interceptions: value(s.tackles?.interceptions),
-                       isCaptain: s.games?.captain ?? false)
+                       isCaptain: s.games?.captain ?? false,
+                       minutes: s.games?.minutes, rating: s.games?.rating,
+                       goals: value(s.goals?.total), assists: value(s.goals?.assists),
+                       saves: value(s.goals?.saves), conceded: value(s.goals?.conceded),
+                       shotsOnTarget: value(s.shots?.on), keyPasses: value(s.passes?.key),
+                       accuratePasses: value(s.passes?.accuracy.flatMap { Int($0) }),
+                       duels: value(s.duels?.total), duelsWon: value(s.duels?.won),
+                       dribbles: value(s.dribbles?.attempts), dribblesWon: value(s.dribbles?.success),
+                       foulsDrawn: value(s.fouls?.drawn), foulsCommitted: value(s.fouls?.committed),
+                       yellowCards: value(s.cards?.yellow), redCards: value(s.cards?.red))
   }
 }
 

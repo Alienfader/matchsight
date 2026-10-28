@@ -137,10 +137,12 @@ public struct PlayerCardContent: Sendable, Equatable {
   public var photoURL: String?
   public var dots: String          // "○○●○○○○○○○○" position in the XI
   public var counter: String       // "3/11"
+  /// Pinch opened this player's detail card (match stats in full).
+  public var isDetail: Bool
 
   public init(teamLine: String, firstName: String, lastName: String,
               number: String, positionLabel: String? = nil,
-              photoURL: String?, dots: String, counter: String = "") {
+              photoURL: String?, dots: String, counter: String = "", isDetail: Bool = false) {
     self.teamLine = teamLine
     self.firstName = firstName
     self.lastName = lastName
@@ -149,6 +151,18 @@ public struct PlayerCardContent: Sendable, Equatable {
     self.photoURL = photoURL
     self.dots = dots
     self.counter = counter
+    self.isDetail = isDetail
+  }
+}
+
+/// One line of a player's detail card: "Passes" · "24 (20 accurate)".
+public struct PlayerStatRow: Sendable, Equatable {
+  public var label: String
+  public var value: String
+
+  public init(label: String, value: String) {
+    self.label = label
+    self.value = value
   }
 }
 
@@ -223,6 +237,9 @@ public struct HUDFrame: Sendable, Equatable {
 /// raw select / nav events.
 public enum HUDInput: Sendable, Equatable {
   case next, previous, home, insight
+  /// Pinch: opens / closes a player's detail card in the lineup carousel,
+  /// otherwise the same as `next`.
+  case select
 }
 
 /// User-tunable HUD behaviour (Settings).

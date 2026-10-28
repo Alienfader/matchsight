@@ -70,6 +70,52 @@ public enum HUDFormat {
       counter: "\(cardIndex + 1)/\(lineup.startXI.count)")
   }
 
+  /// Detail card rows: only figures the feed sent for a player who played,
+  /// keeper figures for a keeper, cards only when shown. Empty without stats.
+  public static func playerDetailRows(_ s: PlayerStats?, position: String?) -> [PlayerStatRow] {
+    guard let s, (s.minutes ?? 0) > 0 else { return [] }
+    var rows: [PlayerStatRow] = []
+    func add(_ label: String, _ value: String?) {
+      if let value { rows.append(PlayerStatRow(label: label, value: value)) }
+    }
+    func count(_ v: Int?) -> String? { v.map(String.init) }
+    func withPart(_ total: Int?, _ part: Int?, _ word: String) -> String? {
+      guard let total else { return nil }
+      return part.map { "\(total) (\($0) \(word))" } ?? "\(total)"
+    }
+    func outOf(_ won: Int?, _ total: Int?) -> String? {
+      guard let won, let total else { return nil }
+      return "\(won) of \(total)"
+    }
+    if position == "G" {
+      add("Saves", count(s.saves))
+      add("Conceded", count(s.conceded))
+      add("Passes", withPart(s.passes, s.accuratePasses, "accurate"))
+      add("Duels won", outOf(s.duelsWon, s.duels))
+    } else {
+      add("Goals", count(s.goals))
+      add("Assists", count(s.assists))
+      add("Shots", withPart(s.shots, s.shotsOnTarget, "on target"))
+      add("Key passes", count(s.keyPasses))
+      add("Passes", withPart(s.passes, s.accuratePasses, "accurate"))
+      add("Tackles", count(s.tackles))
+      add("Interceptions", count(s.interceptions))
+      add("Duels won", outOf(s.duelsWon, s.duels))
+      add("Dribbles", outOf(s.dribblesWon, s.dribbles))
+    }
+    add("Fouls", count(s.foulsCommitted))
+    let cards = [(s.yellowCards ?? 0, "yellow"), (s.redCards ?? 0, "red")]
+      .filter { $0.0 > 0 }.map { "\($0.0) \($0.1)" }
+    if !cards.isEmpty { add("Cards", cards.joined(separator: " · ")) }
+    return rows
+  }
+
+  /// "Rating 7.2 · 52 min"; nil for a player who hasn't played.
+  public static func playerSummary(_ s: PlayerStats?) -> String? {
+    guard let s, let minutes = s.minutes, minutes > 0 else { return nil }
+    return (s.rating.map { "Rating \($0) · " } ?? "") + "\(minutes) min"
+  }
+
   /// STARTING XI index card — the carousel's front page: whole XI grouped by
   /// position, coach, and a pinch hint so the band gesture is discoverable.
   public static func rosterIndex(_ lineup: Lineup) -> LineupContent {
