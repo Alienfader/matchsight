@@ -38,8 +38,8 @@ API-Football ──▶ iPhone app ──(Meta Wearables Device Access Toolkit)�
 - **AI proxy** (`proxy/`, Cloudflare Worker): keeps the Meta Model API key off the phone and
   allows only the two models the app uses. See `proxy/README.md`.
 
-(Internal names — the Xcode project, bundle ID and Swift package — are still `CopaHUD`:
-the app started in June 2026 as a World Cup companion.)
+(Internal names — the Xcode project, bundle ID and Swift package — are `CopaHUD`: the idea
+came during the World Cup.)
 
 ## Meta AI tooling
 
@@ -130,8 +130,11 @@ responses under `CopaHUDCore/Tests/CopaHUDCoreTests/Resources/` are test fixture
 
 ## Project history
 
-Matchsight began in June 2026 as CopaHUD, a World Cup companion for the glasses, which is
-why the Xcode project, bundle ID and Swift package keep that name.
+The idea for Matchsight came during the World Cup, which is why the Xcode project, bundle
+ID and Swift package are named CopaHUD.
+
+The Muse Spark and Muse Voice Transcribe integration was added during the hackathon, once
+Meta issued the API credits.
 
 <!-- FOUNDER: what was built during the hackathon window -->
 
