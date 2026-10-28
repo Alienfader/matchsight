@@ -650,78 +650,101 @@ final class GlassesViewModel {
     session?.stop(); session = nil
   }
 
-  // MARK: - Camera test (debug)
+  // MARK: - Glasses camera (look at a player)
 
-  #if DEBUG
-  @ObservationIgnored private var cameraTokens: [any AnyListenerToken] = []
-  private(set) var cameraTestStatus = ""
-
-  /// One photo from the glasses while the display stays up: does the camera
-  /// share the session with the display and the band? Logs every state with
-  /// its time, keeps the photo in tmp/camera-test.jpg, then detaches the
-  /// camera and redraws the glasses.
-  func cameraTest() async {
-    guard let devSession = session, display != nil else {
-      cameraTestStatus = "Connect the glasses first"; dbg("camera test: no session or display"); return
+  enum PhotoFailure: Error, CustomStringConvertible {
+    case notConnected, permissionDenied, unavailable(String), timedOut
+    var description: String {
+      switch self {
+      case .notConnected: return "glasses not connected"
+      case .permissionDenied: return "camera permission denied"
+      case .unavailable(let why): return why
+      case .timedOut: return "no photo after 20 s"
+      }
     }
+  }
+
+  @ObservationIgnored private var cameraTokens: [any AnyListenerToken] = []
+  @ObservationIgnored private var takingPhoto = false
+
+  /// One photo from the glasses camera. The camera joins the running session
+  /// only for this photo and is detached afterwards; on hardware the display
+  /// and the band carried on undisturbed. Never blocks rendering or input.
+  func takePhoto(resolution: PhotoResolution = .medium) async -> Result<Data, PhotoFailure> {
+    guard let devSession = session, display != nil else { return .failure(.notConnected) }
+    guard !takingPhoto else { return .failure(.unavailable("camera busy")) }
+    takingPhoto = true
+    defer { takingPhoto = false }
     let t0 = Date()
-    func log(_ s: String) { dbg("camera test +\(Int(Date().timeIntervalSince(t0) * 1000))ms: \(s)") }
-    cameraTestStatus = "Checking permission…"
+    func log(_ s: String) { dbg("camera +\(Int(Date().timeIntervalSince(t0) * 1000))ms: \(s)") }
     do {
       var status = try await wearables.checkPermissionStatus(.camera)
-      log("permission \(status)")
       if status != .granted {
         status = try await wearables.requestPermission(.camera)
         log("requested permission → \(status)")
       }
-      guard status == .granted else { cameraTestStatus = "Camera permission denied"; return }
+      guard status == .granted else { return .failure(.permissionDenied) }
     } catch {
-      log("permission error \(error)"); cameraTestStatus = "Permission error: \(error)"; return
+      log("permission error \(error)"); return .failure(.unavailable("camera permission error"))
     }
     let camera: Camera
     do {
-      guard let c = try devSession.addCamera() else {
-        log("addCamera returned nil"); cameraTestStatus = "addCamera returned nil"; return
-      }
+      guard let c = try devSession.addCamera() else { log("addCamera returned nil"); return .failure(.unavailable("camera unavailable")) }
       camera = c
     } catch {
-      log("addCamera failed: \(error)"); cameraTestStatus = "addCamera failed: \(error)"; return
+      log("addCamera failed: \(error)"); return .failure(.unavailable("camera unavailable"))
     }
-    cameraTestStatus = "Taking a photo…"
-    let (events, sink) = AsyncStream<String>.makeStream()
-    let url = FileManager.default.temporaryDirectory.appendingPathComponent("camera-test.jpg")
+    enum Event { case ready, nudge, photo(Data), error(String), timeout }
+    let (events, sink) = AsyncStream<Event>.makeStream()
     cameraTokens = [
-      camera.statePublisher.listen { sink.yield("camera state \($0)") },
-      camera.photo.statePublisher.listen { sink.yield($0 == .started ? "READY" : "photo state \($0)") },
-      camera.photo.errorPublisher.listen { sink.yield("ERROR \($0)") },
-      camera.photo.transferProgressPublisher.listen { sink.yield("transfer \($0)") },
-      camera.photo.photoDataPublisher.listen { data in
-        try? data.imageData.write(to: url)
-        sink.yield("PHOTO \(data.imageData.count) bytes")
-      },
+      camera.photo.statePublisher.listen { if $0 == .started { sink.yield(.ready) } },
+      camera.photo.errorPublisher.listen { sink.yield(.error("\($0)")) },
+      camera.photo.photoDataPublisher.listen { sink.yield(.photo($0.imageData)) },
     ]
     camera.photo.start()
-    // If no "started" state arrives, try anyway; give up after 30 s.
-    let nudge = Task { try? await Task.sleep(for: .seconds(5)); sink.yield("NUDGE") }
-    let timeout = Task { try? await Task.sleep(for: .seconds(30)); sink.yield("TIMEOUT") }
+    // If "started" never arrives, try anyway after 5 s; give up after 20 s.
+    let nudge = Task { try? await Task.sleep(for: .seconds(5)); sink.yield(.nudge) }
+    let timeout = Task { try? await Task.sleep(for: .seconds(20)); sink.yield(.timeout) }
     var asked = false
+    var result: Result<Data, PhotoFailure> = .failure(.timedOut)
     for await event in events {
-      log(event)
-      if (event == "READY" || event == "NUDGE"), !asked {
+      switch event {
+      case .ready, .nudge:
+        guard !asked else { continue }
         asked = true
-        log("capturePhoto")
-        camera.photo.capturePhoto()
+        log("capture (\(resolution))")
+        camera.photo.capturePhoto(resolution: resolution, quality: .high)
+        continue
+      case .photo(let data):
+        log("photo \(data.count) bytes"); result = .success(data)
+      case .error(let why):
+        log("error \(why)"); result = .failure(.unavailable("camera error"))
+      case .timeout:
+        log("timed out"); result = .failure(.timedOut)
       }
-      if event.hasPrefix("PHOTO") { cameraTestStatus = "Photo received (\(event.dropFirst(6)))"; break }
-      if event.hasPrefix("ERROR") { cameraTestStatus = "Camera error: \(event.dropFirst(6))"; break }
-      if event == "TIMEOUT" { cameraTestStatus = "No photo after 30 s"; break }
+      break
     }
     nudge.cancel(); timeout.cancel()
     camera.photo.stop()
     camera.stop()
     cameraTokens = []
-    log("camera stopped; display \(display == nil ? "gone" : "still attached"), session \(session?.state == .started ? "started" : "not started")")
     if let frame = currentFrame { await render(frame) }
+    return result
+  }
+
+  #if DEBUG
+  private(set) var cameraTestStatus = ""
+
+  /// Debug: one photo, kept in tmp/camera-test.heic to inspect.
+  func cameraTest() async {
+    cameraTestStatus = "Taking a photo…"
+    switch await takePhoto() {
+    case .success(let data):
+      try? data.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("camera-test.heic"))
+      cameraTestStatus = "Photo received (\(data.count) bytes)"
+    case .failure(let why):
+      cameraTestStatus = "\(why)"
+    }
   }
   #endif
 

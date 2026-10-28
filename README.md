@@ -59,6 +59,13 @@ came during the World Cup.)
   Spark's general knowledge, uncited and labelled `general knowledge` on the glasses. The
   glasses show each step: listening, transcribing, the question as heard with "Thinking…",
   then the answer under the question.
+- **Look at a player (glasses camera, experimental, off by default).** Hold to ask and say "who's this?": the
+  glasses take one photo, Apple's on-device text recognition reads the shirt number in the
+  middle of the picture, and the player's detail card opens. It only ever names a starter
+  in the lineups; same number on both teams, or none read, says so. Works on TV close-ups;
+  players far away are too small to read. The photo stays on the phone and is not kept.
+  In live testing it was slow (5–15 s per photo) and rarely found a readable number, so
+  it is parked behind a Settings switch and not part of the demo.
 - **Cost-aware scheduling.** Insights refresh automatically as the match changes, but
   unchanged data never re-asks the model (up to 10 minutes), a burst of events waits at
   least 30 s, and repeat questions on unchanged data are answered from a cache.
@@ -95,7 +102,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 366 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 381 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -103,7 +110,7 @@ Learned on real glasses:
 Turn on **Settings → Demo mode** to replay the scripted Arsenal v Chelsea match without an
 API-Football key. With a key, the app follows your clubs' real matches.
 
-Watching on TV? **Settings → TV delay** (0–60 s) holds the score, events and goal banners on
+Watching on TV? **Settings → TV delay** (up to 5 minutes) holds the score, events and goal banners on
 the glasses so they never arrive before the broadcast shows the goal. The phone's Today list
 is not delayed.
 

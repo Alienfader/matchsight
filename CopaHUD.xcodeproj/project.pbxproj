@@ -10,6 +10,7 @@
 		CH01000000000001 /* CopaHUDApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000001 /* CopaHUDApp.swift */; };
 		CH01000000000002 /* SecretsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000002 /* SecretsStore.swift */; };
 		CH01000000000021 /* VoiceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000021 /* VoiceRecorder.swift */; };
+		CH01000000000032 /* ShirtNumberReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000032 /* ShirtNumberReader.swift */; };
 		CH01000000000022 /* FavouritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000022 /* FavouritesStore.swift */; };
 		CH01000000000003 /* GlassesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000003 /* GlassesViewModel.swift */; };
 		CH01000000000004 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH02000000000004 /* AppModel.swift */; };
@@ -49,6 +50,7 @@
 		CH02000000000001 /* CopaHUDApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopaHUDApp.swift; sourceTree = "<group>"; };
 		CH02000000000002 /* SecretsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsStore.swift; sourceTree = "<group>"; };
 		CH02000000000021 /* VoiceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorder.swift; sourceTree = "<group>"; };
+		CH02000000000032 /* ShirtNumberReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShirtNumberReader.swift; sourceTree = "<group>"; };
 		CH02000000000022 /* FavouritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesStore.swift; sourceTree = "<group>"; };
 		CH02000000000003 /* GlassesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesViewModel.swift; sourceTree = "<group>"; };
 		CH02000000000004 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 			children = (
 				CH02000000000002 /* SecretsStore.swift */,
 				CH02000000000021 /* VoiceRecorder.swift */,
+				CH02000000000032 /* ShirtNumberReader.swift */,
 				CH02000000000022 /* FavouritesStore.swift */,
 				CH02000000000003 /* GlassesViewModel.swift */,
 				CH02000000000004 /* AppModel.swift */,
@@ -232,6 +235,7 @@
 				CH01000000000001 /* CopaHUDApp.swift in Sources */,
 				CH01000000000002 /* SecretsStore.swift in Sources */,
 				CH01000000000021 /* VoiceRecorder.swift in Sources */,
+				CH01000000000032 /* ShirtNumberReader.swift in Sources */,
 				CH01000000000022 /* FavouritesStore.swift in Sources */,
 				CH01000000000003 /* GlassesViewModel.swift in Sources */,
 				CH01000000000004 /* AppModel.swift in Sources */,

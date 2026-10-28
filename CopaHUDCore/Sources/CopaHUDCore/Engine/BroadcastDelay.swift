@@ -5,7 +5,8 @@ import Foundation
 /// updates queue here with their arrival time and leave, in order, once
 /// `seconds` have passed. Changing `seconds` applies to what is queued.
 public struct BroadcastDelay<Item> {
-  public static var maxSeconds: TimeInterval { 60 }
+  /// Streaming services can run minutes behind the live data.
+  public static var maxSeconds: TimeInterval { 300 }
 
   public var seconds: TimeInterval {
     didSet { seconds = Self.clamp(seconds) }

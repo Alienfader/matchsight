@@ -19,6 +19,7 @@ struct SettingsView: View {
   @State private var pastedProxyValue = ""
   @State private var takeover: Double = 8
   @State private var tvDelay: Double = 0
+  @State private var lookAtPlayer = false
   @State private var toastsEnabled = true
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
@@ -179,7 +180,7 @@ struct SettingsView: View {
             // TV delay
             settingsGroup(
               header: "Watching on TV",
-              footer: "Live data often arrives before the TV picture. Hold the score, events and goal banners on the glasses this long, so they never spoil what you are about to see."
+              footer: "Live data often arrives before the TV picture. Hold the score, clock, events and goal banners on the glasses this long, so they never spoil what you are about to see. Streaming apps can be 1–3 minutes behind: set it so the glasses' minute matches the TV."
             ) {
               VStack(spacing: 12) {
                 HStack {
@@ -187,12 +188,12 @@ struct SettingsView: View {
                     .font(.system(size: 15))
                     .foregroundStyle(.white)
                   Spacer()
-                  Text(tvDelay == 0 ? "Off" : "\(Int(tvDelay))s")
+                  Text(tvDelay == 0 ? "Off" : String(format: "%d:%02d", Int(tvDelay) / 60, Int(tvDelay) % 60))
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color.cyan)
                     .monospacedDigit()
                 }
-                Slider(value: $tvDelay, in: 0...60, step: 5) { editing in
+                Slider(value: $tvDelay, in: 0...300, step: 5) { editing in
                   if !editing { appModel.setTVDelay(tvDelay) }
                 }
                 .tint(Color.actionBlue)
@@ -232,6 +233,23 @@ struct SettingsView: View {
                   .labelsHidden()
                   .tint(Color.actionBlue)
                   .onChange(of: voiceReadyWhenLocked) { _, new in appModel.setVoiceReadyWhenLocked(new) }
+              }
+            }
+
+            // Look at a player (glasses camera)
+            settingsGroup(
+              header: "Look at a player (experimental)",
+              footer: "Hold to ask and say \u{201C}who\u{2019}s this?\u{201D}: the glasses take one photo and the phone reads the shirt number to open that player's card. Works best on a TV close-up; players far away are too small to read. Experimental: slow (5–10 s) and often can't read a number. The photo is read on this phone and never kept or sent anywhere."
+            ) {
+              settingsRow(last: true) {
+                Text("Use the glasses camera")
+                  .font(.system(size: 15))
+                  .foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("", isOn: $lookAtPlayer)
+                  .labelsHidden()
+                  .tint(Color.actionBlue)
+                  .onChange(of: lookAtPlayer) { _, new in appModel.setLookAtPlayer(new) }
               }
             }
 
@@ -365,6 +383,7 @@ struct SettingsView: View {
   private func syncFromModel() {
     takeover = appModel.config.takeoverSeconds
     tvDelay = appModel.tvDelaySeconds
+    lookAtPlayer = appModel.lookAtPlayerEnabled
     toastsEnabled = appModel.config.toastsEnabled
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode

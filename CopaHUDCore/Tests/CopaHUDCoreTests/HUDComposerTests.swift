@@ -258,6 +258,28 @@ final class HUDComposerTests: XCTestCase {
     guard case .panel = c.frame(now: t0).body else { return XCTFail("expected panel from index card") }
   }
 
+  // MARK: look at a player
+
+  func testShowPlayerOpensThatPlayersDetailCard() {
+    var c = loaded()
+    c.enqueue([goalMoment()], now: t0)   // even over a takeover
+    c.showPlayer(teamId: arg.id, index: 0, now: t0)
+    guard case let .playerCard(card) = c.frame(now: t0).body else { return XCTFail("no player card") }
+    XCTAssertEqual(card.lastName, "Martínez")
+    XCTAssertTrue(card.isDetail)
+    c.handle(.select, now: t0)   // pinch closes it as usual
+    guard case let .playerCard(closed) = c.frame(now: t0).body else { return XCTFail() }
+    XCTAssertFalse(closed.isDetail)
+  }
+
+  func testShowPlayerIgnoresAnUnknownTeamOrIndex() {
+    var c = loaded()
+    c.showPlayer(teamId: 999, index: 0, now: t0)
+    guard case .panel = c.frame(now: t0).body else { return XCTFail("moved for an unknown team") }
+    c.showPlayer(teamId: bra.id, index: 5, now: t0)
+    guard case .panel = c.frame(now: t0).body else { return XCTFail("moved for an index past the XI") }
+  }
+
   // MARK: page dots
 
   func testFrameCarriesDeckPosition() {

@@ -41,6 +41,8 @@ final class BroadcastDelayTests: XCTestCase {
 
   func testDelayIsClampedToTheSettingRange() {
     XCTAssertEqual(BroadcastDelay<Int>(seconds: -5).seconds, 0)
-    XCTAssertEqual(BroadcastDelay<Int>(seconds: 500).seconds, BroadcastDelay<Int>.maxSeconds)
+    XCTAssertEqual(BroadcastDelay<Int>(seconds: 900).seconds, BroadcastDelay<Int>.maxSeconds)
+    // Streaming services run minutes behind the live data.
+    XCTAssertEqual(BroadcastDelay<Int>(seconds: 180).seconds, 180)
   }
 }

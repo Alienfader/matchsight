@@ -222,6 +222,23 @@ public struct HUDComposer: Sendable {
     playerIndex = index
   }
 
+  /// Look at a player: open that starter's detail card from anywhere,
+  /// dismissing a takeover. `index` is the place in the team's starting XI;
+  /// an unknown team or index leaves everything as it is.
+  public mutating func showPlayer(teamId: Int, index: Int, now: Date) {
+    let target: DeckPage
+    if followed?.home.id == teamId { target = .lineupHome }
+    else if followed?.away.id == teamId { target = .lineupAway }
+    else { return }
+    guard let lineup = lineups.first(where: { $0.team.id == teamId }),
+          lineup.startXI.indices.contains(index) else { return }
+    dismissIntro()
+    page = target
+    playerIndex = index + 1
+    playerDetail = true
+    dismissTakeover(now: now)
+  }
+
   // MARK: - Neural Band input (DAT 1.0 Inputs)
 
   /// A resolved Neural Band gesture: pinch / swipe right = next, swipe left =

@@ -56,6 +56,8 @@ final class AppModel {
   private(set) var voiceReadyWhenLocked: Bool
   /// Seconds the glasses wait so they never run ahead of the TV picture.
   private(set) var tvDelaySeconds: Double
+  /// "Who's this?" takes one glasses photo to read a shirt number (opt-in).
+  private(set) var lookAtPlayerEnabled: Bool
 
   // MARK: Bookkeeping
   @ObservationIgnored private var scheduleTask: Task<Void, Never>?
@@ -105,6 +107,7 @@ final class AppModel {
     self.demoMode = demo
     self.voiceReadyWhenLocked = d.object(forKey: Keys.voiceReadyWhenLocked) as? Bool ?? true
     self.tvDelaySeconds = d.double(forKey: Keys.tvDelaySeconds)
+    self.lookAtPlayerEnabled = d.bool(forKey: Keys.lookAtPlayer)
     self.tvDelayLine = BroadcastDelay(seconds: d.double(forKey: Keys.tvDelaySeconds))
     self.composer = HUDComposer(config: cfg)
     self.feed = AppModel.makeFeed(demoMode: demo, apiKey: SecretsStore.apiFootballKey)
@@ -248,6 +251,11 @@ final class AppModel {
     Task { await deliverDueUpdates() }
   }
 
+  func setLookAtPlayer(_ value: Bool) {
+    lookAtPlayerEnabled = value
+    UserDefaults.standard.set(value, forKey: Keys.lookAtPlayer)
+  }
+
   func setDemoMode(_ value: Bool) {
     demoMode = value
     UserDefaults.standard.set(value, forKey: Keys.demoMode)
@@ -347,6 +355,17 @@ final class AppModel {
         }
         self.voiceLog("heard \"\(text)\"")
         self.voiceStatus = "Heard: \u{201C}\(text)\u{201D}"
+        if ShirtNumberLookup.isLookRequest(text) {
+          guard self.lookAtPlayerEnabled else {
+            self.voiceLog("look: phrase heard, but Look at a player is off")
+            self.voiceStatus = "Turn on Settings → Look at a player"
+            self.flashListening("📷 Turn on Look at a player in Settings", seconds: 3)
+            return
+          }
+          self.voiceLog("look: phrase heard")
+          await self.lookAtPlayer()
+          return
+        }
         self.setListening(nil)
         self.askAnalyst(.spoken(text))
       } catch {
@@ -355,6 +374,47 @@ final class AppModel {
         self.voiceStatus = "Couldn't transcribe (\(AppModel.describe(error)))"
         self.flashListening("🎙 Couldn't hear the question (\(AppModel.describe(error)))", seconds: 3)
       }
+    }
+  }
+
+  /// "Who's this?": one glasses photo, the shirt number read on the phone,
+  /// and that starter's detail card. Only ever names someone in the starting
+  /// XIs; every failure says so on the glasses.
+  private func lookAtPlayer() async {
+    guard !lastLineups.isEmpty else {
+      voiceLog("look: no lineups"); flashListening("📷 No lineups for this match yet", seconds: 3); return
+    }
+    guard let glasses else { return }
+    setListening("📷 Hold still…")
+    await renderNow()
+    let data: Data
+    switch await glasses.takePhoto() {
+    case .success(let photo): data = photo
+    case .failure(let why):
+      voiceLog("look: \(why)"); voiceStatus = "Camera: \(why)"
+      flashListening("📷 Camera: \(why)", seconds: 3)
+      return
+    }
+    setListening("📷 Reading the shirt number…")
+    await renderNow()
+    let candidates = await ShirtNumberReader.candidates(in: data)
+    let result = ShirtNumberLookup.find(candidates, in: lastLineups)
+    voiceLog("look: \(candidates.count) text pieces → \(result)")
+    switch result {
+    case let .player(name, teamId, index):
+      voiceStatus = "That's \(name)"
+      setListening(nil)
+      composer.showPlayer(teamId: teamId, index: index, now: Date())
+      await renderNow()
+    case let .ambiguous(number, names):
+      voiceStatus = "#\(number): \(names.joined(separator: " or "))"
+      flashListening("📷 #\(number): \(names.joined(separator: " or "))", seconds: 4)
+    case let .notInLineup(number):
+      voiceStatus = "No #\(number) in either starting XI"
+      flashListening("📷 No #\(number) in either starting XI", seconds: 3)
+    case .noNumber:
+      voiceStatus = "Couldn't read a shirt number"
+      flashListening("📷 Couldn't read a shirt number", seconds: 3)
     }
   }
 
@@ -932,6 +992,7 @@ final class AppModel {
     static let demoMode = "demoMode"
     static let voiceReadyWhenLocked = "voiceReadyWhenLocked"
     static let tvDelaySeconds = "tvDelaySeconds"
+    static let lookAtPlayer = "lookAtPlayer"
   }
 }
 
