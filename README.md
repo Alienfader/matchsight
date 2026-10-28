@@ -139,5 +139,6 @@ why the Xcode project, bundle ID and Swift package keep that name.
 
 ## License
 
-<!-- FOUNDER: license -->
+MIT. See [LICENSE](LICENSE). Match data, crests and player photos are not covered; see
+[Data and trademarks](#data-and-trademarks).
 
