@@ -809,39 +809,41 @@ private struct CelebrationPage: View {
   }
 
   var body: some View {
-    ZStack {
-      if kind == .goal { Confetti() }
-      VStack(spacing: 18) {
-        HStack(spacing: 8) {
-          Text(headline)
-            .font(.system(size: 62, weight: .heavy)).kerning(-1)
-            .lineLimit(1).minimumScaleFactor(0.45)
-            .shadow(color: glow, radius: 14)
-            .shadow(color: glow.opacity(0.6), radius: 28)
-          if kind == .goal {
-            Image(systemName: "soccerball").font(.system(size: 50, weight: .bold))
-              .shadow(color: Palette.mint, radius: 12)
-          }
-        }
-        Text(t.scoreLine).font(.system(size: 28, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
-        if t.detail != nil || photo != nil {
-          HStack(spacing: 14) {
-            if let photo {
-              Image(uiImage: photo).resizable().scaledToFill()
-                .frame(width: 70, height: 70).clipShape(Circle())
-                .overlay(Circle().strokeBorder(glow, lineWidth: 2.5))
-                .shadow(color: glow, radius: 10)
-            }
-            if let detail = t.detail {
-              Text(detail).font(.system(size: 22, weight: .semibold))
-                .lineLimit(2).minimumScaleFactor(0.6)
-            }
-          }
-          .padding(.horizontal, 22).padding(.vertical, 12)
-          .background(Glass(tint: kind == .goal ? .mint : .signature, radius: 40, opacity: 0.35))
+    VStack(spacing: 18) {
+      HStack(spacing: 8) {
+        Text(headline)
+          .font(.system(size: 62, weight: .heavy)).kerning(-1)
+          .lineLimit(1).minimumScaleFactor(0.45)
+          .shadow(color: glow, radius: 14)
+          .shadow(color: glow.opacity(0.6), radius: 28)
+        if kind == .goal {
+          Image(systemName: "soccerball").font(.system(size: 50, weight: .bold))
+            .shadow(color: Palette.mint, radius: 12)
         }
       }
+      Text(t.scoreLine).font(.system(size: 28, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
+      if t.detail != nil || photo != nil {
+        HStack(spacing: 14) {
+          if let photo {
+            Image(uiImage: photo).resizable().scaledToFill()
+              .frame(width: 70, height: 70).clipShape(Circle())
+              .overlay(Circle().strokeBorder(glow, lineWidth: 2.5))
+              .shadow(color: glow, radius: 10)
+          }
+          if let detail = t.detail {
+            Text(detail).font(.system(size: 22, weight: .semibold))
+              .lineLimit(2).minimumScaleFactor(0.6)
+          }
+        }
+        .padding(.horizontal, 22).padding(.vertical, 12)
+        .background(Glass(tint: kind == .goal ? .mint : .signature, radius: 40, opacity: 0.35))
+      }
     }
+    // Clear of the headline's glow, so the scoreboard above stays readable.
+    .padding(.top, 22)
+    // Behind, not in, the layout: a fixed 560 pt shower would push the page
+    // past 600 pt and crop the scoreboard.
+    .background { if kind == .goal { Confetti() } }
   }
 }
 
