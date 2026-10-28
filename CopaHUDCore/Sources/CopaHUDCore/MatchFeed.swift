@@ -4,6 +4,9 @@ import Foundation
 /// a server-assisted feed can slot in later without touching the UI.
 public protocol MatchFeed: Sendable {
   func todaysFixtures() async throws -> [Fixture]
+  /// Fixtures on one local calendar day (the phone's day strip). Defaults to
+  /// today's list for today and nothing otherwise.
+  func fixtures(on day: Date) async throws -> [Fixture]
   /// Score, clock, status for one match.
   func liveSnapshot(fixtureId: Int) async throws -> MatchSnapshot
   /// Goals/cards/subs/VAR with synthesized stable ids (see MatchEvent docs).
@@ -26,6 +29,9 @@ public protocol MatchFeed: Sendable {
 }
 
 public extension MatchFeed {
+  func fixtures(on day: Date) async throws -> [Fixture] {
+    Calendar.current.isDateInToday(day) ? try await todaysFixtures() : []
+  }
   func stats(fixtureId: Int) async throws -> MatchStats? { nil }
   func playerStats(fixtureId: Int) async throws -> [Int: PlayerStats] { [:] }
   func prediction(fixtureId: Int) async throws -> WinProbability? { nil }

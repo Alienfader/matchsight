@@ -10,7 +10,7 @@ APP_ID=$(security find-generic-password -s copahud-meta-app-id -w)
 TOKEN=$(security find-generic-password -s copahud-meta-client-token -w)
 APP_LINK=${MATCHSIGHT_APP_LINK:-https://alienfader.com/matchsight}
 xcodebuild -project CopaHUD.xcodeproj -scheme CopaHUD -configuration Debug \
-  -destination "id=${DEVICE_ID:?set DEVICE_ID to your iPhone's UDID (xcrun devicectl list devices)}" \
+  -destination "id=${DEVICE_ID:?set DEVICE_ID to the iPhone UDID from xcrun devicectl list devices}" \
   -allowProvisioningUpdates -skipPackagePluginValidation \
   META_APP_ID="$APP_ID" META_CLIENT_TOKEN="$TOKEN" META_APP_LINK="$APP_LINK" \
   MATCHSIGHT_ENTITLEMENTS=CopaHUD/CopaHUD-Registered.entitlements \
