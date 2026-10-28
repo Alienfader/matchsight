@@ -36,7 +36,7 @@ final class GlassesViewModel {
   var showError = false
   var errorMessage = ""
   var requiresDATAppUpdate = false
-  private(set) var debugLog: [String] = []   // last 40 entries, newest last
+  private(set) var debugLog: [String] = []   // last 120 entries, newest last
 
   private let wearables: WearablesInterface
 
@@ -95,7 +95,7 @@ final class GlassesViewModel {
     let ts = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
     debugLog.append("[\(ts)] \(s)")
     print("[CopaHUD] \(s)")   // mirrored to the device console (devicectl --console)
-    if debugLog.count > 40 { debugLog.removeFirst(debugLog.count - 40) }
+    if debugLog.count > 120 { debugLog.removeFirst(debugLog.count - 120) }
   }
 
   // MARK: - Render path (single source of HUD truth)
@@ -518,7 +518,41 @@ final class GlassesViewModel {
   /// A `select` right after a hold's release belongs to the hold — ignore it.
   @ObservationIgnored private var holdEndedAt: Date?
 
+  /// Raw-event trace for diagnosing missed swipes: one line per event, with
+  /// drag moves folded into a single summary at drag up.
+  @ObservationIgnored private var dragTrace: (startMs: Int64, x: Float, y: Float, sumDx: Float, sumDy: Float, moves: Int)?
+
+  private func traceRaw(_ event: InputEvent) {
+    let guarded = currentFrame == nil ? " [no frame, dropped]" : ""
+    switch event {
+    case .nav(let direction, let source, let ts):
+      dbg("raw nav \(direction) src=\(source) t=\(ts)\(guarded)")
+    case .select(let source, let ts):
+      dbg("raw select src=\(source) t=\(ts)\(guarded)")
+    case .back(let source, let ts):
+      dbg("raw back src=\(source) t=\(ts)\(guarded)")
+    case .drag(let action, let x, let y, let dx, let dy, let source, let ts):
+      switch action {
+      case .down:
+        dragTrace = (ts, x, y, 0, 0, 0)
+        dbg("raw drag down src=\(source) x=\(x) y=\(y) t=\(ts)\(guarded)")
+      case .move:
+        dragTrace?.sumDx += dx; dragTrace?.sumDy += dy; dragTrace?.moves += 1
+      case .up:
+        if let d = dragTrace {
+          dbg("raw drag up src=\(source) \(ts - d.startMs)ms moves=\(d.moves) Δx=\(x - d.x) Δy=\(y - d.y) Σdx=\(d.sumDx) Σdy=\(d.sumDy)\(guarded)")
+        } else {
+          dbg("raw drag up src=\(source) (no down) t=\(ts)\(guarded)")
+        }
+        dragTrace = nil
+      }
+    default:
+      dbg("raw \(event)\(guarded)")
+    }
+  }
+
   private func handleInput(_ event: InputEvent) {
+    traceRaw(event)
     guard currentFrame != nil else { return }   // phase guard (DAT rule #3)
     switch event {
     case .select:
