@@ -5,6 +5,8 @@ import Foundation
 /// only sees fixed rules + match facts, and the answer is validated.
 public enum InsightQuestion: Sendable, Hashable {
   case matchStory, formation, substitutionImpact, playerToWatch
+  /// Asked by the app at full time, not a phone button.
+  case fullTimeRecap
   case spoken(String)
 
   /// The phone's preset buttons, in display order.
@@ -18,6 +20,7 @@ public enum InsightQuestion: Sendable, Hashable {
     case .formation: return "What do the two formations suggest about how each team is set up?"
     case .substitutionImpact: return "What did the most recent substitution change?"
     case .playerToWatch: return "Which player should I watch right now, based on the facts?"
+    case .fullTimeRecap: return "The match is over. Sum it up: the result and what decided it."
     case .spoken(let text):
       let collapsed = text.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
       return String(collapsed.prefix(Self.maxSpokenLength))
@@ -36,6 +39,7 @@ public enum InsightQuestion: Sendable, Hashable {
     case .formation: return "formation"
     case .substitutionImpact: return "substitutionImpact"
     case .playerToWatch: return "playerToWatch"
+    case .fullTimeRecap: return "fullTimeRecap"
     case .spoken: return "spoken"
     }
   }

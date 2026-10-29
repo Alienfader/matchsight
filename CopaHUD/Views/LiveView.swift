@@ -458,6 +458,7 @@ struct LiveView: View {
     case .formation: return "Formations"
     case .substitutionImpact: return "Last sub"
     case .playerToWatch: return "Who to watch"
+    case .fullTimeRecap: return "Full-time recap"
     case .spoken: return "Ask by voice"
     }
   }

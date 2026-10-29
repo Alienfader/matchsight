@@ -142,6 +142,13 @@ public struct HUDComposer: Sendable {
     startTakeoverIfIdle(now: now)
   }
 
+  /// A one-line notice from the app (e.g. lineups out), like a yellow card's.
+  public mutating func notice(_ line: String, now: Date) {
+    guard !alertsPaused, config.minorNotices else { return }
+    currentToast = line
+    toastDeadline = now.addingTimeInterval(config.toastSeconds)
+  }
+
   /// Show the crest intro for the followed match. The app calls this when a
   /// new match becomes followed; it never repeats for the same fixture, and
   /// is skipped in cinema mode or for a match that has already finished.

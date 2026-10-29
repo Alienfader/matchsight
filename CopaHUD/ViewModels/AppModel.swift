@@ -930,6 +930,14 @@ final class AppModel {
           if let lineups = try? await feed.lineups(fixtureId: id), !lineups.isEmpty {
             lastLineups = lineups
             lineupsFetched.insert(id)
+            // Before kickoff, the lineups landing is news.
+            if snap.status == .notStarted {
+              let teams = lineups.map { l in
+                [TeamStyle.style(for: l.team).code, l.formation].compactMap { $0 }.joined(separator: " ")
+              }
+              composer.notice("📋 Lineups are out · " + teams.joined(separator: " · "), now: Date())
+              glasses?.dbg("lineups: out before kickoff")
+            }
             if snap.status == .halfTime { halfTimeLineupRefreshed = true }
           }
         }
@@ -1011,6 +1019,9 @@ final class AppModel {
       composer.showMatchIntro(now: Date())
       composer.enqueue(moments, now: Date())
       if soundsOn, !composer.alertsPaused, let cue = AudioCue.loudest(moments) { audio.play(cue) }
+      // Full time: Muse Spark sums the match up on the insight page, under
+      // the banner, read aloud when answers are.
+      if moments.contains(where: { $0.kind == .fullTime }) { askAnalyst(.fullTimeRecap) }
     }
     if let context = insightContext() { insights.contextChanged(context) }
     await renderNow()

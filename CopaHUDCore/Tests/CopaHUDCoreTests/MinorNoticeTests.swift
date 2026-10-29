@@ -83,6 +83,23 @@ final class MinorNoticeTests: XCTestCase {
     XCTAssertNil(HUDFormat.noticeLine(.halfTime, minute: 45))
   }
 
+  func testTheAppCanPostANotice() {
+    // Lineups out before kickoff.
+    var c = composer()
+    c.notice("📋 Lineups are out", now: t0)
+    XCTAssertEqual(c.frame(now: t0).toast, "📋 Lineups are out")
+    c.tick(now: t0.addingTimeInterval(6))
+    XCTAssertNil(c.frame(now: t0.addingTimeInterval(6)).toast)
+    var quiet = composer(HUDConfig(minorNotices: false))
+    quiet.notice("📋 Lineups are out", now: t0)
+    XCTAssertNil(quiet.frame(now: t0).toast)
+  }
+
+  func testTheFullTimeRecapAsksForASummary() {
+    XCTAssertTrue(InsightQuestion.fullTimeRecap.prompt.lowercased().contains("over"))
+    XCTAssertFalse(InsightQuestion.presets.contains(.fullTimeRecap), "not a phone button")
+  }
+
   func testNoticesCanBeTurnedOff() {
     var c = composer(HUDConfig(minorNotices: false))
     c.enqueue([MatchMoment(fixtureId: 1, kind: .shotOnTarget(team: flu, total: 4),
