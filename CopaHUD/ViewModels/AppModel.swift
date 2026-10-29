@@ -45,6 +45,10 @@ final class AppModel {
   /// One recorder for both push-to-talk paths: the phone's mic button and the
   /// glasses' pinch-and-hold.
   let recorder = VoiceRecorder()
+  /// Goal chimes and spoken answers through the glasses' speakers.
+  @ObservationIgnored let audio = AudioCues()
+  /// The question the fan asked (phone or band), so its answer is read aloud.
+  @ObservationIgnored private var awaitingAnswer: InsightQuestion?
   /// The glasses hold's in-flight mic start; the release awaits it.
   @ObservationIgnored private var voiceStart: Task<Void, Never>?
   @ObservationIgnored private var listeningToken = 0
@@ -66,6 +70,10 @@ final class AppModel {
   private(set) var tvDelaySeconds: Double
   /// "Who's this?" takes one glasses photo to read a shirt number (opt-in).
   private(set) var lookAtPlayerEnabled: Bool
+  /// Goal, card, VAR and whistle sounds (Settings → Sound).
+  private(set) var soundsOn: Bool
+  /// Read the answers to the fan's questions aloud (Settings → Sound).
+  private(set) var speakAnswers: Bool
 
   // MARK: Bookkeeping
   @ObservationIgnored private var scheduleTask: Task<Void, Never>?
@@ -120,6 +128,8 @@ final class AppModel {
     self.voiceReadyWhenLocked = d.object(forKey: Keys.voiceReadyWhenLocked) as? Bool ?? true
     self.tvDelaySeconds = d.double(forKey: Keys.tvDelaySeconds)
     self.lookAtPlayerEnabled = d.bool(forKey: Keys.lookAtPlayer)
+    self.soundsOn = d.object(forKey: Keys.sounds) as? Bool ?? true
+    self.speakAnswers = d.object(forKey: Keys.speakAnswers) as? Bool ?? true
     self.tvDelayLine = BroadcastDelay(seconds: d.double(forKey: Keys.tvDelaySeconds))
     self.composer = HUDComposer(config: cfg)
     self.feed = AppModel.makeFeed(demoMode: demo, apiKey: SecretsStore.apiFootballKey)
@@ -133,6 +143,10 @@ final class AppModel {
       if !state.isUpdating, let q = state.question, let hud = state.hudContent {
         self.analystLog("answer \(q.label) \"\(hud.title)\" [\(hud.footer)]"
                         + (state.lastError.map { " (fallback: \($0))" } ?? ""))
+        if q == self.awaitingAnswer {
+          self.awaitingAnswer = nil
+          if self.speakAnswers, let text = SpokenAnswer.text(hud) { self.audio.speak(text) }
+        }
       }
       self.composer.setInsight(state.hudContent)
       Task { await self.renderIfChanged() }
@@ -143,6 +157,7 @@ final class AppModel {
   func attach(glasses: GlassesViewModel) {
     self.glasses = glasses
     glasses.appModel = self
+    audio.log = { [weak glasses] in glasses?.dbg($0) }
     start()
   }
 
@@ -298,6 +313,18 @@ final class AppModel {
     Task { await deliverDueUpdates() }
   }
 
+  func setSoundsOn(_ value: Bool) {
+    soundsOn = value
+    UserDefaults.standard.set(value, forKey: Keys.sounds)
+    if value { audio.play(.goal) }   // a sample, so the fan hears where it plays
+  }
+
+  func setSpeakAnswers(_ value: Bool) {
+    speakAnswers = value
+    UserDefaults.standard.set(value, forKey: Keys.speakAnswers)
+    if !value { audio.stopSpeaking() }
+  }
+
   func setLookAtPlayer(_ value: Bool) {
     lookAtPlayerEnabled = value
     UserDefaults.standard.set(value, forKey: Keys.lookAtPlayer)
@@ -385,6 +412,7 @@ final class AppModel {
     let events = context.facts.filter { $0.text.contains("'") }.count
     analystLog("ask \(question.label): \(context.facts.count) facts, \(events) events, \(context.headline)")
     composer.showInsightPage()
+    awaitingAnswer = question
     insights.ask(question, context: context)
     Task { await renderNow() }
   }
@@ -526,6 +554,7 @@ final class AppModel {
   func voiceHoldBegan() {
     guard voiceAvailable else { voiceLog("not configured"); flashListening("🎙 Voice needs Meta AI (Settings)"); return }
     guard analystReady else { voiceLog("no match data yet"); flashListening("🎙 Waiting for match data…"); return }
+    audio.stopSpeaking()
     setListening("🎙 Listening… release to ask")
     // The release awaits this start (permission prompt + engine), so letting
     // go early can't leave the mic running — same rule as the phone button.
@@ -968,6 +997,7 @@ final class AppModel {
       // composer never repeats it for the same fixture).
       composer.showMatchIntro(now: Date())
       composer.enqueue(moments, now: Date())
+      if soundsOn, !composer.alertsPaused, let cue = AudioCue.loudest(moments) { audio.play(cue) }
     }
     if let context = insightContext() { insights.contextChanged(context) }
     await renderNow()
@@ -1114,6 +1144,8 @@ final class AppModel {
     static let lookAtPlayer = "lookAtPlayer"
     static let batterySaver = "batterySaver"
     static let hudStyle = "hudStyle"
+    static let sounds = "sounds"
+    static let speakAnswers = "speakAnswers"
   }
 }
 

@@ -20,6 +20,8 @@ import CopaHUDCore
 /// Category `.playAndRecord` with `.mixWithOthers` keeps other audio on the
 /// phone playing while the mic stays ready; without `.allowBluetooth` the
 /// input stays on the iPhone mic and never re-routes the glasses' link.
+/// `.allowBluetoothA2DP` is output only: goal chimes and spoken answers can
+/// play on the glasses' speakers while the mic stays on the phone.
 @Observable
 @MainActor
 final class VoiceRecorder {
@@ -95,7 +97,7 @@ final class VoiceRecorder {
     }
     do {
       let session = AVAudioSession.sharedInstance()
-      try session.setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers])
+      try session.setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .allowBluetoothA2DP])
       try session.setActive(true)
     } catch {
       lastError = "Microphone unavailable (\(error.localizedDescription))"

@@ -24,6 +24,8 @@ struct SettingsView: View {
   @State private var toastsEnabled = true
   @State private var batterySaver: BatterySaver = .dim
   @State private var hudStyle: AppModel.HUDStyle = .classic
+  @State private var soundsOn = true
+  @State private var speakAnswers = true
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
   @State private var showTeamPicker = false
@@ -210,6 +212,27 @@ struct SettingsView: View {
               }
               .padding(.horizontal, 12)
               .padding(.vertical, 14)
+            }
+
+            // Sound on the glasses
+            settingsGroup(
+              header: "Sound",
+              footer: "Plays through the glasses' speakers while they're connected (otherwise the phone). A rising chime for a goal, two low notes for a red card, two beeps for VAR, a whistle at half and full time. Turning sounds on plays the goal chime once."
+            ) {
+              settingsRow(last: false) {
+                Text("Goal and card sounds")
+                  .font(.system(size: 15)).foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("", isOn: $soundsOn).labelsHidden().tint(Color.actionBlue)
+                  .onChange(of: soundsOn) { _, new in if new != appModel.soundsOn { appModel.setSoundsOn(new) } }
+              }
+              settingsRow(last: true) {
+                Text("Read answers aloud")
+                  .font(.system(size: 15)).foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("", isOn: $speakAnswers).labelsHidden().tint(Color.actionBlue)
+                  .onChange(of: speakAnswers) { _, new in if new != appModel.speakAnswers { appModel.setSpeakAnswers(new) } }
+              }
             }
 
             // HUD style
@@ -431,6 +454,8 @@ struct SettingsView: View {
     toastsEnabled = appModel.config.toastsEnabled
     batterySaver = appModel.config.batterySaver
     hudStyle = appModel.hudStyle
+    soundsOn = appModel.soundsOn
+    speakAnswers = appModel.speakAnswers
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode
     hasKey = SecretsStore.apiFootballKey?.isEmpty == false
