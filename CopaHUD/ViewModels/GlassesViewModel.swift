@@ -51,6 +51,11 @@ final class GlassesViewModel {
   @ObservationIgnored private var inputs: Inputs?
   @ObservationIgnored private var inputsTask: Task<Void, Never>?
   @ObservationIgnored private var inputsStateToken: AnyListenerToken?
+  @ObservationIgnored private var inputsErrorToken: AnyListenerToken?
+  /// Re-arming Inputs after the glasses turned them off mid-session.
+  @ObservationIgnored private var inputsRearmTask: Task<Void, Never>?
+  @ObservationIgnored private var inputsRearmAttempts = 0
+  @ObservationIgnored private var inputsRearmsThisSession = 0
   @ObservationIgnored private var registrationTask: Task<Void, Never>?
   @ObservationIgnored private var sessionStateTask: Task<Void, Never>?
   @ObservationIgnored private var sessionErrorTask: Task<Void, Never>?
@@ -544,7 +549,7 @@ final class GlassesViewModel {
     cancelHold()
     display = nil; displayStateToken = nil
     displayAsleep = false; wakeStartedAt = nil
-    inputsTask?.cancel(); inputsTask = nil; inputsStateToken = nil; inputs = nil
+    resetInputsRearm(); dropInputs()
     if connPhase != .unregistered { connPhase = .pairing }
     lastStatus = sessionEndReason ?? "Disconnected"
     sessionEndReason = nil
@@ -581,6 +586,12 @@ final class GlassesViewModel {
 
   func reactivateHUD() async {
     appModel?.wakeHUD()
+    // Swipes lost and the automatic re-arm gave up: try once more.
+    if let session, session.state == .started, inputs?.state != .active, inputsRearmTask == nil {
+      dbg("inputs: re-arm from Reactivate HUD")
+      dropInputs()
+      startInputs(session)
+    }
     let alive = (session != nil) && (session?.state == .started)
     if !alive { lastStatus = "Reconnecting…"; await teardown(); await startSessionIfNeeded(); return }
     if let display, display.state == .started {
@@ -666,7 +677,18 @@ final class GlassesViewModel {
       }
       inputs = i
       inputsStateToken = i.statePublisher.listen { [weak self] state in
-        Task { @MainActor in self?.dbg("inputs state → \(state)") }
+        Task { @MainActor in
+          guard let self else { return }
+          self.dbg("inputs state → \(state)")
+          if state == .active, self.inputsRearmAttempts > 0 {
+            self.dbg("inputs: re-armed")
+            self.inputsRearmAttempts = 0
+          }
+          if state == .inactive, self.inputs === i { self.inputsWentInactive() }
+        }
+      }
+      inputsErrorToken = i.errorPublisher.listen { [weak self] error in
+        Task { @MainActor in self?.dbg("inputs error: \(error)") }
       }
       inputsTask = Task { [weak self] in
         for await event in i.events {
@@ -676,6 +698,59 @@ final class GlassesViewModel {
     } catch {
       dbg("inputs: addInputs failed: \(error)")
     }
+  }
+
+  // MARK: - Inputs re-arm
+  //
+  // Seen on hardware (2026-10-28): Inputs went inactive on its own while the
+  // session and display kept running, and never came back, so swipes died
+  // until the app restarted (pinch still worked through the display's tap).
+  // Add a fresh Inputs after 1 s, 3 s and 10 s; a whole-session drop
+  // already recovers through the session lifecycle and is left alone.
+
+  static let inputsRearmDelays: [Duration] = [.seconds(1), .seconds(3), .seconds(10)]
+  /// Stops a tug of war if the glasses keep switching Inputs off on purpose.
+  static let maxInputsRearmsPerSession = 10
+
+  private func inputsWentInactive() {
+    guard inputsRearmTask == nil, !isDisconnecting else { return }
+    inputsRearmTask = Task { [weak self] in
+      guard let self else { return }
+      defer { self.inputsRearmTask = nil }
+      while self.inputsRearmAttempts < Self.inputsRearmDelays.count {
+        try? await Task.sleep(for: Self.inputsRearmDelays[self.inputsRearmAttempts])
+        guard !Task.isCancelled else { return }
+        guard let session = self.session, session.state == .started, self.display != nil,
+              !self.isDisconnecting else {
+          self.dbg("inputs: not re-arming, the session is ending"); return
+        }
+        if self.inputs?.state == .active || self.inputs?.state == .activating { return }
+        guard self.inputsRearmsThisSession < Self.maxInputsRearmsPerSession else {
+          self.dbg("inputs: re-arm limit reached this session"); break
+        }
+        self.inputsRearmAttempts += 1
+        self.inputsRearmsThisSession += 1
+        self.dbg("inputs: re-arm \(self.inputsRearmAttempts)/\(Self.inputsRearmDelays.count)")
+        // DAT 1.0.1 has no removeCapability: release the dropped Inputs and
+        // add a fresh one (addInputs logs it if the SDK refuses).
+        self.dropInputs()
+        self.startInputs(session)
+        try? await Task.sleep(for: .seconds(3))
+        if self.inputs?.state == .active { return }
+      }
+      self.dbg("inputs: gave up re-arming")
+      self.showError("Swipes stopped working on the glasses. Tap Reactivate HUD to bring them back.")
+    }
+  }
+
+  private func dropInputs() {
+    inputsTask?.cancel(); inputsTask = nil
+    inputsStateToken = nil; inputsErrorToken = nil; inputs = nil
+  }
+
+  private func resetInputsRearm() {
+    inputsRearmTask?.cancel(); inputsRearmTask = nil
+    inputsRearmAttempts = 0; inputsRearmsThisSession = 0
   }
 
   // MARK: - Gesture mapping (Inputs → HUD / voice)
@@ -783,8 +858,7 @@ final class GlassesViewModel {
 
   private func teardown() async {
     cancelHold()
-    inputsTask?.cancel(); inputsTask = nil
-    inputsStateToken = nil; inputs = nil
+    resetInputsRearm(); dropInputs()
     displayStateToken = nil
     if let display { display.stop() }; display = nil
     sessionStateTask?.cancel(); sessionStateTask = nil
