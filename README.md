@@ -103,7 +103,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 401 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 415 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -117,6 +117,14 @@ it for you: pick the next whole minute the TV clock will show and tap when it ge
 The feed gives whole minutes, so the live clock is pinned to the moment the minute ticks over
 (within about 8 s at a 15 s poll); not available at half-time or in stoppage time. The
 phone's Today list is not delayed.
+
+**Settings → Battery saver** saves the glasses' battery during a long match. After 20 seconds
+with no gestures and nothing new, **Dim** (the default) shows only a faint score line on black;
+**Display off** turns the glasses display off. Goals, cards, VAR, voice and any gesture bring
+the full page back, and the first gesture only wakes it. The Meta SDK has no brightness control
+or battery reading, so this is the lever the app has. If the glasses report a critical battery,
+overheating or a power shutdown, or end the session and don't come back within 15 seconds, the
+phone says so.
 
 ## Requirements
 

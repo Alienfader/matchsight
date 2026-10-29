@@ -209,6 +209,18 @@ public struct IntroContent: Sendable, Equatable {
   }
 }
 
+/// Battery saver's quiet page: one dim score line and the clock, on black.
+public struct QuietContent: Sendable, Equatable {
+  /// "BRA 1 · 0 ARG"; nil when no match is followed.
+  public var scoreLine: String?
+  public var clock: String
+
+  public init(scoreLine: String?, clock: String) {
+    self.scoreLine = scoreLine
+    self.clock = clock
+  }
+}
+
 /// Where the current page sits in the deck, for the page dots. `pulse` is
 /// true just after a gesture arrived, so the fan can tell a gesture the band
 /// never sent from one the app ignored.
@@ -240,6 +252,8 @@ public struct HUDFrame: Sendable, Equatable {
     case intro(IntroContent)
     /// Idle / pre-kickoff / error text.
     case message(String)
+    /// Battery saver: the fan hasn't touched the band for a while.
+    case quiet(QuietContent)
   }
 
   public var body: Body
@@ -247,11 +261,15 @@ public struct HUDFrame: Sendable, Equatable {
   public var toast: String?
   /// Page dots; nil while a takeover or the crest intro covers the deck.
   public var deck: DeckPosition?
+  /// Battery saver (display off): the app turns the glasses display off
+  /// until a frame arrives with this false again.
+  public var displayOff: Bool
 
-  public init(body: Body, toast: String? = nil, deck: DeckPosition? = nil) {
+  public init(body: Body, toast: String? = nil, deck: DeckPosition? = nil, displayOff: Bool = false) {
     self.body = body
     self.toast = toast
     self.deck = deck
+    self.displayOff = displayOff
   }
 }
 
@@ -264,17 +282,35 @@ public enum HUDInput: Sendable, Equatable {
   case select
 }
 
+/// What the glasses do after a quiet spell with no gestures and nothing
+/// happening in the match.
+public enum BatterySaver: String, CaseIterable, Sendable {
+  /// Always show the full page.
+  case off
+  /// Drop to a near-black page with just the score and clock.
+  case dim
+  /// Turn the display off; goals, cards and gestures turn it back on.
+  case displayOff
+}
+
 /// User-tunable HUD behaviour (Settings).
 public struct HUDConfig: Sendable, Equatable {
   public var takeoverSeconds: TimeInterval
   public var toastSeconds: TimeInterval
   public var toastsEnabled: Bool
+  public var batterySaver: BatterySaver
+  /// The quiet spell before battery saver steps in.
+  public var idleSeconds: TimeInterval
 
   public init(takeoverSeconds: TimeInterval = 8,
               toastSeconds: TimeInterval = 5,
-              toastsEnabled: Bool = true) {
+              toastsEnabled: Bool = true,
+              batterySaver: BatterySaver = .off,
+              idleSeconds: TimeInterval = 20) {
     self.takeoverSeconds = takeoverSeconds
     self.toastSeconds = toastSeconds
     self.toastsEnabled = toastsEnabled
+    self.batterySaver = batterySaver
+    self.idleSeconds = idleSeconds
   }
 }

@@ -112,7 +112,9 @@ final class AppModel {
     let takeover = d.object(forKey: Keys.takeoverSeconds) as? Double ?? 8
     let toasts = d.object(forKey: Keys.toastsEnabled) as? Bool ?? true
     let demo = d.bool(forKey: Keys.demoMode)
-    let cfg = HUDConfig(takeoverSeconds: takeover, toastsEnabled: toasts)
+    // Battery saver defaults to the dim page: it never turns the display off.
+    let saver = d.string(forKey: Keys.batterySaver).flatMap(BatterySaver.init(rawValue:)) ?? .dim
+    let cfg = HUDConfig(takeoverSeconds: takeover, toastsEnabled: toasts, batterySaver: saver)
     self.config = cfg
     self.demoMode = demo
     self.voiceReadyWhenLocked = d.object(forKey: Keys.voiceReadyWhenLocked) as? Bool ?? true
@@ -250,6 +252,19 @@ final class AppModel {
     config.toastsEnabled = value
     UserDefaults.standard.set(value, forKey: Keys.toastsEnabled)
     rebuildComposer()
+  }
+
+  func setBatterySaver(_ value: BatterySaver) {
+    guard value != config.batterySaver else { return }
+    config.batterySaver = value
+    UserDefaults.standard.set(value.rawValue, forKey: Keys.batterySaver)
+    rebuildComposer()
+  }
+
+  /// Reactivate HUD: bring the glasses out of battery saver.
+  func wakeHUD() {
+    composer.wake()
+    Task { await renderNow() }
   }
 
   func setVoiceReadyWhenLocked(_ value: Bool) {
@@ -1062,6 +1077,7 @@ final class AppModel {
     static let voiceReadyWhenLocked = "voiceReadyWhenLocked"
     static let tvDelaySeconds = "tvDelaySeconds"
     static let lookAtPlayer = "lookAtPlayer"
+    static let batterySaver = "batterySaver"
   }
 }
 

@@ -609,6 +609,7 @@ struct LiveView: View {
     case .intro(let i): return "\(i.homeCode) v \(i.awayCode)"
     case .insight(let i): return i.title
     case .message(let m): return m
+    case .quiet(let q): return q.scoreLine ?? "Matchsight"
     }
   }
 
@@ -633,6 +634,8 @@ struct LiveView: View {
       return i.competition
     case .message:
       return nil
+    case .quiet(let q):
+      return "\(q.clock)  · battery saver"
     }
   }
 

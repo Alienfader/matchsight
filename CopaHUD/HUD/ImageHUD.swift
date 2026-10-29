@@ -86,6 +86,11 @@ enum ImageHUD {
     render(PageFrame(toast: toast, score: score) { MessagePage(text: text) }, deck: deck)
   }
 
+  /// Battery saver: black except one dim line, so almost nothing is lit.
+  @MainActor static func quiet(_ q: QuietContent) -> UIImage? {
+    render(QuietPage(content: q))
+  }
+
   /// Deck pages carry the page dots along the bottom edge.
   @MainActor private static func render(_ view: some View, deck: DeckPosition? = nil) -> UIImage? {
     let page = view.frame(width: 600, height: 600)
@@ -1127,6 +1132,20 @@ private struct ListRow: View {
     }
     .font(.system(size: 23, weight: .medium))
     .padding(.vertical, 2)
+  }
+}
+
+private struct QuietPage: View {
+  let content: QuietContent
+
+  var body: some View {
+    let line = [content.scoreLine, content.clock.isEmpty ? nil : content.clock]
+      .compactMap { $0 }.joined(separator: "   ")
+    Text(line.isEmpty ? "Matchsight" : line)
+      .font(.system(size: 30, weight: .semibold)).monospacedDigit()
+      .foregroundStyle(Palette.smoke.opacity(0.55))
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+      .padding(.top, 40)
   }
 }
 

@@ -22,6 +22,7 @@ struct SettingsView: View {
   @State private var lookAtPlayer = false
   @State private var showTVSync = false
   @State private var toastsEnabled = true
+  @State private var batterySaver: BatterySaver = .dim
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
   @State private var showTeamPicker = false
@@ -210,6 +211,22 @@ struct SettingsView: View {
               .padding(.vertical, 14)
             }
 
+            // Battery saver
+            settingsGroup(
+              header: "Battery saver",
+              footer: "After 20 seconds with no gestures and nothing new, the glasses go quiet. Dim shows only a faint score line. Display off turns the display off. Goals, cards, voice and any gesture bring it back; the first gesture only wakes it."
+            ) {
+              Picker("Battery saver", selection: $batterySaver) {
+                Text("Off").tag(BatterySaver.off)
+                Text("Dim").tag(BatterySaver.dim)
+                Text("Display off").tag(BatterySaver.displayOff)
+              }
+              .pickerStyle(.segmented)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 14)
+              .onChange(of: batterySaver) { _, new in appModel.setBatterySaver(new) }
+            }
+
             #if DEBUG
             // Camera test (debug builds only)
             settingsGroup(
@@ -396,6 +413,7 @@ struct SettingsView: View {
     tvDelay = appModel.tvDelaySeconds
     lookAtPlayer = appModel.lookAtPlayerEnabled
     toastsEnabled = appModel.config.toastsEnabled
+    batterySaver = appModel.config.batterySaver
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode
     hasKey = SecretsStore.apiFootballKey?.isEmpty == false

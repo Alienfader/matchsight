@@ -54,6 +54,13 @@ public struct HUDComposer: Sendable {
   /// Last Neural Band gesture, for the page dots' pulse.
   private var lastInputAt: Date?
 
+  /// Battery saver: the last gesture or on-screen happening. Nil until the
+  /// first tick, which starts the quiet spell.
+  private var lastActivityAt: Date?
+  /// Set by calls that carry no clock (phone jumps, voice banners, a spoken
+  /// answer); the next tick turns it into activity.
+  private var wakeRequested = false
+
   /// How long the page dots stay lit after a gesture.
   public static let inputPulse: TimeInterval = 0.8
 
@@ -205,6 +212,8 @@ public struct HUDComposer: Sendable {
   /// Replace the insight page's content. Data only — never moves the page,
   /// so a late answer can't yank the user off whatever they're reading.
   public mutating func setInsight(_ content: InsightContent?) {
+    // A spoken question's steps wake the glasses; automatic refreshes don't.
+    if page == .insight, content?.question != nil, content != insight { wakeRequested = true }
     insight = content
   }
 
@@ -212,6 +221,7 @@ public struct HUDComposer: Sendable {
   public mutating func showInsightPage() {
     page = .insight
     playerIndex = 0
+    wakeRequested = true
   }
 
   public var isOnInsightPage: Bool { page == .insight }
@@ -220,6 +230,7 @@ public struct HUDComposer: Sendable {
   public mutating func goToPlayer(_ index: Int) {
     guard let xi = carouselXI(), index < xi.count else { return }
     playerIndex = index
+    wakeRequested = true
   }
 
   /// Look at a player: open that starter's detail card from anywhere,
@@ -233,6 +244,7 @@ public struct HUDComposer: Sendable {
     guard let lineup = lineups.first(where: { $0.team.id == teamId }),
           lineup.startXI.indices.contains(index) else { return }
     dismissIntro()
+    wakeRequested = true
     page = target
     playerIndex = index + 1
     playerDetail = true
@@ -244,9 +256,12 @@ public struct HUDComposer: Sendable {
   /// A resolved Neural Band gesture: pinch / swipe right = next, swipe left =
   /// previous, swipe up = home.
   public mutating func handle(_ input: HUDInput, now: Date) {
+    // While quiet, the first gesture only wakes the glasses.
+    if wakeOnly(now: now) { return }
     // Any gesture dismisses the intro and acts as usual.
     dismissIntro()
     lastInputAt = now
+    lastActivityAt = now
     switch input {
     case .next:
       handleTapBurst(count: 1, now: now)
@@ -287,13 +302,16 @@ public struct HUDComposer: Sendable {
   /// Show (or clear with nil) the push-to-talk banner on the glasses.
   public mutating func setListening(_ text: String?) {
     listening = text
+    if text != nil { wakeRequested = true }
   }
 
   /// Resolved tap burst from the glasses card (count already resolved by the
   /// 350ms window on the phone side).
   public mutating func handleTapBurst(count: Int, now: Date) {
     guard count > 0 else { return }
+    if wakeOnly(now: now) { return }
     lastInputAt = now
+    lastActivityAt = now
     switch count {
     case 1:
       // On a lineup page the pinch advances the STARTING XI carousel first
@@ -334,16 +352,51 @@ public struct HUDComposer: Sendable {
     if let deadline = takeoverDeadline, now >= deadline {
       currentTakeover = nil
       takeoverDeadline = nil
+      noteActivity(at: deadline)
       startTakeoverIfIdle(now: now)
     }
     if let deadline = introDeadline, now >= deadline {
       dismissIntro()
+      noteActivity(at: deadline)
     }
     if let deadline = toastDeadline, now >= deadline {
       currentToast = nil
       toastDeadline = nil
+      noteActivity(at: deadline)
     }
+    // The quiet spell counts from when the screen last had something new.
+    if lastActivityAt == nil || wakeRequested || isShowingSomething { lastActivityAt = now }
+    wakeRequested = false
     bumpClockFloor(now: now)
+  }
+
+  // MARK: - Battery saver
+
+  /// Phone-side wake (Reactivate HUD).
+  public mutating func wake() { wakeRequested = true }
+
+  /// A banner, the intro, a toast or a voice step is on screen.
+  private var isShowingSomething: Bool {
+    currentTakeover != nil || intro != nil || currentToast != nil || listening != nil
+  }
+
+  private mutating func noteActivity(at date: Date) {
+    lastActivityAt = max(lastActivityAt ?? date, date)
+  }
+
+  /// Quiet after `idleSeconds` with nothing on screen but the deck.
+  private func isQuiet(now: Date) -> Bool {
+    guard config.batterySaver != .off, !isShowingSomething, !wakeRequested,
+          let last = lastActivityAt else { return false }
+    return now.timeIntervalSince(last) >= config.idleSeconds
+  }
+
+  /// A gesture while quiet: wake to the page the fan left, without acting.
+  private mutating func wakeOnly(now: Date) -> Bool {
+    guard isQuiet(now: now) else { return false }
+    lastActivityAt = now
+    lastInputAt = now
+    return true
   }
 
   /// The frame the glasses should show right now. Pure read — no expiry here.
@@ -354,6 +407,9 @@ public struct HUDComposer: Sendable {
       body = .takeover(takeover)
     } else if let intro {
       body = .intro(intro)
+    } else if isQuiet(now: now) {
+      return HUDFrame(body: .quiet(quietContent(now: now)),
+                      displayOff: config.batterySaver == .displayOff)
     } else {
       body = pageBody(now: now)
       let pulse = lastInputAt.map { now.timeIntervalSince($0) < Self.inputPulse } ?? false
@@ -420,6 +476,14 @@ public struct HUDComposer: Sendable {
     case .stats: return statsBody()
     case .otherLive: return otherLiveBody()
     }
+  }
+
+  private func quietContent(now: Date) -> QuietContent {
+    guard let f = followed else { return QuietContent(scoreLine: nil, clock: "") }
+    let h = TeamStyle.style(for: f.home)
+    let a = TeamStyle.style(for: f.away)
+    return QuietContent(scoreLine: "\(h.code) \(f.score.home) · \(f.score.away) \(a.code)",
+                        clock: clockString(now: now))
   }
 
   private func insightBody() -> HUDFrame.Body {

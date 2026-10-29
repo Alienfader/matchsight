@@ -68,6 +68,12 @@ final class GlassesViewModel {
   @ObservationIgnored private let remoteImages = RemoteImageCache()
   @ObservationIgnored private var isSending = false
   @ObservationIgnored private var renderPending = false
+  /// Battery saver turned the display off; the next awake frame turns it on.
+  @ObservationIgnored private var displayAsleep = false
+  /// When battery saver asked the display to come back, until it has.
+  @ObservationIgnored private var wakeStartedAt: Date?
+  /// Why the glasses ended the session, kept for the status line.
+  @ObservationIgnored private var sessionEndReason: String?
 
   init(wearables: WearablesInterface) {
     self.wearables = wearables
@@ -117,8 +123,41 @@ final class GlassesViewModel {
     repeat {
       renderPending = false
       guard let display, let latest = currentFrame else { break }
+      if latest.displayOff { sleepDisplay(display); continue }
+      // Waking: the display's .started listener sends the current frame.
+      if displayAsleep { wakeDisplay(display); break }
+      if wakeStartedAt != nil { break }
       await send(latest, to: display)
     } while renderPending
+  }
+
+  // MARK: - Battery saver (display off when idle)
+
+  private func sleepDisplay(_ display: Display) {
+    guard !displayAsleep else { return }
+    displayAsleep = true
+    wakeStartedAt = nil
+    dbg("battery saver: display off")
+    display.stop()
+  }
+
+  private func wakeDisplay(_ display: Display) {
+    displayAsleep = false
+    wakeStartedAt = Date()
+    dbg("battery saver: display on")
+    display.start()
+    // One retry if the display hasn't come back; then say so on the phone.
+    Task { [weak self] in
+      try? await Task.sleep(for: .seconds(5))
+      guard let self, self.wakeStartedAt != nil, let display = self.display else { return }
+      self.dbg("battery saver: display didn't wake in 5 s, retrying")
+      display.start()
+      try? await Task.sleep(for: .seconds(5))
+      guard self.wakeStartedAt != nil else { return }
+      self.wakeStartedAt = nil
+      self.dbg("battery saver: display still off")
+      self.lastStatus = "Display didn't wake — tap Reactivate HUD"
+    }
   }
 
   /// "card Saka detail", "insight", … for the debug log: what the glasses got.
@@ -134,6 +173,7 @@ final class GlassesViewModel {
     case .takeover: return "takeover"
     case .intro: return "intro"
     case .message: return "message"
+    case .quiet: return "quiet"
     }
   }
 
@@ -286,6 +326,8 @@ final class GlassesViewModel {
                             awayCrest: remoteImages.image(i.awayCrestURL))
     case let .message(text):
       return ImageHUD.message(text, toast: frame.toast, score: score, deck: frame.deck)
+    case let .quiet(q):
+      return ImageHUD.quiet(q)
     }
   }
 
@@ -431,9 +473,11 @@ final class GlassesViewModel {
   private func onSessionStopped() async {
     cancelHold()
     display = nil; displayStateToken = nil
+    displayAsleep = false; wakeStartedAt = nil
     inputsTask?.cancel(); inputsTask = nil; inputsStateToken = nil; inputs = nil
     if connPhase != .unregistered { connPhase = .pairing }
-    lastStatus = "Disconnected"
+    lastStatus = sessionEndReason ?? "Disconnected"
+    sessionEndReason = nil
   }
 
   private func installDisplayListener(_ display: Display) {
@@ -443,6 +487,10 @@ final class GlassesViewModel {
         self.dbg("display state → \(state)")
         switch state {
         case .started:
+          if let since = self.wakeStartedAt {
+            self.wakeStartedAt = nil
+            self.dbg("battery saver: display back in \(String(format: "%.1f", Date().timeIntervalSince(since))) s")
+          }
           self.connPhase = .ready
           self.lastStatus = "Connected · ready"
           // Reconnect recovery: re-render current state so no stale layout
@@ -453,7 +501,8 @@ final class GlassesViewModel {
             await self.render(frame)
           }
         case .stopped:
-          self.lastStatus = "HUD dormant — tap Reactivate HUD"
+          self.lastStatus = self.displayAsleep ? "Display off · battery saver"
+                                               : "HUD dormant — tap Reactivate HUD"
         default: break
         }
       }
@@ -461,6 +510,7 @@ final class GlassesViewModel {
   }
 
   func reactivateHUD() async {
+    appModel?.wakeHUD()
     let alive = (session != nil) && (session?.state == .started)
     if !alive { lastStatus = "Reconnecting…"; await teardown(); await startSessionIfNeeded(); return }
     if let display, display.state == .started {
@@ -494,6 +544,28 @@ final class GlassesViewModel {
     case .dwaOutOfStuRange:
       // DAT 1.0: non-blocking compatibility warning — keep running.
       lastStatus = "Glasses or Meta AI app update recommended"
+      return
+    case .batteryCritical:
+      sessionEndReason = "Glasses battery critical"
+      showError("Your glasses' battery is critically low. Charge them to keep watching.")
+      return
+    case .peakPowerShutdown:
+      sessionEndReason = "Glasses shut down (power)"
+      showError("Your glasses shut down to protect the battery. Charge them, then tap Reactivate HUD.")
+      return
+    case .thermalCritical, .thermalEmergency:
+      sessionEndReason = "Glasses too hot"
+      showError("Your glasses are too hot. Let them cool down, then tap Reactivate HUD.")
+      return
+    case let .unexpectedError(description) where description.lowercased().contains("ended by device"):
+      // What a flat battery looked like on 2026-10-28: no batteryCritical first.
+      // It often reconnects by itself; only say so if it stays down.
+      sessionEndReason = "Glasses ended the session"
+      Task { [weak self] in
+        try? await Task.sleep(for: .seconds(15))
+        guard let self, self.connPhase != .ready, !self.isDisconnecting else { return }
+        self.showError("Your glasses ended the session. The battery may be flat, or they were folded or out of range. Tap Reactivate HUD when they're back.")
+      }
       return
     default:
       break
