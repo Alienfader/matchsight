@@ -27,6 +27,11 @@ public enum DarkGlassFormat {
   /// Names longer than this show the surname only.
   static let maxNameLength = 14
 
+  /// A long feed name shortens to the surname; a short one stays whole.
+  public static func displayName(_ name: String) -> String {
+    name.count > maxNameLength ? HUDFormat.splitName(name).last : name
+  }
+
   /// Goals, cards and VAR checks, newest first. Substitutions are left out.
   /// A starter shows under his lineup name (the feed's events use full
   /// names: "Renê Rodrigues Martins" is Renê).
@@ -50,7 +55,7 @@ public enum DarkGlassFormat {
         }
         let name = e.playerId.flatMap { known[$0] } ?? e.player ?? "—"
         return LatestEvent(minute: HUDFormat.minuteLabel(e.minute, extra: e.extraMinute), kind: kind,
-                           name: name.count > maxNameLength ? HUDFormat.splitName(name).last : name,
+                           name: displayName(name),
                            team: TeamStyle.style(for: e.team).code)
       }
       .prefix(limit).map { $0 }

@@ -567,6 +567,9 @@ struct LiveView: View {
     case .halfTime: return "⏸"
     case .fullTime: return "🏁"
     case .otherMatchGoal: return "⚽"
+    case .yellowCard: return "🟨"
+    case .substitution: return "🔁"
+    case .shotOnTarget: return "🎯"
     }
   }
 
@@ -580,6 +583,10 @@ struct LiveView: View {
     case .fullTime:                  return "Full-time"
     case .otherMatchGoal(let s, let scorer):
       return "\(s.home.name) \(s.score.home)·\(s.score.away) \(s.away.name)\(scorer.map { " · \($0)" } ?? "")"
+    case .yellowCard(let player, _):  return player ?? "Yellow card"
+    case let .substitution(on, off, _):
+      return [on.map { "\($0) on" }, off.map { "\($0) off" }].compactMap { $0 }.joined(separator: ", ")
+    case .shotOnTarget(_, let total): return "Shot on target (\(total))"
     }
   }
 
@@ -589,6 +596,8 @@ struct LiveView: View {
     case .redCard(_, let team):        return String(team.name.prefix(3)).uppercased()
     case .penaltyAwarded(let team):    return String(team.name.prefix(3)).uppercased()
     case .otherMatchGoal(let s, _):    return String(s.home.name.prefix(3)).uppercased()
+    case .yellowCard(_, let team), .substitution(_, _, let team), .shotOnTarget(let team, _):
+      return String(team.name.prefix(3)).uppercased()
     default:                            return ""
     }
   }

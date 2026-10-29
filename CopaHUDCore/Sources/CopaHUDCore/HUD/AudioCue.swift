@@ -11,7 +11,7 @@ public enum AudioCue: Int, Sendable, Equatable, Comparable {
     case .redCard: return .redCard
     case .penaltyAwarded, .varDecision: return .varCheck
     case .halfTime, .fullTime: return .whistle
-    case .otherMatchGoal: return nil
+    case .otherMatchGoal, .yellowCard, .substitution, .shotOnTarget: return nil
     }
   }
 

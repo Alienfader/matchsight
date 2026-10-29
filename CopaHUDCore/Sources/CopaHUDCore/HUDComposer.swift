@@ -131,6 +131,10 @@ public struct HUDComposer: Sendable {
         guard config.toastsEnabled else { continue }
         currentToast = HUDFormat.toastLine(snapshot: snapshot, scorer: scorer, minute: moment.minute)
         toastDeadline = now.addingTimeInterval(config.toastSeconds)
+      } else if moment.kind.isNotice {
+        guard config.minorNotices, let line = HUDFormat.noticeLine(moment.kind, minute: moment.minute) else { continue }
+        currentToast = line
+        toastDeadline = now.addingTimeInterval(config.toastSeconds)
       } else {
         takeoverQueue.append(moment)
       }

@@ -22,6 +22,7 @@ struct SettingsView: View {
   @State private var lookAtPlayer = false
   @State private var showTVSync = false
   @State private var toastsEnabled = true
+  @State private var minorNotices = true
   @State private var batterySaver: BatterySaver = .dim
   @State private var hudStyle: AppModel.HUDStyle = .classic
   @State private var soundsOn = true
@@ -317,6 +318,20 @@ struct SettingsView: View {
               }
             }
 
+            // Small notices
+            settingsGroup(
+              header: "Small notices",
+              footer: "A one-line note on the glasses for yellow cards, substitutions and shots on target. Shots on target come from the match statistics, so they can lag a minute and have no player name."
+            ) {
+              settingsRow(last: true) {
+                Text("Cards, subs and shots")
+                  .font(.system(size: 15)).foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("", isOn: $minorNotices).labelsHidden().tint(Color.actionBlue)
+                  .onChange(of: minorNotices) { _, new in appModel.setMinorNotices(new) }
+              }
+            }
+
             // Other matches
             settingsGroup(
               header: "Other matches",
@@ -452,6 +467,7 @@ struct SettingsView: View {
     tvDelay = appModel.tvDelaySeconds
     lookAtPlayer = appModel.lookAtPlayerEnabled
     toastsEnabled = appModel.config.toastsEnabled
+    minorNotices = appModel.config.minorNotices
     batterySaver = appModel.config.batterySaver
     hudStyle = appModel.hudStyle
     soundsOn = appModel.soundsOn

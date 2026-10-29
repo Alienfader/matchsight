@@ -122,7 +122,9 @@ final class AppModel {
     let demo = d.bool(forKey: Keys.demoMode)
     // Battery saver defaults to the dim page: it never turns the display off.
     let saver = d.string(forKey: Keys.batterySaver).flatMap(BatterySaver.init(rawValue:)) ?? .dim
-    let cfg = HUDConfig(takeoverSeconds: takeover, toastsEnabled: toasts, batterySaver: saver)
+    let notices = d.object(forKey: Keys.minorNotices) as? Bool ?? true
+    let cfg = HUDConfig(takeoverSeconds: takeover, toastsEnabled: toasts, batterySaver: saver,
+                        minorNotices: notices)
     self.config = cfg
     self.demoMode = demo
     self.voiceReadyWhenLocked = d.object(forKey: Keys.voiceReadyWhenLocked) as? Bool ?? true
@@ -311,6 +313,13 @@ final class AppModel {
     UserDefaults.standard.set(value, forKey: Keys.tvDelaySeconds)
     tvDelayLine.seconds = value
     Task { await deliverDueUpdates() }
+  }
+
+  func setMinorNotices(_ value: Bool) {
+    guard value != config.minorNotices else { return }
+    config.minorNotices = value
+    UserDefaults.standard.set(value, forKey: Keys.minorNotices)
+    rebuildComposer()
   }
 
   func setSoundsOn(_ value: Bool) {
@@ -981,7 +990,11 @@ final class AppModel {
     let due = tvDelayLine.due(now: Date())
     guard !due.isEmpty else { return }
     for update in due where update.fixtureId == followedFixtureId {
-      let moments = engine.ingestFollowed(snapshot: update.snapshot, events: update.events)
+      // Shots on target come from the stats (counts, no names), delayed like the rest.
+      let shots = update.stats == nil || update.stats == lastStats ? [] :
+        StatsWatch.shotsOnTarget(previous: lastStats, current: update.stats, home: update.snapshot.home,
+                                 away: update.snapshot.away, minute: update.snapshot.elapsedMinutes)
+      let moments = engine.ingestFollowed(snapshot: update.snapshot, events: update.events) + shots
       record(moments)
       for m in moments {
         glasses?.dbg("moment: \(m.kind) \(m.minute.map { "\($0)'" } ?? "") \(m.score.home)-\(m.score.away)"
@@ -1145,6 +1158,7 @@ final class AppModel {
     static let batterySaver = "batterySaver"
     static let hudStyle = "hudStyle"
     static let sounds = "sounds"
+    static let minorNotices = "minorNotices"
     static let speakAnswers = "speakAnswers"
   }
 }

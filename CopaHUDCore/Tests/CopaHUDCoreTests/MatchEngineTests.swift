@@ -414,23 +414,25 @@ final class MatchEngineTests: XCTestCase {
     XCTAssertEqual(out[0].kind, .goal(scorer: "Otamendi", assist: nil, detail: .ownGoal))
   }
 
-  func testRedCardEmitsMomentYellowDoesNot() {
+  func testRedCardIsABannerYellowIsANotice() {
     var engine = MatchEngine()
     _ = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0), events: [])
     let yellow = ev(.card(.yellow), arg, min: 20, player: "Booked")
     let red = ev(.card(.red), arg, min: 70, player: "Otamendi")
     let out = engine.ingestFollowed(snapshot: snap(.secondHalf, 0, 0, min: 70),
                                     events: [yellow, red])
-    XCTAssertEqual(out.count, 1)
-    XCTAssertEqual(out[0].kind, .redCard(player: "Otamendi", team: arg))
-    XCTAssertEqual(out[0].minute, 70)
+    XCTAssertEqual(out.map(\.kind), [.yellowCard(player: "Booked", team: arg),
+                                     .redCard(player: "Otamendi", team: arg)])
+    XCTAssertEqual(out.map(\.kind.isNotice), [true, false])
+    XCTAssertEqual(out[1].minute, 70)
   }
 
-  func testSubstitutionEmitsNoMoment() {
+  func testSubstitutionIsANotice() {
     var engine = MatchEngine()
     _ = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0), events: [])
-    let sub = ev(.substitution, bra, min: 60, player: "On")
-    XCTAssertEqual(engine.ingestFollowed(snapshot: snap(.secondHalf, 0, 0, min: 60), events: [sub]), [])
+    let sub = ev(.substitution, bra, min: 60, player: "Off", assist: "On")
+    XCTAssertEqual(engine.ingestFollowed(snapshot: snap(.secondHalf, 0, 0, min: 60), events: [sub]).map(\.kind),
+                   [.substitution(playerIn: "On", playerOut: "Off", team: bra)])
   }
 
   // MARK: - reset

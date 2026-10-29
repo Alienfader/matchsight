@@ -23,6 +23,19 @@ public struct MatchMoment: Sendable, Equatable {
     /// Goal in a non-followed match. `scorer` is nil until the app's
     /// best-effort enrichment fetch fills it.
     case otherMatchGoal(snapshot: MatchSnapshot, scorer: String?)
+    /// Notices: a one-line toast, never a banner.
+    case yellowCard(player: String?, team: Team)
+    case substitution(playerIn: String?, playerOut: String?, team: Team)
+    /// From the stats: the team's shots on target went up (now `total`).
+    case shotOnTarget(team: Team, total: Int)
+
+    /// Shown as a toast, not a full-screen banner.
+    public var isNotice: Bool {
+      switch self {
+      case .yellowCard, .substitution, .shotOnTarget: return true
+      default: return false
+      }
+    }
   }
 
   public let fixtureId: Int

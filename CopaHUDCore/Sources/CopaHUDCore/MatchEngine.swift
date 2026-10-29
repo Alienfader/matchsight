@@ -127,12 +127,18 @@ public struct MatchEngine: Sendable {
         lastGoalIndex = out.count - 1
 
       case .card(let detail):
-        guard detail == .red else { continue }  // yellow: no moment
-        out.append(MatchMoment(fixtureId: fixtureId,
-                               kind: .redCard(player: e.player, team: e.team),
+        let kind: MatchMoment.Kind = detail == .red ? .redCard(player: e.player, team: e.team)
+                                                   : .yellowCard(player: e.player, team: e.team)
+        out.append(MatchMoment(fixtureId: fixtureId, kind: kind,
                                score: running, minute: e.minute, playerId: e.playerId))
 
-      case .substitution, .unknown:
+      case .substitution:
+        // API-Football: `player` goes off, `assist` comes on.
+        out.append(MatchMoment(fixtureId: fixtureId,
+                               kind: .substitution(playerIn: e.assist, playerOut: e.player, team: e.team),
+                               score: running, minute: e.minute))
+
+      case .unknown:
         continue  // recorded as seen, no moment
 
       case .varDecision(let detail):
@@ -263,6 +269,25 @@ public struct MatchEngine: Sendable {
   public mutating func reset(fixtureId: Int) {
     followed[fixtureId] = nil
     others[fixtureId] = nil
+  }
+}
+
+/// Notices from the match statistics, which carry counts but no names.
+public enum StatsWatch {
+  /// A team's shots on target went up by one or two since the last stats.
+  /// Nothing on the first stats of a match, a correction, or a bigger jump
+  /// after a gap (that isn't news any more).
+  public static func shotsOnTarget(previous: MatchStats?, current: MatchStats?,
+                                   home: Team, away: Team, minute: Int?) -> [MatchMoment] {
+    guard let previous, let current else { return [] }
+    var out: [MatchMoment] = []
+    for (team, old, new) in [(home, previous.home.shotsOnGoal, current.home.shotsOnGoal),
+                             (away, previous.away.shotsOnGoal, current.away.shotsOnGoal)] {
+      guard let old, let new, (1...2).contains(new - old) else { continue }
+      out.append(MatchMoment(fixtureId: 0, kind: .shotOnTarget(team: team, total: new),
+                             score: ScoreLine(home: 0, away: 0), minute: minute))
+    }
+    return out
   }
 }
 

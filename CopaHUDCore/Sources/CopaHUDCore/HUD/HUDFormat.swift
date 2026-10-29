@@ -277,6 +277,33 @@ public enum HUDFormat {
                              scoreLine: scoreLine(home: snapshot.home, away: snapshot.away,
                                                   score: snapshot.score),
                              detail: scorer)
+    case .yellowCard, .substitution, .shotOnTarget:
+      // Notices are toasts; the same line if one ever reaches here.
+      return TakeoverContent(headline: noticeLine(moment.kind, minute: moment.minute) ?? "",
+                             scoreLine: score, detail: nil)
+    }
+  }
+
+  /// The toast line for a notice: "🟨 Martins · FLU 70'",
+  /// "🔁 Lima on for Hulk · FLU 58'", "🎯 Shot on target · INT (2)".
+  public static func noticeLine(_ kind: MatchMoment.Kind, minute: Int?) -> String? {
+    let at = minute.map { " \($0)'" } ?? ""
+    switch kind {
+    case let .yellowCard(player, team):
+      return "🟨 \(DarkGlassFormat.displayName(player ?? "Yellow card")) · \(code(team))\(at)"
+    case let .substitution(playerIn, playerOut, team):
+      let who: String
+      switch (playerIn.map(DarkGlassFormat.displayName), playerOut.map(DarkGlassFormat.displayName)) {
+      case let (on?, off?): who = "\(on) on for \(off)"
+      case let (on?, nil): who = "\(on) on"
+      case let (nil, off?): who = "\(off) off"
+      case (nil, nil): who = "Substitution"
+      }
+      return "🔁 \(who) · \(code(team))\(at)"
+    case let .shotOnTarget(team, total):
+      return "🎯 Shot on target · \(code(team)) (\(total))"
+    default:
+      return nil
     }
   }
 

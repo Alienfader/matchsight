@@ -301,16 +301,20 @@ public struct HUDConfig: Sendable, Equatable {
   public var batterySaver: BatterySaver
   /// The quiet spell before battery saver steps in.
   public var idleSeconds: TimeInterval
+  /// Yellow cards, substitutions and shots on target as toasts.
+  public var minorNotices: Bool
 
   public init(takeoverSeconds: TimeInterval = 8,
               toastSeconds: TimeInterval = 5,
               toastsEnabled: Bool = true,
               batterySaver: BatterySaver = .off,
-              idleSeconds: TimeInterval = 20) {
+              idleSeconds: TimeInterval = 20,
+              minorNotices: Bool = true) {
     self.takeoverSeconds = takeoverSeconds
     self.toastSeconds = toastSeconds
     self.toastsEnabled = toastsEnabled
     self.batterySaver = batterySaver
     self.idleSeconds = idleSeconds
+    self.minorNotices = minorNotices
   }
 }
