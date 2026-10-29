@@ -23,6 +23,12 @@ public struct BroadcastDelay<Item> {
     queue.append((now, item))
   }
 
+  /// An update with nothing to spoil (before kickoff): released on the next
+  /// `due`. Each update is the whole match state, so it replaces the queue.
+  public mutating func pushNow(_ item: Item, at now: Date) {
+    queue = [(.distantPast, item)]
+  }
+
   /// Everything whose wait is over, oldest first.
   public mutating func due(now: Date) -> [Item] {
     let ready = queue.prefix { now.timeIntervalSince($0.at) >= seconds }

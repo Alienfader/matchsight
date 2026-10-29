@@ -332,6 +332,7 @@ final class AppModel {
     lastFollowedPollOk = nil
     analystReady = false
     insights.reset(fixtureId: fixtureId)
+    applyToComposer()
     restartFollowedLoop()
     ensureTickLoop()
   }
@@ -349,6 +350,7 @@ final class AppModel {
     tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     analystReady = false
     insights.reset(fixtureId: nil)
+    applyToComposer()
   }
 
   // MARK: - AI analyst
@@ -904,9 +906,12 @@ final class AppModel {
         clearBannerIfRecovered()
         glasses?.dbg("poll \(id): \(snap.status.rawValue) \(snap.elapsedMinutes.map { "\($0)'" } ?? "–") \(snap.score.home)-\(snap.score.away), \(events.count) events"
                      + (tvDelaySeconds > 0 ? " (shown after \(Int(tvDelaySeconds)) s TV delay)" : ""))
-        // Score, events and stats wait out the TV delay (none by default).
-        tvDelayLine.push(FollowedUpdate(fixtureId: id, snapshot: snap, events: events,
-                                        stats: freshStats, playerStats: freshPlayerStats), at: Date())
+        // Score, events and stats wait out the TV delay (none by default);
+        // before kickoff there is nothing to spoil, so they show at once.
+        let update = FollowedUpdate(fixtureId: id, snapshot: snap, events: events,
+                                    stats: freshStats, playerStats: freshPlayerStats)
+        if snap.status == .notStarted { tvDelayLine.pushNow(update, at: Date()) }
+        else { tvDelayLine.push(update, at: Date()) }
         await deliverDueUpdates()
       } catch let e as FeedError {
         banner = e   // glasses stay on last frame; phone shows the banner
@@ -1018,12 +1023,21 @@ final class AppModel {
     })?.player
   }
 
+  /// A picked match whose first update hasn't been shown yet.
+  private var waitingMessage: String? {
+    guard followedFixtureId != nil, lastSnapshot == nil else { return nil }
+    guard tvDelaySeconds > 0 else { return "Loading the match…" }
+    let delay = Int(tvDelaySeconds)
+    return "Waiting \(delay / 60):\(String(format: "%02d", delay % 60)) to match your TV"
+  }
+
   private func applyToComposer(now: Date = Date()) {
     // League name only ("Premier League", not "Premier League · England"):
     // the pill's label row is short.
     composer.setCompetition(fixtures.first { $0.id == followedFixtureId }?
       .competition?.components(separatedBy: " · ").first)
     composer.setPrediction(lastPrediction)
+    composer.setWaitingMessage(waitingMessage)
     composer.update(followed: lastSnapshot, events: lastEvents, lineups: lastLineups,
                     others: lastOthers, stats: lastStats, isStale: isStale, now: now)
     composer.setInsight(insightState.hudContent)   // survives rebuildComposer()

@@ -49,6 +49,9 @@ public struct HUDComposer: Sendable {
   private var isStale: Bool = false
   /// Latest AI insight for the insight page (nil → "warming up").
   private var insight: InsightContent?
+  /// Shown instead of "No match followed" while a picked match's first
+  /// update is on its way (or held by the TV delay).
+  private var waitingMessage: String?
   /// Push-to-talk banner ("🎙 Listening…"); overrides the toast while set.
   private var listening: String?
   /// Last Neural Band gesture, for the page dots' pulse.
@@ -148,6 +151,10 @@ public struct HUDComposer: Sendable {
                          homeCrestURL: h.crestURL, awayCrestURL: a.crestURL,
                          homeFlag: h.flag, awayFlag: a.flag, competition: competition ?? f.groupLabel)
     introDeadline = now.addingTimeInterval(config.takeoverSeconds)
+  }
+
+  public mutating func setWaitingMessage(_ message: String?) {
+    waitingMessage = message
   }
 
   public mutating func setCompetition(_ competition: String?) {
@@ -487,7 +494,7 @@ public struct HUDComposer: Sendable {
   }
 
   private func insightBody() -> HUDFrame.Body {
-    guard followed != nil else { return .message("No match followed") }
+    guard followed != nil else { return .message(waitingMessage ?? "No match followed") }
     guard let insight else { return .message("AI Insight warming up…") }
     return .insight(insight)
   }
@@ -508,7 +515,7 @@ public struct HUDComposer: Sendable {
   }
 
   private func panelBody(now: Date) -> HUDFrame.Body {
-    guard let f = followed else { return .message("No match followed") }
+    guard let f = followed else { return .message(waitingMessage ?? "No match followed") }
     let h = TeamStyle.style(for: f.home)
     let a = TeamStyle.style(for: f.away)
     return .panel(PanelContent(

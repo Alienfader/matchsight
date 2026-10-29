@@ -54,6 +54,17 @@ final class HUDComposerTests: XCTestCase {
     return c
   }
 
+  func testAFollowedMatchWaitingForTheTVSaysSo() {
+    // Picked, but its first update is still held by the TV delay.
+    var c = HUDComposer()
+    c.setWaitingMessage("Showing in 2:14 to match your TV")
+    guard case let .message(m) = c.frame(now: t0).body else { return XCTFail() }
+    XCTAssertEqual(m, "Showing in 2:14 to match your TV")
+    c.setWaitingMessage(nil)
+    guard case let .message(n) = c.frame(now: t0).body else { return XCTFail() }
+    XCTAssertEqual(n, "No match followed")
+  }
+
   // MARK: deck
 
   func testDeckWrapsForwardThroughSevenPages() {

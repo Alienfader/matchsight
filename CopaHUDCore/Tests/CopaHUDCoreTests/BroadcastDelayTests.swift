@@ -39,6 +39,18 @@ final class BroadcastDelayTests: XCTestCase {
     XCTAssertEqual(line.due(now: t0.addingTimeInterval(100)), [])
   }
 
+  func testANothingToSpoilUpdateSkipsTheWaitAndSupersedesTheQueue() {
+    // Before kickoff there is nothing to spoil: show it now. Each update is
+    // the whole match state, so older queued ones are dropped.
+    var line = BroadcastDelay<String>(seconds: 120)
+    line.push("older", at: t0)
+    line.pushNow("pre-match", at: t0.addingTimeInterval(10))
+    XCTAssertEqual(line.due(now: t0.addingTimeInterval(10)), ["pre-match"])
+    line.push("kick-off", at: t0.addingTimeInterval(20))
+    XCTAssertEqual(line.due(now: t0.addingTimeInterval(30)), [], "live updates still wait")
+    XCTAssertEqual(line.due(now: t0.addingTimeInterval(140)), ["kick-off"])
+  }
+
   func testDelayIsClampedToTheSettingRange() {
     XCTAssertEqual(BroadcastDelay<Int>(seconds: -5).seconds, 0)
     XCTAssertEqual(BroadcastDelay<Int>(seconds: 900).seconds, BroadcastDelay<Int>.maxSeconds)
