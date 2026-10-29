@@ -26,6 +26,9 @@ public struct MatchEngine: Sendable {
     /// the score a poll or two before the goal event): their event, when it
     /// lands, is counted silently instead of celebrating twice.
     var unattributed = ScoreLine(home: 0, away: 0)
+    /// Goals celebrated from their event before the score showed them: when
+    /// the score catches up it isn't a new goal.
+    var eventsAhead = ScoreLine(home: 0, away: 0)
     var prevStatus: MatchStatus?
     var fullTimeEmitted = false
     var hasIngested = false
@@ -78,7 +81,33 @@ public struct MatchEngine: Sendable {
       }
     }
 
-    var running = st.runningScore
+    // An early goal event (celebrated before the score showed it) gone from
+    // the feed: overturned, unless an explicit VAR event in this poll says so.
+    var remainingExplicit = explicitOverturns
+    if st.eventsAhead.home + st.eventsAhead.away > 0 {
+      let vanished = st.countedGoals.values
+        .filter { !currentIds.contains($0.id) }
+        .sorted { ($0.minute, $0.extraMinute ?? 0) < ($1.minute, $1.extraMinute ?? 0) }
+      for g in vanished {
+        if scoresForHome(g, snapshot: snapshot) {
+          guard st.eventsAhead.home > 0 else { continue }
+          st.eventsAhead.home -= 1
+        } else {
+          guard st.eventsAhead.away > 0 else { continue }
+          st.eventsAhead.away -= 1
+        }
+        st.countedGoals[g.id] = nil
+        st.seen.remove(g.id)
+        if remainingExplicit > 0 { remainingExplicit -= 1; continue }
+        out.append(MatchMoment(fixtureId: fixtureId, kind: .varDecision(.goalOverturned),
+                               score: snapshot.score, minute: g.minute))
+      }
+    }
+
+    // The score as the counted events have it (ahead of the snapshot when a
+    // goal event arrived before the score).
+    var running = ScoreLine(home: st.runningScore.home + st.eventsAhead.home,
+                            away: st.runningScore.away + st.eventsAhead.away)
     var lastGoalIndex: Int?
 
     for e in newEvents {
@@ -124,11 +153,14 @@ public struct MatchEngine: Sendable {
       }
     }
 
-    // Feed lag: the goal sequence didn't reach the snapshot score. Trust the
-    // snapshot for the LAST goal moment; the goals it covers are celebrated.
+    // Feed lag: the goal sequence and the snapshot score disagree. A score
+    // ahead of the events: the LAST goal moment shows it and the goals it
+    // covers are celebrated. Events ahead of the score keep their own score.
     if let i = lastGoalIndex, running != snapshot.score {
+      let shown = ScoreLine(home: max(running.home, snapshot.score.home),
+                            away: max(running.away, snapshot.score.away))
       out[i] = MatchMoment(fixtureId: fixtureId, kind: out[i].kind,
-                           score: snapshot.score, minute: out[i].minute)
+                           score: shown, minute: out[i].minute, playerId: out[i].playerId)
       st.unattributed.home += max(0, snapshot.score.home - running.home)
       st.unattributed.away += max(0, snapshot.score.away - running.away)
     } else if lastGoalIndex == nil, firstIngest {
@@ -170,7 +202,7 @@ public struct MatchEngine: Sendable {
       let minutes = vanished.map(\.minute as (MatchEvent) -> Int?)
         + Array(repeating: snapshot.elapsedMinutes, count: droppedHome + droppedAway)
       // Collapse with any explicit overturn events already emitted above.
-      let synthetic = max(0, minutes.count - explicitOverturns)
+      let synthetic = max(0, minutes.count - remainingExplicit)
       for minute in minutes.prefix(synthetic) {
         out.append(MatchMoment(fixtureId: fixtureId,
                                kind: .varDecision(.goalOverturned),
@@ -190,6 +222,8 @@ public struct MatchEngine: Sendable {
     }
 
     st.prevStatus = snapshot.status
+    st.eventsAhead = ScoreLine(home: max(0, running.home - snapshot.score.home),
+                               away: max(0, running.away - snapshot.score.away))
     st.runningScore = snapshot.score
     return out
   }

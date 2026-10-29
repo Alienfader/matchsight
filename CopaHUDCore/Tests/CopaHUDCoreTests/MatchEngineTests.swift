@@ -181,6 +181,48 @@ final class MatchEngineTests: XCTestCase {
     XCTAssertEqual(out[0].score, ScoreLine(home: 1, away: 1))
   }
 
+  // MARK: - Event before the score (seen on hardware 2026-10-28, Bahia 6')
+
+  func testAGoalEventAheadOfTheScoreCelebratesOnceWithItsScore() {
+    var engine = MatchEngine()
+    _ = engine.ingestFollowed(snapshot: snap(.notStarted, 0, 0), events: [])
+    let g = goal(.normal, bra, min: 6, player: "Rodrigo Nestor")
+    let first = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0, min: 6), events: [g])
+    XCTAssertEqual(first, [MatchMoment(fixtureId: 1,
+                                       kind: .goal(scorer: "Rodrigo Nestor", assist: nil, detail: .normal),
+                                       score: ScoreLine(home: 1, away: 0), minute: 6)])
+    // The score catches up: nothing new to announce.
+    XCTAssertEqual(engine.ingestFollowed(snapshot: snap(.firstHalf, 1, 0, min: 6), events: [g]), [])
+    // The next goal still celebrates once, with the right score.
+    let g2 = goal(.normal, bra, min: 10, player: "B")
+    let next = engine.ingestFollowed(snapshot: snap(.firstHalf, 2, 0, min: 10), events: [g, g2])
+    XCTAssertEqual(next.map(\.score), [ScoreLine(home: 2, away: 0)])
+  }
+
+  func testTheScoreCatchingUpPlusAnotherGoalAnnouncesOnlyTheNewOne() {
+    var engine = MatchEngine()
+    _ = engine.ingestFollowed(snapshot: snap(.notStarted, 0, 0), events: [])
+    let g = goal(.normal, bra, min: 6, player: "A")
+    _ = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0, min: 6), events: [g])
+    let out = engine.ingestFollowed(snapshot: snap(.firstHalf, 2, 0, min: 9), events: [g])
+    XCTAssertEqual(out, [MatchMoment(fixtureId: 1, kind: .goal(scorer: nil, assist: nil, detail: .normal),
+                                     score: ScoreLine(home: 2, away: 0), minute: 9)])
+  }
+
+  func testAGoalEventThatVanishesBeforeTheScoreShowedItIsOverturned() {
+    var engine = MatchEngine()
+    _ = engine.ingestFollowed(snapshot: snap(.notStarted, 0, 0), events: [])
+    let g = goal(.normal, bra, min: 6, player: "A")
+    _ = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0, min: 6), events: [g])
+    let gone = engine.ingestFollowed(snapshot: snap(.firstHalf, 0, 0, min: 8), events: [])
+    XCTAssertEqual(gone, [MatchMoment(fixtureId: 1, kind: .varDecision(.goalOverturned),
+                                      score: ScoreLine(home: 0, away: 0), minute: 6)])
+    // A later real goal is not swallowed.
+    let g2 = goal(.normal, bra, min: 20, player: "B")
+    let next = engine.ingestFollowed(snapshot: snap(.firstHalf, 1, 0, min: 20), events: [g2])
+    XCTAssertEqual(next.map(\.score), [ScoreLine(home: 1, away: 0)])
+  }
+
   func testTwoGoalsWithoutEventsCelebrateTwiceInOrder() {
     var engine = MatchEngine()
     _ = engine.ingestFollowed(snapshot: snap(.notStarted, 0, 0), events: [])
