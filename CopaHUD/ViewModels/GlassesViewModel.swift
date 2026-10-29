@@ -307,6 +307,9 @@ final class GlassesViewModel {
       score = CompactScore(summary: s, homeCrest: remoteImages.image(s.homeCrestURL),
                            awayCrest: remoteImages.image(s.awayCrestURL))
     }
+    if appModel?.hudStyle == .darkGlass, let picture = darkPicture(for: frame, score: score, photos: photos) {
+      return picture
+    }
     switch frame.body {
     case let .panel(p):
       remoteImages.prefetch([p.homeCrestURL, p.awayCrestURL], onLoad: redraw)
@@ -356,6 +359,48 @@ final class GlassesViewModel {
     }
   }
 
+
+  /// Dark glass pages; nil for the bodies that keep their classic look
+  /// (goal banners, the crest intro, messages, the quiet page).
+  private func darkPicture(for frame: HUDFrame, score: CompactScore?,
+                           photos: @escaping (Int) -> UIImage?) -> UIImage? {
+    guard let appModel else { return nil }
+    let clock = appModel.hudClock
+    switch frame.body {
+    case let .panel(p):
+      return ImageHUD.darkLive(p, latest: appModel.latestEvents, score: score, toast: frame.toast, deck: frame.deck)
+    case let .insight(c):
+      return ImageHUD.darkStory(c, score: score, clock: clock, toast: frame.toast, deck: frame.deck)
+    case .events:
+      return ImageHUD.darkEvents(appModel.latestEvents, score: score, clock: clock, toast: frame.toast,
+                                 deck: frame.deck)
+    case let .stats(title, lines), let .otherLive(title, lines):
+      return ImageHUD.darkList(title: title, lines: lines, score: score, clock: clock, toast: frame.toast,
+                               deck: frame.deck)
+    case let .lineup(c):
+      guard let xi = appModel.currentXI, !xi.isEmpty else { return nil }
+      let parts = c.title.components(separatedBy: " · ")
+      return ImageHUD.darkBoard(xi: xi, focus: nil, teamName: appModel.currentXITeam?.name ?? parts[0],
+                                formation: parts.dropFirst().first, score: score, clock: clock,
+                                toast: frame.toast, deck: frame.deck)
+    case let .playerCard(card):
+      guard let xi = appModel.currentXI, appModel.currentPlayerIndex >= 1 else { return nil }
+      let index = min(appModel.currentPlayerIndex - 1, xi.count - 1)
+      let player = xi[index]
+      if card.isDetail {
+        return ImageHUD.darkPlayer(player: player, photo: player.playerId.flatMap(photos),
+                                   stats: player.playerId.flatMap { appModel.playerStats[$0] },
+                                   scripted: appModel.isScripted, counter: card.counter, score: score,
+                                   clock: clock, toast: frame.toast, deck: frame.deck)
+      }
+      let parts = card.teamLine.components(separatedBy: " · ")
+      return ImageHUD.darkBoard(xi: xi, focus: index, teamName: appModel.currentXITeam?.name ?? parts[0],
+                                formation: parts.dropFirst().first, score: score, clock: clock,
+                                toast: frame.toast, deck: frame.deck)
+    case .takeover, .intro, .message, .quiet:
+      return nil
+    }
+  }
 
   // MARK: - Tap-burst vocabulary (350ms resolve on the single card target)
   //

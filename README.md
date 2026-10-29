@@ -103,7 +103,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 417 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 426 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -117,6 +117,12 @@ it for you: pick the next whole minute the TV clock will show and tap when it ge
 The feed gives whole minutes, so the live clock is pinned to the moment the minute ticks over
 (within about 8 s at a 15 s poll); not available at half-time or in stoppage time. The
 phone's Today list is not delayed.
+
+**Settings → HUD style → Dark glass** draws every page in one near-black card in the same
+place, with the score and minute always on top, fewer words and bigger figures: the latest
+goals and cards by the names players are known by, the XI board as the player browser, and
+four key figures per player picked for the position, without the zeros. It adds less light
+over the TV. Classic stays the default.
 
 **Settings → Battery saver** saves the glasses' battery during a long match. After 20 seconds
 with no gestures and nothing new, **Dim** (the default) shows only a faint score line on black;

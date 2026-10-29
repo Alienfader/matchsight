@@ -65,6 +65,14 @@ final class HUDComposerTests: XCTestCase {
     XCTAssertEqual(n, "No match followed")
   }
 
+  func testTheClockIsAvailableToEveryPage() {
+    var c = loaded()
+    c.handleTapBurst(count: 2, now: t0)
+    XCTAssertEqual(c.clock(now: t0), "30'")
+    XCTAssertEqual(c.clock(now: t0.addingTimeInterval(125)), "32'")
+    XCTAssertEqual(HUDComposer().clock(now: t0), "")
+  }
+
   // MARK: deck
 
   func testDeckWrapsForwardThroughSevenPages() {

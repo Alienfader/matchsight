@@ -267,6 +267,24 @@ final class AppModel {
     Task { await renderNow() }
   }
 
+  /// Look of the glasses pages (Settings → HUD style).
+  enum HUDStyle: String, CaseIterable { case classic, darkGlass }
+  private(set) var hudStyle: HUDStyle =
+    UserDefaults.standard.string(forKey: Keys.hudStyle).flatMap(HUDStyle.init(rawValue:)) ?? .classic
+
+  func setHUDStyle(_ value: HUDStyle) {
+    guard value != hudStyle else { return }
+    hudStyle = value
+    UserDefaults.standard.set(value.rawValue, forKey: Keys.hudStyle)
+    Task { await renderNow() }
+  }
+
+  /// Dark glass: goals, cards and VAR checks, newest first.
+  var latestEvents: [LatestEvent] { DarkGlassFormat.latest(lastEvents, lineups: lastLineups, limit: 6) }
+
+  /// The match clock for the dark glass score strip.
+  var hudClock: String { composer.clock(now: Date()) }
+
   func setVoiceReadyWhenLocked(_ value: Bool) {
     voiceReadyWhenLocked = value
     UserDefaults.standard.set(value, forKey: Keys.voiceReadyWhenLocked)
@@ -1096,6 +1114,7 @@ final class AppModel {
     static let tvDelaySeconds = "tvDelaySeconds"
     static let lookAtPlayer = "lookAtPlayer"
     static let batterySaver = "batterySaver"
+    static let hudStyle = "hudStyle"
   }
 }
 

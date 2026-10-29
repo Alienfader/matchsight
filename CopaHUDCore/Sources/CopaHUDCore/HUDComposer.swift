@@ -459,6 +459,10 @@ public struct HUDComposer: Sendable {
     }
   }
 
+  /// The match clock as the panel shows it ("67'", "HT", kickoff time), for
+  /// pages that carry a score strip. "" with no match followed.
+  public func clock(now: Date) -> String { clockString(now: now) }
+
   private func clockString(now: Date) -> String {
     guard let f = followed else { return "" }
     if f.status == .notStarted { return HUDFormat.kickoffTime(f.kickoff) }

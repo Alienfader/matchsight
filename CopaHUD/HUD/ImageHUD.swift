@@ -1160,3 +1160,383 @@ private struct MessagePage: View {
       .background(Glass(tint: .signature, radius: 40, opacity: 0.4))
   }
 }
+
+// MARK: - Dark glass (Settings → HUD style)
+//
+// One card for every page: the same size and place, a score strip on top,
+// a near-black fill that adds almost no light, bright type. Goal banners,
+// the crest intro and the quiet page keep their own look.
+
+extension ImageHUD {
+  @MainActor static func darkLive(_ p: PanelContent, latest: [LatestEvent], score: CompactScore?,
+                                  toast: String?, deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: p.clock, toast: toast, deck: deck,
+                    flags: DarkFlags(stale: p.isStale, paused: p.alertsPaused)) {
+      if p.isPreMatch { DarkPreMatch(p: p) } else { DarkLive(p: p, latest: latest) }
+    })
+  }
+
+  @MainActor static func darkStory(_ c: InsightContent, score: CompactScore?, clock: String,
+                                   toast: String?, deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) { DarkStory(c: c) })
+  }
+
+  @MainActor static func darkEvents(_ latest: [LatestEvent], score: CompactScore?, clock: String,
+                                    toast: String?, deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
+      DarkTitle(icon: "list.bullet", title: "Events")
+      if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
+      ForEach(Array(latest.enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
+    })
+  }
+
+  @MainActor static func darkList(title: String, lines: [String], score: CompactScore?, clock: String,
+                                  toast: String?, deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
+      DarkTitle(icon: title == "Other Live" ? "dot.radiowaves.left.and.right" : "chart.bar.fill", title: title)
+      ForEach(Array(lines.prefix(7).enumerated()), id: \.offset) { _, line in DarkListRow(line: line) }
+    })
+  }
+
+  /// The XI board; `focus` highlights the carousel's player.
+  @MainActor static func darkBoard(xi: [LineupPlayer], focus: Int?, teamName: String, formation: String?,
+                                   score: CompactScore?, clock: String, toast: String?,
+                                   deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
+      DarkBoard(xi: xi, focus: focus, teamName: teamName, formation: formation)
+    })
+  }
+
+  @MainActor static func darkPlayer(player: LineupPlayer, photo: UIImage?, stats: PlayerStats?,
+                                    scripted: Bool, counter: String, score: CompactScore?, clock: String,
+                                    toast: String?, deck: DeckPosition?) -> UIImage? {
+    render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
+      DarkPlayer(player: player, photo: photo, stats: stats, scripted: scripted, counter: counter)
+    })
+  }
+}
+
+private enum Dark {
+  static let fill = Color(hex: 0x07111C)
+  static let dim = Palette.ice.opacity(0.62)
+  static let rim = LinearGradient(colors: [Palette.cyan.opacity(0.7), Palette.lavender.opacity(0.25)],
+                                  startPoint: .topLeading, endPoint: .bottomTrailing)
+}
+
+private struct DarkFlags {
+  var stale = false
+  var paused = false
+}
+
+/// The fixed card: toast above it, score strip, the page, the page dots below.
+private struct DarkCard<Content: View>: View {
+  let score: CompactScore?
+  let clock: String
+  let toast: String?
+  let deck: DeckPosition?
+  var flags = DarkFlags()
+  @ViewBuilder let content: () -> Content
+
+  var body: some View {
+    VStack(spacing: 10) {
+      Spacer(minLength: 0)
+      if let toast {
+        Text(toast).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
+          .padding(.horizontal, 18).padding(.vertical, 8)
+          .background(Capsule().fill(Dark.fill.opacity(0.85)).overlay(Capsule().strokeBorder(Dark.rim, lineWidth: 1.5)))
+      }
+      VStack(alignment: .leading, spacing: 14) {
+        if let score {
+          DarkStrip(score: score, clock: clock, flags: flags)
+          Rectangle().fill(Palette.cyan.opacity(0.25)).frame(height: 1)
+        }
+        VStack(alignment: .leading, spacing: 14) { content() }
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      }
+      .padding(20)
+      .frame(width: 556, height: 420)
+      .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Dark.fill.opacity(0.78))
+        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(Dark.rim, lineWidth: 1.5)))
+      if let deck { PageDots(deck: deck) } else { Color.clear.frame(height: 9) }
+    }
+    .foregroundStyle(.white)
+    .padding(.bottom, 14)
+  }
+}
+
+private struct DarkStrip: View {
+  let score: CompactScore
+  let clock: String
+  let flags: DarkFlags
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Crest(image: score.homeCrest, fallback: score.summary.homeCode, size: 38)
+      Text(score.summary.homeCode).font(.system(size: 26, weight: .bold))
+      Text("\(score.summary.score.home)  \(score.summary.score.away)")
+        .font(.system(size: 34, weight: .heavy)).monospacedDigit()
+      Text(score.summary.awayCode).font(.system(size: 26, weight: .bold))
+      Crest(image: score.awayCrest, fallback: score.summary.awayCode, size: 38)
+      Spacer(minLength: 4)
+      if flags.paused { Image(systemName: "bell.slash.fill").font(.system(size: 22)).foregroundStyle(Dark.dim) }
+      if flags.stale { Text("stale").font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.coral) }
+      Text(clock).font(.system(size: 30, weight: .heavy)).foregroundStyle(Palette.cyan)
+        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+    }
+  }
+}
+
+private struct DarkTitle: View {
+  let icon: String
+  let title: String
+
+  var body: some View {
+    HStack(spacing: 10) {
+      Image(systemName: icon).foregroundStyle(Palette.cyan)
+      Text(title.uppercased()).lineLimit(1).minimumScaleFactor(0.7)
+    }
+    .font(.system(size: 24, weight: .heavy))
+  }
+}
+
+private struct DarkNote: View {
+  let text: String
+  var body: some View { Text(text).font(.system(size: 24, weight: .semibold)).foregroundStyle(Dark.dim) }
+}
+
+private struct DarkLabel: View {
+  let text: String
+  var body: some View { Text(text).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim) }
+}
+
+private struct DarkLive: View {
+  let p: PanelContent
+  let latest: [LatestEvent]
+
+  var body: some View {
+    if let home = p.possessionHome, let away = p.possessionAway {
+      VStack(alignment: .leading, spacing: 8) {
+        DarkLabel(text: "POSSESSION")
+        PossessionBar(home: home, away: away)
+      }
+    }
+    DarkLabel(text: "LATEST")
+    if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
+    ForEach(Array(latest.prefix(3).enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
+  }
+}
+
+private struct DarkPreMatch: View {
+  let p: PanelContent
+
+  var body: some View {
+    DarkLabel(text: "KICKOFF")
+    Text(p.clock).font(.system(size: 64, weight: .heavy)).monospacedDigit()
+    if let w = p.prediction {
+      DarkLabel(text: "WIN PROBABILITY")
+      HStack(spacing: 22) {
+        prob(p.homeCode, w.home)
+        prob("DRAW", w.draw)
+        prob(p.awayCode, w.away)
+      }
+    }
+  }
+
+  private func prob(_ label: String, _ value: Int) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text("\(value)%").font(.system(size: 32, weight: .heavy)).monospacedDigit()
+      DarkLabel(text: label)
+    }
+  }
+}
+
+private struct DarkEventRow: View {
+  let e: LatestEvent
+
+  var body: some View {
+    HStack(spacing: 14) {
+      Text(e.minute).font(.system(size: 26, weight: .heavy)).foregroundStyle(Palette.cyan)
+        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7).frame(width: 74, alignment: .leading)
+      icon.frame(width: 24)
+      Text(e.name).font(.system(size: 28, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+      Spacer(minLength: 4)
+      Text(e.team).font(.system(size: 22, weight: .semibold)).foregroundStyle(Dark.dim)
+    }
+  }
+
+  @ViewBuilder private var icon: some View {
+    switch e.kind {
+    case .goal, .penalty: Image(systemName: "soccerball").font(.system(size: 24, weight: .bold))
+    case .ownGoal: Image(systemName: "soccerball").font(.system(size: 24, weight: .bold)).foregroundStyle(Palette.coral)
+    case .missedPenalty: Image(systemName: "xmark.circle").font(.system(size: 22, weight: .bold)).foregroundStyle(Dark.dim)
+    case .yellow: RoundedRectangle(cornerRadius: 3).fill(Palette.captain).frame(width: 16, height: 22)
+    case .red: RoundedRectangle(cornerRadius: 3).fill(Palette.coral).frame(width: 16, height: 22)
+    case .varCheck: Image(systemName: "tv").font(.system(size: 20, weight: .bold))
+    }
+  }
+}
+
+private struct DarkListRow: View {
+  let line: String
+
+  var body: some View {
+    let parts = line.components(separatedBy: "  ").filter { !$0.isEmpty }
+    Group {
+      if parts.first == "POSS", let pct = Int(parts.last?.dropLast() ?? "") {
+        PossessionBar(home: pct, away: 100 - pct)
+      } else if parts.count == 2 {
+        HStack {
+          Text(parts[0]).foregroundStyle(Dark.dim)
+          Spacer()
+          Text(parts[1]).fontWeight(.bold)
+        }
+      } else {
+        Text(line).lineLimit(1).minimumScaleFactor(0.6)
+      }
+    }
+    .font(.system(size: 24, weight: .medium))
+  }
+}
+
+private struct DarkStory: View {
+  let c: InsightContent
+
+  var body: some View {
+    if let question = c.question {
+      Text("\u{201C}\(question)\u{201D}").font(.system(size: 22, weight: .semibold)).foregroundStyle(Dark.dim)
+        .lineLimit(2).minimumScaleFactor(0.7)
+    }
+    DarkTitle(icon: "sparkles", title: c.title)
+    if !c.body.isEmpty {
+      Text(c.body).font(.system(size: 30, weight: .medium)).lineSpacing(3).minimumScaleFactor(0.75)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    Spacer(minLength: 0)
+    Text(c.footer).font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+  }
+}
+
+private struct DarkBoard: View {
+  let xi: [LineupPlayer]
+  let focus: Int?
+  let teamName: String
+  let formation: String?
+
+  var body: some View {
+    let spots = FormationLayout.spots(xi)
+    let focused = focus.flatMap { xi.indices.contains($0) ? xi[$0] : nil }
+    GeometryReader { g in
+      let w = g.size.width, h = g.size.height
+      ZStack {
+        PitchLines().stroke(Palette.cyan.opacity(0.3), lineWidth: 1.2)
+        ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
+          let on = spot.player == focused
+          VStack(spacing: 2) {
+            Text(spot.player.number.map(String.init) ?? "")
+              .font(.system(size: 18, weight: .heavy)).monospacedDigit()
+              .foregroundStyle(on ? .black : .white)
+              .frame(width: 34, height: 34)
+              .background(Circle().fill(on ? Palette.cyan : .clear))
+              .overlay(Circle().strokeBorder(on ? Palette.cyan : .white.opacity(0.6), lineWidth: 1.5))
+            Text(Face.surname(spot.player.name))
+              .font(.system(size: 17, weight: on ? .heavy : .semibold))
+              .foregroundStyle(on ? Palette.cyan : .white.opacity(0.85))
+              .lineLimit(1).minimumScaleFactor(0.7).frame(width: 96)
+          }
+          .position(x: spot.x * w, y: spot.y * h)
+        }
+      }
+    }
+    HStack(spacing: 10) {
+      if let focused {
+        Text(focused.name).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+        Text(caption(focused)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim)
+        Spacer(minLength: 4)
+        Text("pinch for stats").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+      } else {
+        Text(teamName).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+        if let formation { Text(formation).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim) }
+        Spacer(minLength: 4)
+        Text("swipe › players").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+      }
+    }
+  }
+
+  private func caption(_ p: LineupPlayer) -> String {
+    [p.number.map { "#\($0)" }, p.position.flatMap(PositionLabel.short)].compactMap { $0 }.joined(separator: " · ")
+  }
+}
+
+private enum PositionLabel {
+  static func short(_ code: String) -> String? {
+    switch code.uppercased().first {
+    case "G": return "GK"
+    case "D": return "DEF"
+    case "M": return "MID"
+    case "F": return "FWD"
+    default: return nil
+    }
+  }
+}
+
+private struct DarkPlayer: View {
+  let player: LineupPlayer
+  let photo: UIImage?
+  let stats: PlayerStats?
+  let scripted: Bool
+  let counter: String
+
+  var body: some View {
+    let name = HUDFormat.splitName(player.name)
+    let tiles = DarkGlassFormat.keyFigures(position: player.position, stats: stats)
+    HStack(spacing: 16) {
+      Group {
+        if let photo { Image(uiImage: photo).resizable().scaledToFill() }
+        else { Image(systemName: "person.fill").resizable().scaledToFit().padding(18) }
+      }
+      .frame(width: 84, height: 84).clipShape(Circle())
+      .overlay(Circle().strokeBorder(Palette.cyan.opacity(0.8), lineWidth: 1.5))
+      VStack(alignment: .leading, spacing: 2) {
+        if !name.first.isEmpty {
+          Text(name.first).font(.system(size: 22, weight: .medium)).foregroundStyle(Dark.dim).lineLimit(1)
+        }
+        Text(name.last.uppercased()).font(.system(size: 40, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.6)
+        Text(subline).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim).lineLimit(1)
+      }
+      Spacer(minLength: 4)
+      VStack(alignment: .trailing, spacing: 0) {
+        Text(counter).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
+        if let rating = stats?.rating {
+          Text(rating).font(.system(size: 30, weight: .heavy)).foregroundStyle(Palette.cyan)
+          DarkLabel(text: "RATING")
+        }
+      }
+    }
+    if tiles.isEmpty {
+      DarkNote(text: stats == nil ? "No match figures yet" : "Nothing on the scoresheet yet")
+    } else {
+      LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
+                spacing: 18) {
+        ForEach(Array(tiles.enumerated()), id: \.offset) { _, t in
+          VStack(alignment: .leading, spacing: 2) {
+            Text(t.value).font(.system(size: 38, weight: .heavy)).monospacedDigit()
+            Text(t.label).font(.system(size: 16, weight: .bold)).foregroundStyle(Dark.dim)
+              .lineLimit(1).minimumScaleFactor(0.7)
+          }
+        }
+      }
+    }
+    Spacer(minLength: 0)
+    Text("pinch to close · swipe for next player").font(.system(size: 16, weight: .semibold))
+      .foregroundStyle(Dark.dim).frame(maxWidth: .infinity)
+  }
+
+  private var subline: String {
+    var bits = [player.number.map { "#\($0)" }, player.position.flatMap(PositionLabel.short)].compactMap { $0 }
+    if let m = stats?.minutes { bits.append("\(m) min") }
+    if stats?.yellowCards ?? 0 > 0 { bits.append("🟨") }
+    if stats?.redCards ?? 0 > 0 { bits.append("🟥") }
+    if scripted { bits.append("scripted") }
+    return bits.joined(separator: " · ")
+  }
+}

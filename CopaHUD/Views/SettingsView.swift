@@ -23,6 +23,7 @@ struct SettingsView: View {
   @State private var showTVSync = false
   @State private var toastsEnabled = true
   @State private var batterySaver: BatterySaver = .dim
+  @State private var hudStyle: AppModel.HUDStyle = .classic
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
   @State private var showTeamPicker = false
@@ -209,6 +210,21 @@ struct SettingsView: View {
               }
               .padding(.horizontal, 12)
               .padding(.vertical, 14)
+            }
+
+            // HUD style
+            settingsGroup(
+              header: "HUD style",
+              footer: "Dark glass draws every page in one dark card in the same place, with the score always on top, fewer words and bigger figures. It adds less light over the TV. Goal banners keep their look."
+            ) {
+              Picker("HUD style", selection: $hudStyle) {
+                Text("Classic").tag(AppModel.HUDStyle.classic)
+                Text("Dark glass").tag(AppModel.HUDStyle.darkGlass)
+              }
+              .pickerStyle(.segmented)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 14)
+              .onChange(of: hudStyle) { _, new in appModel.setHUDStyle(new) }
             }
 
             // Battery saver
@@ -414,6 +430,7 @@ struct SettingsView: View {
     lookAtPlayer = appModel.lookAtPlayerEnabled
     toastsEnabled = appModel.config.toastsEnabled
     batterySaver = appModel.config.batterySaver
+    hudStyle = appModel.hudStyle
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode
     hasKey = SecretsStore.apiFootballKey?.isEmpty == false
