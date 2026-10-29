@@ -376,7 +376,8 @@ final class GlassesViewModel {
     let clock = appModel.hudClock
     switch frame.body {
     case let .panel(p):
-      return ImageHUD.darkLive(p, latest: appModel.latestEvents, score: score, toast: frame.toast, deck: frame.deck)
+      return ImageHUD.darkLive(p, latest: appModel.latestEvents, momentum: appModel.momentum, score: score,
+                               toast: frame.toast, deck: frame.deck)
     case let .insight(c):
       return ImageHUD.darkStory(c, score: score, clock: clock, toast: frame.toast, deck: frame.deck)
     case .events:

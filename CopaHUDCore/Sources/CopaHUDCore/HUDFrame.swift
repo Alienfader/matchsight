@@ -221,6 +221,15 @@ public struct GuideContent: Sendable, Equatable {
   public var icon: String
   /// The last gesture wasn't the one asked for.
   public var tryAgain: Bool
+
+  public init(step: Int, total: Int, action: String, result: String, icon: String, tryAgain: Bool) {
+    self.step = step
+    self.total = total
+    self.action = action
+    self.result = result
+    self.icon = icon
+    self.tryAgain = tryAgain
+  }
 }
 
 /// The gestures the guide teaches, in order.

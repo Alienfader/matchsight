@@ -1212,11 +1212,11 @@ private struct MessagePage: View {
 // the crest intro and the quiet page keep their own look.
 
 extension ImageHUD {
-  @MainActor static func darkLive(_ p: PanelContent, latest: [LatestEvent], score: CompactScore?,
-                                  toast: String?, deck: DeckPosition?) -> UIImage? {
+  @MainActor static func darkLive(_ p: PanelContent, latest: [LatestEvent], momentum: Momentum?,
+                                  score: CompactScore?, toast: String?, deck: DeckPosition?) -> UIImage? {
     render(DarkCard(score: score, clock: p.clock, toast: toast, deck: deck,
                     flags: DarkFlags(stale: p.isStale, paused: p.alertsPaused)) {
-      if p.isPreMatch { DarkPreMatch(p: p) } else { DarkLive(p: p, latest: latest) }
+      if p.isPreMatch { DarkPreMatch(p: p) } else { DarkLive(p: p, latest: latest, momentum: momentum) }
     })
   }
 
@@ -1356,17 +1356,52 @@ private struct DarkLabel: View {
 private struct DarkLive: View {
   let p: PanelContent
   let latest: [LatestEvent]
+  let momentum: Momentum?
 
   var body: some View {
     if let home = p.possessionHome, let away = p.possessionAway {
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: 6) {
         DarkLabel(text: "POSSESSION")
         PossessionBar(home: home, away: away)
       }
     }
+    if let momentum {
+      VStack(alignment: .leading, spacing: 6) {
+        DarkLabel(text: "MOMENTUM · LAST 10' · SHOTS AND CORNERS")
+        MomentumBar(home: p.homeCode, away: p.awayCode, balance: momentum.balance)
+      }
+    }
     DarkLabel(text: "LATEST")
     if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
-    ForEach(Array(latest.prefix(3).enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
+    // Two lines when the momentum bar takes the room of the third.
+    ForEach(Array(latest.prefix(momentum == nil ? 3 : 2).enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
+  }
+}
+
+/// A centre-out bar: it grows toward the side that's been pushing.
+private struct MomentumBar: View {
+  let home: String
+  let away: String
+  let balance: Double
+
+  var body: some View {
+    HStack(spacing: 10) {
+      Text(home).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
+      GeometryReader { g in
+        let half = g.size.width / 2
+        let length = half * min(1, abs(balance))
+        ZStack(alignment: .leading) {
+          Capsule().fill(.white.opacity(0.12))
+          Capsule().fill(balance >= 0 ? Palette.probabilityCyan : Palette.coral)
+            .frame(width: max(6, length), height: 10)
+            .offset(x: balance >= 0 ? half - length : half)
+          Rectangle().fill(.white.opacity(0.7)).frame(width: 2, height: 16).offset(x: half - 1)
+        }
+        .frame(height: 16)
+      }
+      .frame(height: 16)
+      Text(away).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
+    }
   }
 }
 

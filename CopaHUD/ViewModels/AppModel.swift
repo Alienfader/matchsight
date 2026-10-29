@@ -231,7 +231,7 @@ final class AppModel {
     selectDay(selectedDay)
     // Data from the previous feed (e.g. the scripted demo match) must never
     // reach the analyst labelled as the new source — drop it and re-poll.
-    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; statsHistory = []; playerStats = [:]; lastPrediction = nil; predictionFetched = []
     tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     analystReady = false
     if wasDemo || feed is MockFeed {
@@ -295,6 +295,12 @@ final class AppModel {
     UserDefaults.standard.set(value.rawValue, forKey: Keys.hudStyle)
     Task { await renderNow() }
   }
+
+  /// Stats readings for the followed match, for the momentum bar.
+  @ObservationIgnored private var statsHistory: [StatsSample] = []
+
+  /// Who has been pushing over the last ten minutes (shots, corners).
+  var momentum: Momentum? { Momentum.reading(statsHistory) }
 
   /// Dark glass: goals, cards and VAR checks, newest first.
   var latestEvents: [LatestEvent] { DarkGlassFormat.latest(lastEvents, lineups: lastLineups, limit: 6) }
@@ -381,7 +387,7 @@ final class AppModel {
     followedFixtureId = fixtureId
     lineupsFetched.remove(fixtureId)
     halfTimeLineupRefreshed = false
-    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; statsHistory = []; playerStats = [:]; lastPrediction = nil; predictionFetched = []
     tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     lastFollowedPollOk = nil
     analystReady = false
@@ -400,7 +406,7 @@ final class AppModel {
     if let id = followedFixtureId { engine.reset(fixtureId: id) }
     followedFixtureId = nil
     followedTask?.cancel(); followedTask = nil
-    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; playerStats = [:]; lastPrediction = nil; predictionFetched = []
+    lastSnapshot = nil; lastEvents = []; lastLineups = []; lastStats = nil; statsHistory = []; playerStats = [:]; lastPrediction = nil; predictionFetched = []
     tvDelayLine.clear(); lastPolledStatus = nil; liveClock = LiveMatchClock()
     analystReady = false
     insights.reset(fixtureId: nil)
@@ -1033,6 +1039,11 @@ final class AppModel {
       lastSnapshot = update.snapshot
       analystReady = true
       lastEvents = update.events
+      if let stats = update.stats, let minute = update.snapshot.elapsedMinutes {
+        statsHistory.removeAll { $0.minute >= minute }   // the feed can repeat or correct a minute
+        statsHistory.append(StatsSample(minute: minute, stats: stats))
+        if statsHistory.count > 40 { statsHistory.removeFirst(statsHistory.count - 40) }
+      }
       lastStats = update.stats ?? lastStats
       if let fresh = update.playerStats, !fresh.isEmpty { playerStats = fresh }
       applyToComposer()
