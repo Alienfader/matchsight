@@ -47,9 +47,17 @@ public enum TVSync {
     case tooFarBehind
   }
 
+  /// Within this of the feed's clock the TV counts as live. The clock runs
+  /// from kickoff, but goals reach the feed after the TV shows them, so a
+  /// small delay would only make goal alerts later (seen 2026-10-28).
+  public static let liveWindow: TimeInterval = 30
+  /// A tap this early still counts as live, not as a TV ahead of the data.
+  public static let tapSlack: TimeInterval = 15
+
   public static func delay(liveSeconds: TimeInterval, tvMinute: Int) -> Outcome {
     let behind = liveSeconds - Double(tvMinute) * 60
-    if behind < 0 { return .tvAhead }
+    if behind < -tapSlack { return .tvAhead }
+    if behind < liveWindow { return .delay(0) }
     if behind > BroadcastDelay<Int>.maxSeconds { return .tooFarBehind }
     return .delay(behind.rounded())
   }

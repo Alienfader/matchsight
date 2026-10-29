@@ -58,7 +58,17 @@ final class TVSyncTests: XCTestCase {
 
   func testTheDelayIsHowFarTheTVIsBehind() {
     XCTAssertEqual(TVSync.delay(liveSeconds: 52 * 60 + 150, tvMinute: 52), .delay(150))
-    XCTAssertEqual(TVSync.delay(liveSeconds: 52 * 60 + 2, tvMinute: 52), .delay(2))
+    XCTAssertEqual(TVSync.delay(liveSeconds: 52 * 60 + 31, tvMinute: 52), .delay(31))
+  }
+
+  func testATVCloseToLiveNeedsNoDelay() {
+    // The feed's clock runs from kickoff, but its goals arrive after the TV
+    // shows them (2026-10-28: sync said 13 s, the goal came later anyway).
+    // Within 30 s of the clock, any delay only makes alerts later.
+    XCTAssertEqual(TVSync.delay(liveSeconds: 10 * 60 + 13, tvMinute: 10), .delay(0))
+    XCTAssertEqual(TVSync.delay(liveSeconds: 52 * 60 + 29, tvMinute: 52), .delay(0))
+    // A tap a few seconds early is still "live", not "TV ahead".
+    XCTAssertEqual(TVSync.delay(liveSeconds: 52 * 60 - 10, tvMinute: 52), .delay(0))
   }
 
   func testATVAheadOfTheDataOrTooFarBehindIsRejected() {

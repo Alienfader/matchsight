@@ -494,7 +494,7 @@ struct TVSyncSheet: View {
 
   static func describe(_ outcome: TVSync.Outcome?) -> String {
     switch outcome {
-    case .delay(let s)?: return s == 0 ? "Your TV is live: no delay needed." : "TV delay set to \(clock(s))."
+    case .delay(let s)?: return s == 0 ? "Your TV is close to live: no delay needed." : "TV delay set to \(clock(s))."
     case .tvAhead?: return "That minute hasn't happened yet in the live data. Pick an earlier minute."
     case .tooFarBehind?: return "That's more than 5 minutes behind. Pick a later minute."
     case nil: return "The match clock isn't ready. Try again in a minute."
