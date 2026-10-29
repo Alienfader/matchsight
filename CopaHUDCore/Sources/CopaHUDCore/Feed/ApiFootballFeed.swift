@@ -18,6 +18,12 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
   public static let championsLeague = 2
   /// DFB-Pokal, the German cup.
   public static let germanCup = 81
+  /// Brazil: Série A, Série B and the Copa do Brasil.
+  public static let brazilSerieA = 71
+  public static let brazilSerieB = 72
+  public static let brazilCup = 73
+  /// One season value for every league. Brazil plays the calendar year, so
+  /// 2026 is right for both until January 2027, when Brazil moves to 2027.
   public static let clubSeason = 2026
   /// Champions League round whose fixtures list exactly the league-phase clubs.
   static let leaguePhaseRound = "League Stage - 1"

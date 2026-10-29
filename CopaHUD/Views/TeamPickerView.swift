@@ -9,13 +9,16 @@ struct TeamPickerView: View {
   var onDone: () -> Void
 
   private enum League: Int, CaseIterable, Identifiable {
-    case premierLeague, championsLeague, germanCup
+    case premierLeague, championsLeague, germanCup, brazilSerieA, brazilSerieB, brazilCup
     var id: Int { rawValue }
     var title: String {
       switch self {
       case .premierLeague: return "Premier League"
       case .championsLeague: return "Champions League"
       case .germanCup: return "DFB-Pokal"
+      case .brazilSerieA: return "Brasileirão Série A"
+      case .brazilSerieB: return "Série B"
+      case .brazilCup: return "Copa do Brasil"
       }
     }
     var apiId: Int {
@@ -23,6 +26,9 @@ struct TeamPickerView: View {
       case .premierLeague: return ApiFootballFeed.premierLeague
       case .championsLeague: return ApiFootballFeed.championsLeague
       case .germanCup: return ApiFootballFeed.germanCup
+      case .brazilSerieA: return ApiFootballFeed.brazilSerieA
+      case .brazilSerieB: return ApiFootballFeed.brazilSerieB
+      case .brazilCup: return ApiFootballFeed.brazilCup
       }
     }
   }
@@ -48,10 +54,22 @@ struct TeamPickerView: View {
           .font(.system(size: 15))
           .foregroundStyle(.white.opacity(0.6))
 
-        Picker("Competition", selection: $league) {
-          ForEach(League.allCases) { Text($0.title).tag($0) }
+        // Six competitions don't fit a segmented control: a scrolling chip row.
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 8) {
+            ForEach(League.allCases) { item in
+              SwiftUI.Button { league = item } label: {
+                Text(item.title)
+                  .font(.system(size: 14, weight: .semibold))
+                  .foregroundStyle(league == item ? Color.navy900 : .white)
+                  .padding(.horizontal, 12)
+                  .padding(.vertical, 8)
+                  .background(league == item ? Color.live : Color.white.opacity(0.10), in: Capsule())
+              }
+              .buttonStyle(.plain)
+            }
+          }
         }
-        .pickerStyle(.segmented)
 
         content
           .frame(maxHeight: .infinity, alignment: .top)

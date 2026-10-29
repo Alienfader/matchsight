@@ -146,9 +146,11 @@ final class AppModel {
 
   // MARK: - Feed selection
 
-  /// Matchsight polls the Premier League, the Champions League and the DFB-Pokal.
+  /// Matchsight polls the Premier League, the Champions League, the DFB-Pokal
+  /// and Brazil's Série A, Série B and Copa do Brasil.
   static let leagueIds = [ApiFootballFeed.premierLeague, ApiFootballFeed.championsLeague,
-                          ApiFootballFeed.germanCup]
+                          ApiFootballFeed.germanCup, ApiFootballFeed.brazilSerieA,
+                          ApiFootballFeed.brazilSerieB, ApiFootballFeed.brazilCup]
 
   static func makeFeed(demoMode: Bool, apiKey: String?) -> any MatchFeed {
     if !demoMode, let key = apiKey, !key.isEmpty {

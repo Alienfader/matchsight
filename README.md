@@ -2,7 +2,8 @@
 
 Your team's live match, floating in front of you on **Meta Ray-Ban Display** glasses.
 
-Pick your Premier League, Champions League and DFB-Pokal clubs once. When one of them plays,
+Pick your Premier League, Champions League, DFB-Pokal and Brazilian (Série A, Série B,
+Copa do Brasil) clubs once. When one of them plays,
 Matchsight follows the match automatically and shows it in a frosted, cyan-to-lavender
 glass style: the score capsule with the event timeline, goal / red-card / VAR
 celebrations, a stacked starting-XI card carousel with live player stats, and a line-art
