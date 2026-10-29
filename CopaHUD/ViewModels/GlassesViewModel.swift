@@ -103,7 +103,32 @@ final class GlassesViewModel {
     debugLog.append("[\(ts)] \(s)")
     print("[CopaHUD] \(s)")   // mirrored to the device console (devicectl --console)
     if debugLog.count > 120 { debugLog.removeFirst(debugLog.count - 120) }
+    #if DEBUG
+    Self.appendToLogFile("\(Date().ISO8601Format()) \(s)\n")
+    #endif
   }
+
+  #if DEBUG
+  /// Debug builds keep the log in Documents/debug.log, so a session started
+  /// from the phone (no console attached) can be read afterwards. Over 2 MB,
+  /// it starts again from the newer half.
+  private static let logFile = FileManager.default
+    .urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("debug.log")
+
+  private static func appendToLogFile(_ line: String) {
+    guard let data = line.data(using: .utf8) else { return }
+    guard let handle = try? FileHandle(forWritingTo: logFile) else {
+      try? data.write(to: logFile); return
+    }
+    defer { try? handle.close() }
+    if let size = try? handle.seekToEnd(), size > 2_000_000,
+       let old = try? Data(contentsOf: logFile) {
+      try? old.suffix(1_000_000).write(to: logFile)
+      return appendToLogFile(line)
+    }
+    try? handle.write(contentsOf: data)
+  }
+  #endif
 
   // MARK: - Render path (single source of HUD truth)
   //

@@ -937,6 +937,10 @@ final class AppModel {
     for update in due where update.fixtureId == followedFixtureId {
       let moments = engine.ingestFollowed(snapshot: update.snapshot, events: update.events)
       record(moments)
+      for m in moments {
+        glasses?.dbg("moment: \(m.kind) \(m.minute.map { "\($0)'" } ?? "") \(m.score.home)-\(m.score.away)"
+                     + (composer.alertsPaused ? " [dropped: alerts paused]" : ""))
+      }
       lastSnapshot = update.snapshot
       analystReady = true
       lastEvents = update.events
