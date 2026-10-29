@@ -992,10 +992,10 @@ final class AppModel {
         glasses?.dbg("poll \(id): \(snap.status.rawValue) \(snap.elapsedMinutes.map { "\($0)'" } ?? "–") \(snap.score.home)-\(snap.score.away), \(events.count) events"
                      + (tvDelaySeconds > 0 ? " (shown after \(Int(tvDelaySeconds)) s TV delay)" : ""))
         // Score, events and stats wait out the TV delay (none by default);
-        // before kickoff there is nothing to spoil, so they show at once.
+        // before kickoff, or in the scripted demo, there is nothing to spoil.
         let update = FollowedUpdate(fixtureId: id, snapshot: snap, events: events,
                                     stats: freshStats, playerStats: freshPlayerStats)
-        if snap.status == .notStarted { tvDelayLine.pushNow(update, at: Date()) }
+        if snap.status == .notStarted || feed is MockFeed { tvDelayLine.pushNow(update, at: Date()) }
         else { tvDelayLine.push(update, at: Date()) }
         await deliverDueUpdates()
       } catch let e as FeedError {
@@ -1123,7 +1123,7 @@ final class AppModel {
   /// A picked match whose first update hasn't been shown yet.
   private var waitingMessage: String? {
     guard followedFixtureId != nil, lastSnapshot == nil else { return nil }
-    guard tvDelaySeconds > 0 else { return "Loading the match…" }
+    guard tvDelaySeconds > 0, !(feed is MockFeed) else { return "Loading the match…" }
     let delay = Int(tvDelaySeconds)
     return "Waiting \(delay / 60):\(String(format: "%02d", delay % 60)) to match your TV"
   }

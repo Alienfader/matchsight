@@ -111,6 +111,19 @@ Learned on real glasses:
 Turn on **Settings → Demo mode** to replay the scripted Arsenal v Chelsea match without an
 API-Football key. With a key, the app follows your clubs' real matches.
 
+The scripted match plays 90 minutes in about 90 seconds (the TV delay doesn't apply to it).
+A walkthrough:
+
+1. Settings: **Demo mode** on, **HUD style → Dark glass**, **Sound** on.
+2. Connect the glasses. The first time, the **gesture guide** asks for each gesture once.
+3. Watch it play: Saka scores at 18' (banner and chime), Chelsea equalise at 28', a yellow
+   card at 36' (a one-line notice), João Pedro's 42' goal is ruled out by VAR at 44', the
+   half-time whistle, substitutions, and Eze's 89' winner. At full time Muse Spark's recap is
+   read aloud.
+4. Meanwhile swipe through the pages, pinch a player on the board for their card (demo
+   figures are marked scripted), and pinch and hold to ask "who scored first?". The answer
+   is read aloud through the glasses.
+
 Watching on TV? **Settings → TV delay** (up to 5 minutes) holds the score, events and goal banners on
 the glasses so they never arrive before the broadcast shows the goal. **Sync with TV** sets
 it for you: pick the next whole minute the TV clock will show and tap when it gets there.
