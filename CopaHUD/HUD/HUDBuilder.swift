@@ -67,6 +67,8 @@ enum HUDBuilder {
       return message(text)
     case let .quiet(q):
       return message([q.scoreLine, q.clock].compactMap { $0 }.joined(separator: "  "))
+    case let .guide(g):
+      return message("\(g.action): \(g.result)")
     }
   }
 

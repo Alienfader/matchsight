@@ -90,6 +90,7 @@ final class HUDComposerTests: XCTestCase {
       case .insight: return "insight"
       case .message: return "message"
       case .quiet: return "quiet"
+      case .guide: return "guide"
       }
     }
     XCTAssertEqual(bodyName(), "panel")
@@ -832,6 +833,7 @@ final class HUDComposerTests: XCTestCase {
     case .takeover: return "takeover"
     case .intro: return "intro"
     case .quiet: return "quiet"
+    case .guide: return "guide"
     }
   }
 

@@ -204,6 +204,7 @@ final class GlassesViewModel {
     case .intro: return "intro"
     case .message: return "message"
     case .quiet: return "quiet"
+    case .guide: return "guide"
     }
   }
 
@@ -361,6 +362,8 @@ final class GlassesViewModel {
       return ImageHUD.message(text, toast: frame.toast, score: score, deck: frame.deck)
     case let .quiet(q):
       return ImageHUD.quiet(q)
+    case let .guide(g):
+      return ImageHUD.guide(g, toast: frame.toast)
     }
   }
 
@@ -402,7 +405,7 @@ final class GlassesViewModel {
       return ImageHUD.darkBoard(xi: xi, focus: index, teamName: appModel.currentXITeam?.name ?? parts[0],
                                 formation: parts.dropFirst().first, score: score, clock: clock,
                                 toast: frame.toast, deck: frame.deck)
-    case .takeover, .intro, .message, .quiet:
+    case .takeover, .intro, .message, .quiet, .guide:
       return nil
     }
   }

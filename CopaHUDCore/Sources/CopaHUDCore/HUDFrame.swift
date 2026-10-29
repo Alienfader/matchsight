@@ -209,6 +209,41 @@ public struct IntroContent: Sendable, Equatable {
   }
 }
 
+/// One page of the first-run gesture guide.
+public struct GuideContent: Sendable, Equatable {
+  public var step: Int
+  public var total: Int
+  /// What to do: "Swipe right".
+  public var action: String
+  /// What it does in the app: "Next page".
+  public var result: String
+  /// SF Symbol for the gesture.
+  public var icon: String
+  /// The last gesture wasn't the one asked for.
+  public var tryAgain: Bool
+}
+
+/// The gestures the guide teaches, in order.
+public enum GestureGuide {
+  public struct Step: Sendable {
+    public let action: String
+    public let result: String
+    public let icon: String
+    /// The gesture that completes the step; nil for pinch-and-hold, which
+    /// the app reports with `guideHoldDone()`.
+    public let expects: HUDInput?
+  }
+
+  public static let steps: [Step] = [
+    Step(action: "Swipe right", result: "Next page", icon: "arrow.right", expects: .next),
+    Step(action: "Swipe left", result: "Back a page, or back a player", icon: "arrow.left", expects: .previous),
+    Step(action: "Swipe up", result: "Home: the score", icon: "arrow.up", expects: .home),
+    Step(action: "Swipe down", result: "The AI insight on this match", icon: "arrow.down", expects: .insight),
+    Step(action: "Pinch", result: "Open a player's card", icon: "hand.pinch", expects: .select),
+    Step(action: "Pinch and hold", result: "Ask a question out loud, then let go", icon: "mic", expects: nil),
+  ]
+}
+
 /// Battery saver's quiet page: one dim score line and the clock, on black.
 public struct QuietContent: Sendable, Equatable {
   /// "BRA 1 · 0 ARG"; nil when no match is followed.
@@ -254,6 +289,8 @@ public struct HUDFrame: Sendable, Equatable {
     case message(String)
     /// Battery saver: the fan hasn't touched the band for a while.
     case quiet(QuietContent)
+    /// First-run gesture guide.
+    case guide(GuideContent)
   }
 
   public var body: Body

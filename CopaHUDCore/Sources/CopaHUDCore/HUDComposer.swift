@@ -64,6 +64,10 @@ public struct HUDComposer: Sendable {
   /// answer); the next tick turns it into activity.
   private var wakeRequested = false
 
+  /// The gesture guide's current step (index into GestureGuide.steps).
+  private var guideStep: Int?
+  private var guideTryAgain = false
+
   /// How long the page dots stay lit after a gesture.
   public static let inputPulse: TimeInterval = 0.8
 
@@ -140,6 +144,39 @@ public struct HUDComposer: Sendable {
       }
     }
     startTakeoverIfIdle(now: now)
+  }
+
+  // MARK: - Gesture guide
+
+  /// First connection: teach each gesture before the deck.
+  public mutating func startGestureGuide() {
+    guideStep = 0
+    guideTryAgain = false
+    wakeRequested = true
+  }
+
+  public var isGuiding: Bool { guideStep != nil }
+
+  /// A pinch-and-hold started: the last step is done (or the fan skipped).
+  public mutating func guideHoldDone() {
+    guideStep = nil
+    guideTryAgain = false
+    wakeRequested = true
+  }
+
+  private mutating func guide(_ input: HUDInput, now: Date) {
+    guard let step = guideStep else { return }
+    lastInputAt = now
+    lastActivityAt = now
+    let expected = GestureGuide.steps[step].expects
+    if input == expected {
+      guideTryAgain = false
+      let next = step + 1
+      // The hold step is finished by the app (guideHoldDone).
+      guideStep = next < GestureGuide.steps.count ? next : nil
+    } else {
+      guideTryAgain = true
+    }
   }
 
   /// A one-line notice from the app (e.g. lineups out), like a yellow card's.
@@ -274,6 +311,8 @@ public struct HUDComposer: Sendable {
   /// A resolved Neural Band gesture: pinch / swipe right = next, swipe left =
   /// previous, swipe up = home.
   public mutating func handle(_ input: HUDInput, now: Date) {
+    // The guide takes gestures until it's done; the deck stays put.
+    if isGuiding { dismissIntro(); guide(input, now: now); return }
     // While quiet, the first gesture only wakes the glasses.
     if wakeOnly(now: now) { return }
     // Any gesture dismisses the intro and acts as usual.
@@ -327,6 +366,8 @@ public struct HUDComposer: Sendable {
   /// 350ms window on the phone side).
   public mutating func handleTapBurst(count: Int, now: Date) {
     guard count > 0 else { return }
+    // The display's tap is a pinch.
+    if isGuiding { guide(.select, now: now); return }
     if wakeOnly(now: now) { return }
     lastInputAt = now
     lastActivityAt = now
@@ -395,7 +436,7 @@ public struct HUDComposer: Sendable {
 
   /// A banner, the intro, a toast or a voice step is on screen.
   private var isShowingSomething: Bool {
-    currentTakeover != nil || intro != nil || currentToast != nil || listening != nil
+    currentTakeover != nil || intro != nil || currentToast != nil || listening != nil || guideStep != nil
   }
 
   private mutating func noteActivity(at date: Date) {
@@ -425,6 +466,12 @@ public struct HUDComposer: Sendable {
       body = .takeover(takeover)
     } else if let intro {
       body = .intro(intro)
+    } else if let step = guideStep {
+      let s = GestureGuide.steps[step]
+      return HUDFrame(body: .guide(GuideContent(step: step + 1, total: GestureGuide.steps.count,
+                                                action: s.action, result: s.result, icon: s.icon,
+                                                tryAgain: guideTryAgain)),
+                      toast: listening)
     } else if isQuiet(now: now) {
       return HUDFrame(body: .quiet(quietContent(now: now)),
                       displayOff: config.batterySaver == .displayOff)

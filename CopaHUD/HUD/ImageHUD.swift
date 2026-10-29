@@ -86,6 +86,11 @@ enum ImageHUD {
     render(PageFrame(toast: toast, score: score) { MessagePage(text: text) }, deck: deck)
   }
 
+  /// First-run gesture guide: one gesture per page, big and plain.
+  @MainActor static func guide(_ g: GuideContent, toast: String?) -> UIImage? {
+    render(GuidePage(g: g, toast: toast))
+  }
+
   /// Battery saver: black except one dim line, so almost nothing is lit.
   @MainActor static func quiet(_ q: QuietContent) -> UIImage? {
     render(QuietPage(content: q))
@@ -1132,6 +1137,45 @@ private struct ListRow: View {
     }
     .font(.system(size: 23, weight: .medium))
     .padding(.vertical, 2)
+  }
+}
+
+private struct GuidePage: View {
+  let g: GuideContent
+  let toast: String?
+
+  var body: some View {
+    VStack(spacing: 10) {
+      Spacer(minLength: 0)
+      if let toast {
+        Text(toast).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
+      }
+      VStack(spacing: 18) {
+        HStack {
+          Text("GESTURES").font(.system(size: 20, weight: .heavy)).foregroundStyle(Palette.cyan)
+          Spacer()
+          Text("\(g.step)/\(g.total)").font(.system(size: 20, weight: .bold)).foregroundStyle(Palette.ice.opacity(0.62))
+        }
+        Image(systemName: g.icon).font(.system(size: 88, weight: .semibold)).foregroundStyle(Palette.cyan)
+          .shadow(color: Palette.cyan.opacity(0.6), radius: 10)
+          .frame(height: 120)
+        Text(g.action).font(.system(size: 44, weight: .heavy))
+        Text(g.result).font(.system(size: 26, weight: .medium)).foregroundStyle(Palette.ice.opacity(0.8))
+          .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.7)
+        Spacer(minLength: 0)
+        Text(g.tryAgain ? "Not that one. Try: \(g.action.lowercased())" : "Try it now")
+          .font(.system(size: 20, weight: .bold))
+          .foregroundStyle(g.tryAgain ? Palette.captain : Palette.ice.opacity(0.62))
+      }
+      .padding(22)
+      .frame(width: 556, height: 420)
+      .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Color(hex: 0x07111C).opacity(0.78))
+        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous)
+          .strokeBorder(Palette.cyan.opacity(0.6), lineWidth: 1.5)))
+      Color.clear.frame(height: 9)
+    }
+    .foregroundStyle(.white)
+    .padding(.bottom, 14)
   }
 }
 

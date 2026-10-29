@@ -620,6 +620,7 @@ struct LiveView: View {
     case .insight(let i): return i.title
     case .message(let m): return m
     case .quiet(let q): return q.scoreLine ?? "Matchsight"
+    case .guide(let g): return "Gesture guide \(g.step)/\(g.total)"
     }
   }
 
@@ -646,6 +647,8 @@ struct LiveView: View {
       return nil
     case .quiet(let q):
       return "\(q.clock)  · battery saver"
+    case .guide(let g):
+      return "\(g.action): \(g.result)"
     }
   }
 

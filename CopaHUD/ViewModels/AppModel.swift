@@ -555,12 +555,28 @@ final class AppModel {
 
   /// A Neural Band gesture read through DAT 1.0 Inputs.
   func hudInput(_ input: HUDInput) {
+    let guiding = composer.isGuiding
     composer.handle(input, now: Date())
+    if guiding { noteGuideProgress() }
     Task { await renderNow() }
+  }
+
+  /// Settings → Show the gesture guide (and the first connection).
+  func showGestureGuide() {
+    composer.startGestureGuide()
+    glasses?.dbg("guide: started")
+    Task { await renderNow() }
+  }
+
+  private func noteGuideProgress() {
+    if composer.isGuiding { return }
+    UserDefaults.standard.set(true, forKey: Keys.gestureGuideDone)
+    glasses?.dbg("guide: done")
   }
 
   /// Pinch-and-hold began on the glasses: start listening and say so on the HUD.
   func voiceHoldBegan() {
+    if composer.isGuiding { composer.guideHoldDone(); noteGuideProgress() }
     guard voiceAvailable else { voiceLog("not configured"); flashListening("🎙 Voice needs Meta AI (Settings)"); return }
     guard analystReady else { voiceLog("no match data yet"); flashListening("🎙 Waiting for match data…"); return }
     audio.stopSpeaking()
@@ -620,6 +636,10 @@ final class AppModel {
   func glassesSessionStarted() {
     glassesConnected = true
     updateVoiceReadiness()
+    // First connection ever: teach the band before the deck.
+    if !UserDefaults.standard.bool(forKey: Keys.gestureGuideDone), !composer.isGuiding {
+      showGestureGuide()
+    }
   }
 
   /// The user disconnected the glasses. A device-side drop does NOT call
@@ -673,7 +693,9 @@ final class AppModel {
   /// Resolved tap burst from the glasses card (count already resolved by the
   /// 350ms window in GlassesViewModel).
   func tapBurst(count: Int) {
+    let guiding = composer.isGuiding
     composer.handleTapBurst(count: count, now: Date())
+    if guiding { noteGuideProgress() }
     Task { await renderNow() }
   }
 
@@ -1170,6 +1192,7 @@ final class AppModel {
     static let hudStyle = "hudStyle"
     static let sounds = "sounds"
     static let minorNotices = "minorNotices"
+    static let gestureGuideDone = "gestureGuideDone"
     static let speakAnswers = "speakAnswers"
   }
 }

@@ -318,6 +318,18 @@ struct SettingsView: View {
               }
             }
 
+            // Gesture guide
+            settingsGroup(
+              header: "Neural Band",
+              footer: "Shows each gesture on the glasses and waits for you to try it. It runs by itself the first time the glasses connect; pinch and hold skips it."
+            ) {
+              settingsRow(last: true) {
+                SwiftUI.Button("Show the gesture guide") { appModel.showGestureGuide() }
+                  .font(.system(size: 15, weight: .semibold))
+                  .frame(maxWidth: .infinity, alignment: .leading)
+              }
+            }
+
             // Small notices
             settingsGroup(
               header: "Small notices",
