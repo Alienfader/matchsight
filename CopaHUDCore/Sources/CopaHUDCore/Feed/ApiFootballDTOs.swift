@@ -95,6 +95,8 @@ struct FixtureDTO: Decodable {
   let league: LeagueDTO
   let teams: TeamsDTO
   let goals: GoalsDTO
+  /// Only in a fixture fetched by id.
+  let events: [EventDTO]?
 }
 
 struct FixtureInfoDTO: Decodable {

@@ -266,13 +266,15 @@ public struct MatchEngine: Sendable {
   }
 }
 
-/// Poll cadence policy from the spec: followed 15s · others 60s · half-time
+/// Poll cadence policy: followed 8s · others 60s · half-time
 /// 60s · zero polling outside scheduled match windows.
 public enum PollPlanner {
   /// Interval for polling the followed match, or nil when it shouldn't be polled.
   public static func followedInterval(status: MatchStatus) -> TimeInterval? {
     guard status.isLive else { return nil }
-    return status == .halfTime ? 60 : 15
+    // 8 s halves the wait for a goal; the poll is one request (events come
+    // with the fixture), so it costs no more than the old 15 s.
+    return status == .halfTime ? 60 : 8
   }
 
   /// Interval for polling other live matches, or nil when none are live.

@@ -880,8 +880,7 @@ final class AppModel {
     while !Task.isCancelled {
       guard let id = followedFixtureId else { break }
       do {
-        let snap = try await feed.liveSnapshot(fixtureId: id)
-        let events = try await feed.events(fixtureId: id)
+        let (snap, events) = try await feed.liveUpdate(fixtureId: id)
 
         // Lineups: once per fixture, refetched at half-time (subs/formation
         // shifts). The API answers 200 with an empty array until lineups are

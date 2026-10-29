@@ -191,6 +191,31 @@ final class ApiFootballFeedTests: XCTestCase {
     XCTAssertEqual(query(fixtureReq)["id"], "1001")
   }
 
+  func testLiveUpdateTakesTheEventsFromTheFixtureResponse() async throws {
+    // A fixture by id carries its events: one request instead of two.
+    MockURLProtocol.handler = { [self] request in
+      let url = request.url!
+      if url.path.hasSuffix("/fixtures/statistics") { return ok(url, try resourceData("apifootball-real-statistics")) }
+      if url.path.hasSuffix("/fixtures") { return ok(url, try resourceData("apifootball-real-single")) }
+      throw URLError(.unsupportedURL)
+    }
+    let feed = ApiFootballFeed(apiKey: "K", session: makeSession())
+    let update = try await feed.liveUpdate(fixtureId: 1544811)
+    XCTAssertEqual(update.snapshot.score, ScoreLine(home: 1, away: 2))
+    XCTAssertFalse(MockURLProtocol.requests.contains { $0.url?.path == "/fixtures/events" })
+    // The same events, with the same stable ids, as the events endpoint gives.
+    let env = try JSONDecoder().decode(ApiResponse<EventDTO>.self, from: resourceData("apifootball-real-events"))
+    XCTAssertEqual(update.events, env.response.map { $0.toEvent(fixtureId: 1544811) })
+  }
+
+  func testLiveUpdateFallsBackToTheEventsEndpoint() async throws {
+    installDefaultRouter()   // its fixture response has no events
+    let feed = ApiFootballFeed(apiKey: "K", session: makeSession())
+    let update = try await feed.liveUpdate(fixtureId: 1001)
+    XCTAssertEqual(update.events.count, 8)
+    XCTAssertTrue(MockURLProtocol.requests.contains { $0.url?.path == "/fixtures/events" })
+  }
+
   func testEventsEndpointURL() async throws {
     installDefaultRouter()
     let feed = ApiFootballFeed(apiKey: "K", session: makeSession())

@@ -103,7 +103,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 426 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 432 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -115,8 +115,9 @@ Watching on TV? **Settings → TV delay** (up to 5 minutes) holds the score, eve
 the glasses so they never arrive before the broadcast shows the goal. **Sync with TV** sets
 it for you: pick the next whole minute the TV clock will show and tap when it gets there.
 The feed gives whole minutes, so the live clock is pinned to the moment the minute ticks over
-(within about 8 s at a 15 s poll); not available at half-time or in stoppage time. The
-phone's Today list is not delayed.
+(within about 4 s at an 8 s poll); not available at half-time or in stoppage time. A TV within
+30 s of the live clock gets no delay: goals reach the feed after a live broadcast shows them, so
+any delay would only make the alert later. The phone's Today list is not delayed.
 
 **Settings → HUD style → Dark glass** draws every page in one near-black card in the same
 place, with the score and minute always on top, fewer words and bigger figures: the latest

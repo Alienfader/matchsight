@@ -11,6 +11,9 @@ public protocol MatchFeed: Sendable {
   func liveSnapshot(fixtureId: Int) async throws -> MatchSnapshot
   /// Goals/cards/subs/VAR with synthesized stable ids (see MatchEvent docs).
   func events(fixtureId: Int) async throws -> [MatchEvent]
+  /// Snapshot and events together for the followed-match poll. Defaults to
+  /// the two calls; a feed that returns both at once overrides it.
+  func liveUpdate(fixtureId: Int) async throws -> (snapshot: MatchSnapshot, events: [MatchEvent])
   func lineups(fixtureId: Int) async throws -> [Lineup]
   /// Snapshots of every other in-progress match.
   func otherLive() async throws -> [MatchSnapshot]
@@ -31,6 +34,10 @@ public protocol MatchFeed: Sendable {
 public extension MatchFeed {
   func fixtures(on day: Date) async throws -> [Fixture] {
     Calendar.current.isDateInToday(day) ? try await todaysFixtures() : []
+  }
+  func liveUpdate(fixtureId: Int) async throws -> (snapshot: MatchSnapshot, events: [MatchEvent]) {
+    let snapshot = try await liveSnapshot(fixtureId: fixtureId)
+    return (snapshot, try await events(fixtureId: fixtureId))
   }
   func stats(fixtureId: Int) async throws -> MatchStats? { nil }
   func playerStats(fixtureId: Int) async throws -> [Int: PlayerStats] { [:] }

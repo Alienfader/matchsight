@@ -85,13 +85,28 @@ public final class ApiFootballFeed: MatchFeed, @unchecked Sendable {
   }
 
   public func liveSnapshot(fixtureId: Int) async throws -> MatchSnapshot {
+    let dto = try await fixture(id: fixtureId)
+    let stats = await cachedStats(fixtureId: fixtureId, homeTeamId: dto.teams.home.id)
+    return dto.toSnapshot(possessionHome: stats?.home.possession)
+  }
+
+  /// One request: a fixture by id carries its events. Falls back to the
+  /// events endpoint if a response ever comes without them.
+  public func liveUpdate(fixtureId: Int) async throws -> (snapshot: MatchSnapshot, events: [MatchEvent]) {
+    let dto = try await fixture(id: fixtureId)
+    let stats = await cachedStats(fixtureId: fixtureId, homeTeamId: dto.teams.home.id)
+    let snapshot = dto.toSnapshot(possessionHome: stats?.home.possession)
+    guard let events = dto.events else { return (snapshot, try await self.events(fixtureId: fixtureId)) }
+    return (snapshot, events.map { $0.toEvent(fixtureId: fixtureId) })
+  }
+
+  private func fixture(id fixtureId: Int) async throws -> FixtureDTO {
     let env: ApiResponse<FixtureDTO> = try await get(
       path: "fixtures", query: [URLQueryItem(name: "id", value: String(fixtureId))])
     guard let dto = env.response.first else {
       throw FeedError.decoding("no fixture \(fixtureId) in response")
     }
-    let stats = await cachedStats(fixtureId: fixtureId, homeTeamId: dto.teams.home.id)
-    return dto.toSnapshot(possessionHome: stats?.home.possession)
+    return dto
   }
 
   public func stats(fixtureId: Int) async throws -> MatchStats? {

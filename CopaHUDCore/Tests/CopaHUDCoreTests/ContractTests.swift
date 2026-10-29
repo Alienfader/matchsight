@@ -38,7 +38,7 @@ final class ContractTests: XCTestCase {
   }
 
   func testPollPlannerCadence() {
-    XCTAssertEqual(PollPlanner.followedInterval(status: .firstHalf), 15)
+    XCTAssertEqual(PollPlanner.followedInterval(status: .firstHalf), 8)
     XCTAssertEqual(PollPlanner.followedInterval(status: .halfTime), 60)
     XCTAssertNil(PollPlanner.followedInterval(status: .notStarted))
     XCTAssertNil(PollPlanner.followedInterval(status: .finished))

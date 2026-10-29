@@ -1,17 +1,19 @@
 import XCTest
 @testable import CopaHUDCore
 
-/// PollPlanner is the poll-cadence policy: followed 15s · half-time 60s ·
+/// PollPlanner is the poll-cadence policy: followed 8s · half-time 60s ·
 /// others 60s · poll window opens kickoff−120s · nothing to poll → nil.
 final class PollPlannerTests: XCTestCase {
   // MARK: followedInterval
 
-  func testFollowedLiveIs15s() {
-    XCTAssertEqual(PollPlanner.followedInterval(status: .firstHalf), 15)
-    XCTAssertEqual(PollPlanner.followedInterval(status: .secondHalf), 15)
-    XCTAssertEqual(PollPlanner.followedInterval(status: .extraTime), 15)
-    XCTAssertEqual(PollPlanner.followedInterval(status: .penalties), 15)
-    XCTAssertEqual(PollPlanner.followedInterval(status: .live), 15)
+  func testFollowedLiveIs8s() {
+    // 8 s, not 15: half the wait for a goal, and with events taken from the
+    // fixture response it costs no more requests than 15 s did.
+    XCTAssertEqual(PollPlanner.followedInterval(status: .firstHalf), 8)
+    XCTAssertEqual(PollPlanner.followedInterval(status: .secondHalf), 8)
+    XCTAssertEqual(PollPlanner.followedInterval(status: .extraTime), 8)
+    XCTAssertEqual(PollPlanner.followedInterval(status: .penalties), 8)
+    XCTAssertEqual(PollPlanner.followedInterval(status: .live), 8)
   }
 
   func testFollowedHalfTimeIs60s() {
