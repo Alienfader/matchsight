@@ -789,9 +789,10 @@ private struct PlayerDetailPage: View {
   }
 }
 
-/// The player's place on a small pitch (keeper end at the top, as on the
-/// formation board). Demo mode adds a SIMULATED heat cloud; a real match
-/// shows only the formation spot, because the feed has no positional data.
+/// The player's place on a small pitch, lying west to east like the TV
+/// picture: his own goal on the left, attacking to the right. Demo mode adds
+/// a SIMULATED heat cloud; a real match shows only the formation spot,
+/// because the feed has no positional data.
 private struct MiniPitch: View {
   let spot: FormationSpot
   let heat: [HeatPoint]?
@@ -807,17 +808,17 @@ private struct MiniPitch: View {
                 .fill(RadialGradient(colors: [Palette.coral.opacity(0.55), Palette.captain.opacity(0.25), .clear],
                                      center: .center, startRadius: 0, endRadius: 16))
                 .frame(width: 32, height: 32)
-                .position(x: p.x * w, y: p.y * h)
+                .position(WestToEast.point(x: p.x, y: p.y, w, h))
             }
             .blendMode(.plusLighter)
           }
-          PitchLines().stroke(.white.opacity(0.5), lineWidth: 1.2)
+          PitchLines(westToEast: true).stroke(.white.opacity(0.5), lineWidth: 1.2)
           Circle().fill(.white).frame(width: 12, height: 12)
             .overlay(Circle().strokeBorder(Palette.sky, lineWidth: 2))
-            .position(x: spot.x * w, y: spot.y * h)
+            .position(spot.westToEast(w, h))
         }
       }
-      .frame(width: 112, height: 160)
+      .frame(width: 160, height: 112)
       Text(heat == nil ? "POSITION" : "SIMULATED")
         .font(.system(size: 12, weight: .heavy)).kerning(0.5)
         .padding(.horizontal, 6).padding(.vertical, 1)
@@ -866,7 +867,8 @@ private struct FormationBoard: View {
   }
 }
 
-/// Line-art pitch over the glass, keeper at the top, each starter as a small
+/// Line-art pitch over the glass, lying west to east like the TV picture
+/// (keeper on the left, attacking to the right), each starter as a small
 /// headshot with number and surname.
 private struct LinePitch: View {
   let spots: [FormationSpot]
@@ -877,12 +879,12 @@ private struct LinePitch: View {
     GeometryReader { g in
       let w = g.size.width, h = g.size.height
       ZStack {
-        PitchLines().stroke(.white.opacity(0.45), lineWidth: 1.5)
+        PitchLines(westToEast: true).stroke(.white.opacity(0.45), lineWidth: 1.5)
         ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
           FormationPlayer(player: spot.player,
                           photo: spot.player.playerId.flatMap(photos),
                           isCaptain: spot.player.playerId.flatMap { stats[$0] }?.isCaptain == true)
-            .position(x: spot.x * w, y: spot.y * h)
+            .position(spot.westToEast(w, h))
         }
       }
     }
@@ -890,8 +892,19 @@ private struct LinePitch: View {
 }
 
 /// Full pitch geometry: outline, halfway line, centre circle, both boxes.
+/// Upright (goals top and bottom), or turned a quarter left to lie west to
+/// east (goals left and right).
 private struct PitchLines: Shape {
+  var westToEast = false
+
   func path(in r: CGRect) -> Path {
+    guard westToEast else { return upright(in: r) }
+    // Draw upright in the swapped rectangle, then turn it: (x, y) → (y, height − x).
+    let turn = CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: r.minX, ty: r.minY + r.height)
+    return upright(in: CGRect(x: 0, y: 0, width: r.height, height: r.width)).applying(turn)
+  }
+
+  private func upright(in r: CGRect) -> Path {
     var p = Path()
     p.addRoundedRect(in: r, cornerSize: CGSize(width: 8, height: 8))
     p.move(to: CGPoint(x: r.minX, y: r.midY)); p.addLine(to: CGPoint(x: r.maxX, y: r.midY))
@@ -1511,7 +1524,7 @@ private struct DarkBoard: View {
     GeometryReader { g in
       let w = g.size.width, h = g.size.height
       ZStack {
-        PitchLines().stroke(Palette.cyan.opacity(0.3), lineWidth: 1.2)
+        PitchLines(westToEast: true).stroke(Palette.cyan.opacity(0.3), lineWidth: 1.2)
         ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
           let on = spot.player == focused
           VStack(spacing: 2) {
@@ -1526,7 +1539,7 @@ private struct DarkBoard: View {
               .foregroundStyle(on ? Palette.cyan : .white.opacity(0.85))
               .lineLimit(1).minimumScaleFactor(0.7).frame(width: 96)
           }
-          .position(x: spot.x * w, y: spot.y * h)
+          .position(spot.westToEast(w, h))
         }
       }
     }
@@ -1626,5 +1639,21 @@ private struct DarkPlayer: View {
     if stats?.redCards ?? 0 > 0 { bits.append("🟥") }
     if scripted { bits.append("scripted") }
     return bits.joined(separator: " · ")
+  }
+}
+
+private extension FormationSpot {
+  /// The spot on a west-to-east pitch of this size.
+  func westToEast(_ width: CGFloat, _ height: CGFloat) -> CGPoint {
+    WestToEast.point(x: x, y: y, width, height)
+  }
+}
+
+/// The upright layout (keeper at the top, col 1 = the team's left on the
+/// left) laid west to east: depth runs left to right, and a team attacking
+/// to the right has its left flank at the top.
+private enum WestToEast {
+  static func point(x: Double, y: Double, _ width: CGFloat, _ height: CGFloat) -> CGPoint {
+    CGPoint(x: y * width, y: x * height)
   }
 }
