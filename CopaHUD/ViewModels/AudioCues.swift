@@ -25,14 +25,57 @@ final class AudioCues {
     log("audio: \(cue) → \(route)")
   }
 
+  /// The voice picked in Settings (an identifier), or nil for the best one installed.
+  var voiceId: String?
+
   func speak(_ text: String) {
     guard prepareSession() else { return }
     synth.stopSpeaking(at: .immediate)
     let utterance = AVSpeechUtterance(string: text)
-    utterance.rate = 0.52
-    utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+    let voice = Self.voice(id: voiceId)
+    utterance.voice = voice
+    // The compact voices sound rushed at the default rate; the natural ones don't.
+    utterance.rate = voice?.quality == .default ? 0.52 : AVSpeechUtteranceDefaultSpeechRate
     synth.speak(utterance)
-    log("audio: speaking \(text.count) characters → \(route)")
+    log("audio: speaking \(text.count) characters, voice \(voice?.name ?? "default") (\(Self.qualityName(voice))) → \(route)")
+  }
+
+  // MARK: - Voices
+
+  /// English voices installed on the phone, the most natural first. iOS ships
+  /// the compact ones; Enhanced and Premium voices are downloaded in iOS
+  /// Settings → Accessibility → Spoken Content → Voices → English.
+  static func englishVoices() -> [AVSpeechSynthesisVoice] {
+    AVSpeechSynthesisVoice.speechVoices()
+      .filter { $0.language.hasPrefix("en") && !$0.voiceTraits.contains(.isNoveltyVoice) }
+      .sorted { a, b in
+        let (ra, rb) = (rank(a.quality), rank(b.quality))
+        if ra != rb { return ra > rb }
+        if (a.language == "en-US") != (b.language == "en-US") { return a.language == "en-US" }
+        return a.name < b.name
+      }
+  }
+
+  /// The picked voice if it's still installed, else the most natural one.
+  static func voice(id: String?) -> AVSpeechSynthesisVoice? {
+    if let id, let picked = AVSpeechSynthesisVoice(identifier: id) { return picked }
+    return englishVoices().first ?? AVSpeechSynthesisVoice(language: "en-US")
+  }
+
+  static func qualityName(_ voice: AVSpeechSynthesisVoice?) -> String {
+    switch voice?.quality {
+    case .premium: return "Premium"
+    case .enhanced: return "Enhanced"
+    default: return "Compact"
+    }
+  }
+
+  private static func rank(_ quality: AVSpeechSynthesisVoiceQuality) -> Int {
+    switch quality {
+    case .premium: return 2
+    case .enhanced: return 1
+    default: return 0
+    }
   }
 
   /// A new question is starting: don't talk over it (or into the mic).

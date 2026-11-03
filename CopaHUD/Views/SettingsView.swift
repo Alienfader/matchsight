@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 import CopaHUDCore
@@ -25,8 +26,10 @@ struct SettingsView: View {
   @State private var minorNotices = true
   @State private var batterySaver: BatterySaver = .dim
   @State private var hudStyle: AppModel.HUDStyle = .classic
+  @State private var brightness: Double = 1
   @State private var soundsOn = true
   @State private var speakAnswers = true
+  @State private var voiceId: String?
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
   @State private var showTeamPicker = false
@@ -236,6 +239,26 @@ struct SettingsView: View {
               }
             }
 
+            // Voice
+            settingsGroup(
+              header: "Voice",
+              footer: "The voice that reads answers aloud. Picking one plays a sample. For a more natural voice, download an Enhanced or Premium English voice in iOS Settings → Accessibility → Spoken Content → Voices → English, then pick it here."
+            ) {
+              settingsRow(last: true) {
+                Text("Voice")
+                  .font(.system(size: 15)).foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Picker("Voice", selection: $voiceId) {
+                  Text("Best installed").tag(String?.none)
+                  ForEach(AudioCues.englishVoices(), id: \.identifier) { v in
+                    Text("\(v.name) · \(AudioCues.qualityName(v))").tag(Optional(v.identifier))
+                  }
+                }
+                .tint(Color.cyan)
+                .onChange(of: voiceId) { _, new in if new != appModel.voiceId { appModel.setVoice(new) } }
+              }
+            }
+
             // HUD style
             settingsGroup(
               header: "HUD style",
@@ -249,6 +272,30 @@ struct SettingsView: View {
               .padding(.horizontal, 12)
               .padding(.vertical, 14)
               .onChange(of: hudStyle) { _, new in appModel.setHUDStyle(new) }
+            }
+
+            // Brightness
+            settingsGroup(
+              header: "Brightness",
+              footer: "How bright Matchsight draws its pages on the glasses. Lower is easier on the eyes in a dark room, lets more of the TV through and saves a little battery. The glasses' own brightness is set in their settings."
+            ) {
+              VStack(spacing: 12) {
+                HStack {
+                  Text("Pages")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white)
+                  Spacer()
+                  Text("\(Int((brightness * 100).rounded())) %")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.cyan)
+                    .monospacedDigit()
+                }
+                Slider(value: $brightness, in: 0.3...1, step: 0.05)
+                  .tint(Color.actionBlue)
+                  .onChange(of: brightness) { _, new in appModel.setBrightness(new) }
+              }
+              .padding(.horizontal, 12)
+              .padding(.vertical, 14)
             }
 
             // Battery saver
@@ -482,6 +529,8 @@ struct SettingsView: View {
     minorNotices = appModel.config.minorNotices
     batterySaver = appModel.config.batterySaver
     hudStyle = appModel.hudStyle
+    brightness = appModel.brightness
+    voiceId = appModel.voiceId
     soundsOn = appModel.soundsOn
     speakAnswers = appModel.speakAnswers
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked

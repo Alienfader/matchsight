@@ -16,6 +16,8 @@ import CopaHUDCore
 /// that sent in ~0.33 s against ~0.9 s at 600×600, and text stayed crisp.
 enum ImageHUD {
   static let renderScale: CGFloat = 0.6
+  /// Settings → Brightness: every page is drawn at this fraction of its light.
+  static var brightness: Double = 1
 
   @MainActor static func scorePanel(_ p: PanelContent, toast: String?, deck: DeckPosition?,
                                     homeCrest: UIImage?, awayCrest: UIImage?) -> UIImage? {
@@ -100,7 +102,7 @@ enum ImageHUD {
   @MainActor private static func render(_ view: some View, deck: DeckPosition? = nil) -> UIImage? {
     let page = view.frame(width: 600, height: 600)
       .overlay(alignment: .bottom) { if let deck { PageDots(deck: deck).padding(.bottom, 8) } }
-    let r = ImageRenderer(content: page.background(.black))
+    let r = ImageRenderer(content: page.background(.black).colorMultiply(Color(white: brightness)))
     r.scale = renderScale
     return r.uiImage
   }

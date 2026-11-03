@@ -160,6 +160,7 @@ final class AppModel {
     self.glasses = glasses
     glasses.appModel = self
     audio.log = { [weak glasses] in glasses?.dbg($0) }
+    audio.voiceId = voiceId
     start()
   }
 
@@ -296,6 +297,24 @@ final class AppModel {
     Task { await renderNow() }
   }
 
+  /// How bright the glasses pages are drawn (Settings → Brightness), 30–100 %.
+  /// The SDK has no display brightness, but the display adds light, so darker
+  /// pixels look dimmer.
+  private(set) var brightness: Double = {
+    let saved = UserDefaults.standard.object(forKey: Keys.brightness) as? Double ?? 1
+    ImageHUD.brightness = saved
+    return saved
+  }()
+
+  func setBrightness(_ value: Double) {
+    let value = min(1, max(0.3, value))
+    guard value != brightness else { return }
+    brightness = value
+    ImageHUD.brightness = value
+    UserDefaults.standard.set(value, forKey: Keys.brightness)
+    Task { await renderNow() }
+  }
+
   /// Stats readings for the followed match, for the momentum bar.
   @ObservationIgnored private var statsHistory: [StatsSample] = []
 
@@ -332,6 +351,16 @@ final class AppModel {
     soundsOn = value
     UserDefaults.standard.set(value, forKey: Keys.sounds)
     if value { audio.play(.goal) }   // a sample, so the fan hears where it plays
+  }
+
+  /// Settings → Voice: nil means the most natural voice installed.
+  private(set) var voiceId: String? = UserDefaults.standard.string(forKey: Keys.voiceId)
+
+  func setVoice(_ id: String?) {
+    voiceId = id
+    audio.voiceId = id
+    UserDefaults.standard.set(id, forKey: Keys.voiceId)
+    audio.speak("This is how Matchsight will read your answers.")
   }
 
   func setSpeakAnswers(_ value: Bool) {
@@ -1201,10 +1230,12 @@ final class AppModel {
     static let lookAtPlayer = "lookAtPlayer"
     static let batterySaver = "batterySaver"
     static let hudStyle = "hudStyle"
+    static let brightness = "hudBrightness"
     static let sounds = "sounds"
     static let minorNotices = "minorNotices"
     static let gestureGuideDone = "gestureGuideDone"
     static let speakAnswers = "speakAnswers"
+    static let voiceId = "voiceId"
   }
 }
 
