@@ -27,7 +27,7 @@ match day.
 API-Football ──▶ iPhone app ──(Meta Wearables Device Access Toolkit)──▶ glasses display
                     │  ▲                                                   Neural Band input
                     ▼  │
-         Cloudflare Worker (holds the Meta key) ──▶ Muse Spark · Muse Voice Transcribe
+         Cloudflare Worker (holds the keys) ──▶ Muse Spark · Muse Voice Transcribe · ElevenLabs TTS
 ```
 
 - **iPhone app** (`CopaHUD/`, SwiftUI): polls API-Football, runs the follow policy, draws
@@ -35,8 +35,9 @@ API-Football ──▶ iPhone app ──(Meta Wearables Device Access Toolkit)�
 - **CopaHUDCore** (`CopaHUDCore/`, Swift package): the pure, unit-tested logic — feed
   mapping, match engine, HUD state machine, follow policy, AI insight prompting and
   validation.
-- **AI proxy** (`proxy/`, Cloudflare Worker): keeps the Meta Model API key off the phone and
-  allows only the two models the app uses. See `proxy/README.md`.
+- **AI proxy** (`proxy/`, Cloudflare Worker): keeps the Meta Model API and ElevenLabs keys
+  off the phone, allows only the models the app uses, and fixes the ElevenLabs voice and model
+  on the server. See `proxy/README.md`.
 
 (Internal names — the Xcode project, bundle ID and Swift package — are `CopaHUD`: the idea
 came during the World Cup.)
@@ -154,6 +155,9 @@ phone says so.
   iOS Keychain).
 - Optional, for voice Q&A and AI Insight: a Meta Model API key behind your own deployment of the
   Worker in `proxy/` (the app stores the Worker URL and app token in the Keychain).
+- Optional, for natural spoken answers: an ElevenLabs key and voice ID set as Worker secrets
+  (`ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`). Library voices need a paid ElevenLabs plan;
+  the built-in voices work on the free plan.
 
 ## Build and test
 
@@ -201,6 +205,13 @@ Meta issued the API credits.
 <!-- FOUNDER: what was built during the hackathon window -->
 
 <!-- FOUNDER: AI-tools disclosure wording -->
+
+**ElevenLabs (non-Meta).** Spoken answers can be read aloud with ElevenLabs text to speech
+(`eleven_flash_v2_5`). It's called through the same Cloudflare Worker, which holds the
+ElevenLabs key, so the key never ships in the app. ElevenLabs only receives the text of Muse
+Spark's answer, to turn it into audio. It never sees the match data or your recorded question.
+It's optional (Settings → Voice), and the app falls back to the iPhone's built-in voices if
+it's off or unreachable.
 
 ## License
 
