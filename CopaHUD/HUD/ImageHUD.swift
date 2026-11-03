@@ -1252,10 +1252,12 @@ extension ImageHUD {
   }
 
   @MainActor static func darkPlayer(player: LineupPlayer, photo: UIImage?, stats: PlayerStats?,
+                                    spot: FormationSpot?, heat: [HeatPoint]?,
                                     scripted: Bool, counter: String, score: CompactScore?, clock: String,
                                     toast: String?, deck: DeckPosition?) -> UIImage? {
     render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
-      DarkPlayer(player: player, photo: photo, stats: stats, scripted: scripted, counter: counter)
+      DarkPlayer(player: player, photo: photo, stats: stats, spot: spot, heat: heat,
+                 scripted: scripted, counter: counter)
     })
   }
 }
@@ -1562,6 +1564,8 @@ private struct DarkPlayer: View {
   let player: LineupPlayer
   let photo: UIImage?
   let stats: PlayerStats?
+  let spot: FormationSpot?
+  let heat: [HeatPoint]?
   let scripted: Bool
   let counter: String
 
@@ -1591,19 +1595,22 @@ private struct DarkPlayer: View {
         }
       }
     }
-    if tiles.isEmpty {
-      DarkNote(text: stats == nil ? "No match figures yet" : "Nothing on the scoresheet yet")
-    } else {
-      LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
-                spacing: 18) {
-        ForEach(Array(tiles.enumerated()), id: \.offset) { _, t in
-          VStack(alignment: .leading, spacing: 2) {
-            Text(t.value).font(.system(size: 38, weight: .heavy)).monospacedDigit()
-            Text(t.label).font(.system(size: 16, weight: .bold)).foregroundStyle(Dark.dim)
-              .lineLimit(1).minimumScaleFactor(0.7)
+    HStack(alignment: .top, spacing: 16) {
+      if tiles.isEmpty {
+        DarkNote(text: stats == nil ? "No match figures yet" : "Nothing on the scoresheet yet")
+      } else {
+        LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
+                  spacing: 18) {
+          ForEach(Array(tiles.enumerated()), id: \.offset) { _, t in
+            VStack(alignment: .leading, spacing: 2) {
+              Text(t.value).font(.system(size: 38, weight: .heavy)).monospacedDigit()
+              Text(t.label).font(.system(size: 16, weight: .bold)).foregroundStyle(Dark.dim)
+                .lineLimit(1).minimumScaleFactor(0.7)
+            }
           }
         }
       }
+      if let spot { MiniPitch(spot: spot, heat: heat) }
     }
     Spacer(minLength: 0)
     Text("pinch to close · swipe for next player").font(.system(size: 16, weight: .semibold))

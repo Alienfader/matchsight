@@ -397,9 +397,12 @@ final class GlassesViewModel {
       let index = min(appModel.currentPlayerIndex - 1, xi.count - 1)
       let player = xi[index]
       if card.isDetail {
+        let spot = FormationLayout.spots(xi).first { $0.player == player }
+        // The feed has no positional data: heat is simulated, scripted demo only.
+        let heat = appModel.isScripted ? spot.map { SimulatedHeat.points(for: $0) } : nil
         return ImageHUD.darkPlayer(player: player, photo: player.playerId.flatMap(photos),
                                    stats: player.playerId.flatMap { appModel.playerStats[$0] },
-                                   scripted: appModel.isScripted, counter: card.counter, score: score,
+                                   spot: spot, heat: heat, scripted: appModel.isScripted, counter: card.counter, score: score,
                                    clock: clock, toast: frame.toast, deck: frame.deck)
       }
       let parts = card.teamLine.components(separatedBy: " · ")
