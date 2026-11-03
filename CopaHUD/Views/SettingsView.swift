@@ -242,7 +242,7 @@ struct SettingsView: View {
             // Voice
             settingsGroup(
               header: "Voice",
-              footer: "The voice that reads answers aloud. Picking one plays a sample. For a more natural voice, download an Enhanced or Premium English voice in iOS Settings → Accessibility → Spoken Content → Voices → English, then pick it here."
+              footer: "The voice that reads answers aloud. Picking one plays a sample. ElevenLabs is the most natural; it needs a connection, and if it fails the iPhone voice reads the answer instead. For a better iPhone voice, download an Enhanced or Premium English voice in iOS Settings → Accessibility → Spoken Content → Voices → English."
             ) {
               settingsRow(last: true) {
                 Text("Voice")
@@ -250,6 +250,9 @@ struct SettingsView: View {
                   .frame(maxWidth: .infinity, alignment: .leading)
                 Picker("Voice", selection: $voiceId) {
                   Text("Best installed").tag(String?.none)
+                  if AppModel.speechProxy() != nil {
+                    Text("ElevenLabs · online").tag(Optional(AudioCues.cloudVoiceId))
+                  }
                   ForEach(AudioCues.englishVoices(), id: \.identifier) { v in
                     Text("\(v.name) · \(AudioCues.qualityName(v))").tag(Optional(v.identifier))
                   }

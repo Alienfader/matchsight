@@ -308,3 +308,94 @@ test("transcribe: oversized body is 413 even without Content-Length", async () =
   assert.equal(res.status, 413);
   assert.equal(u.calls.length, 0);
 });
+
+// ---- Text to speech (spoken answers, ElevenLabs) ----
+
+const TTS_URL = "https://copahud-ai.example.workers.dev/v1/tts";
+const ttsEnv = { ...env, ELEVENLABS_API_KEY: "el-key", ELEVENLABS_VOICE_ID: "voice123" };
+
+/** Answers like ElevenLabs: MP3 bytes. */
+function audioUpstream(status = 200) {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    const body = status === 200 ? new Uint8Array([0x49, 0x44, 0x33, 1, 2, 3]) : JSON.stringify({ detail: "x" });
+    return new Response(body, {
+      status,
+      headers: { "Content-Type": status === 200 ? "audio/mpeg" : "application/json", "X-Upstream-Secret": "leak" },
+    });
+  };
+  return { calls, fetchImpl };
+}
+
+test("tts: forwards the text to the server's voice and returns MP3", async () => {
+  const u = audioUpstream();
+  const res = await handle(req({ url: TTS_URL, body: { text: "Two nil to United." } }), ttsEnv, u.fetchImpl);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("Content-Type"), "audio/mpeg");
+  assert.equal(res.headers.get("X-Upstream-Secret"), null);
+  assert.deepEqual([...new Uint8Array(await res.arrayBuffer())], [0x49, 0x44, 0x33, 1, 2, 3]);
+  assert.equal(u.calls.length, 1);
+  const { url, init } = u.calls[0];
+  assert.ok(url.startsWith("https://api.elevenlabs.io/v1/text-to-speech/voice123"));
+  assert.ok(url.includes("output_format=mp3_44100_64"));
+  assert.equal(init.headers["xi-api-key"], "el-key");
+  const sent = JSON.parse(init.body);
+  assert.deepEqual(Object.keys(sent).sort(), ["model_id", "text"]);
+  assert.equal(sent.text, "Two nil to United.");
+});
+
+test("tts: the app can't pick the voice, the model or extra settings", async () => {
+  const u = audioUpstream();
+  await handle(req({ url: TTS_URL, body: { text: "Hi", voice_id: "other", model_id: "x", seed: 1 } }),
+               ttsEnv, u.fetchImpl);
+  assert.ok(u.calls[0].url.includes("/voice123"));
+  const sent = JSON.parse(u.calls[0].init.body);
+  assert.equal(sent.model_id, "eleven_flash_v2_5");
+  assert.equal(sent.seed, undefined);
+});
+
+test("tts: needs the app token", async () => {
+  const u = audioUpstream();
+  const res = await handle(req({ url: TTS_URL, token: "nope", body: { text: "Hi" } }), ttsEnv, u.fetchImpl);
+  assert.equal(res.status, 401);
+  assert.equal(u.calls.length, 0);
+});
+
+test("tts: empty or overlong text is refused", async () => {
+  const u = audioUpstream();
+  for (const text of ["", "   ", 42, "x".repeat(801)]) {
+    const res = await handle(req({ url: TTS_URL, body: { text } }), ttsEnv, u.fetchImpl);
+    assert.equal(res.status, 400, String(text).slice(0, 10));
+  }
+  assert.equal(u.calls.length, 0);
+});
+
+test("tts: a missing ElevenLabs key or voice is a clear 500", async () => {
+  const u = audioUpstream();
+  const res = await handle(req({ url: TTS_URL, body: { text: "Hi" } }), env, u.fetchImpl);
+  assert.equal(res.status, 500);
+  assert.match((await res.json()).error.message, /ELEVENLABS/);
+  assert.equal(u.calls.length, 0);
+});
+
+test("tts: works without the Meta key", async () => {
+  const u = audioUpstream();
+  const { MODEL_API_KEY, ...noMeta } = ttsEnv;
+  const res = await handle(req({ url: TTS_URL, body: { text: "Hi" } }), noMeta, u.fetchImpl);
+  assert.equal(res.status, 200);
+});
+
+test("tts: a rejected key is reported without the upstream body", async () => {
+  const u = audioUpstream(401);
+  const res = await handle(req({ url: TTS_URL, body: { text: "Hi" } }), ttsEnv, u.fetchImpl);
+  assert.equal(res.status, 401);
+  assert.deepEqual(await res.json(), { error: { message: "upstream rejected the proxy's ElevenLabs key" } });
+});
+
+test("tts: other upstream errors keep their status", async () => {
+  const u = audioUpstream(429);
+  const res = await handle(req({ url: TTS_URL, body: { text: "Hi" } }), ttsEnv, u.fetchImpl);
+  assert.equal(res.status, 429);
+  assert.equal(res.headers.get("Content-Type"), "application/json");
+});

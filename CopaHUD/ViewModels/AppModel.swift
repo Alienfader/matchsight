@@ -161,6 +161,7 @@ final class AppModel {
     glasses.appModel = self
     audio.log = { [weak glasses] in glasses?.dbg($0) }
     audio.voiceId = voiceId
+    audio.cloud = { Self.speechProxy() }
     start()
   }
 
@@ -180,6 +181,14 @@ final class AppModel {
     let mock = MockFeed(script: script, speed: 60)
     mock.start()  // begin the match clock immediately so the demo shows as live
     return mock
+  }
+
+  /// The Worker's text-to-speech route (ElevenLabs), when the proxy is set up.
+  static func speechProxy() -> (url: URL, token: String)? {
+    guard let proxy = SecretsStore.metaProxyURL, let base = URL(string: proxy),
+          base.scheme == "https", base.host != nil,
+          let token = SecretsStore.metaProxyToken, !token.isEmpty else { return nil }
+    return (base.appendingPathComponent("v1/tts"), token)
   }
 
   /// Meta Model API settings: via the CopaHUD proxy (preferred: the key stays

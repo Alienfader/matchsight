@@ -2,12 +2,19 @@
 //
 // The iPhone app sends the AI analyst's chat-completions request here with a
 // per-app token; this Worker checks it, keeps the request inside tight limits,
-// and forwards it to Meta Model API with the server-held key. The Meta key
-// never ships in the app. Nothing here logs bodies, keys or tokens.
+// and forwards it to Meta Model API with the server-held key. Spoken answers
+// go the same way to ElevenLabs text to speech. No key ever ships in the app.
+// Nothing here logs bodies, keys or tokens.
 
 const META = "https://api.meta.ai";
 const CHAT_PATH = "/v1/chat/completions";
 const ASR_PATH = "/v1/asr/transcribe";
+const TTS_PATH = "/v1/tts";
+const ELEVENLABS = "https://api.elevenlabs.io";
+// Flash: ElevenLabs' low-latency model, so an answer starts quickly.
+const TTS_MODEL = "eleven_flash_v2_5";
+const TTS_FORMAT = "mp3_44100_64";
+const MAX_TTS_CHARS = 800;
 const ALLOWED_MODELS = new Set(["muse-spark-1.3"]);
 const ASR_MODEL = "muse-voice-transcribe-1.0";
 // Muse Spark counts reasoning tokens here (~250 at "minimal"); the app sends 1200.
@@ -44,21 +51,69 @@ function safeEqual(a, b) {
 
 export async function handle(request, env, fetchImpl = fetch) {
   const url = new URL(request.url);
-  if (url.pathname !== CHAT_PATH && url.pathname !== ASR_PATH) return error(404, "not found");
+  if (![CHAT_PATH, ASR_PATH, TTS_PATH].includes(url.pathname)) return error(404, "not found");
   if (request.method !== "POST") return error(405, "method not allowed");
 
   const token = request.headers.get("X-CopaHUD-Token") ?? "";
   if (!safeEqual(token, env.APP_TOKEN ?? "")) return error(401, "invalid app token");
-  if (!env.MODEL_API_KEY) return error(500, "proxy misconfigured: MODEL_API_KEY not set");
+  if (url.pathname === TTS_PATH) {
+    if (!env.ELEVENLABS_API_KEY || !env.ELEVENLABS_VOICE_ID) {
+      return error(500, "proxy misconfigured: ELEVENLABS_API_KEY or ELEVENLABS_VOICE_ID not set");
+    }
+  } else if (!env.MODEL_API_KEY) {
+    return error(500, "proxy misconfigured: MODEL_API_KEY not set");
+  }
 
   if (env.RATE_LIMITER) {
     const { success } = await env.RATE_LIMITER.limit({ key: token });
     if (!success) return error(429, "rate limited");
   }
 
+  if (url.pathname === TTS_PATH) return speak(request, env, fetchImpl);
   return url.pathname === ASR_PATH
     ? transcribe(request, env, fetchImpl)
     : chat(request, env, fetchImpl);
+}
+
+/** ElevenLabs text to speech (spoken answers): only the text comes from the
+ *  app; the voice, model and format are the Worker's. Returns MP3 bytes. */
+async function speak(request, env, fetchImpl) {
+  const raw = await request.text();
+  if (raw.length > MAX_BODY_BYTES) return error(413, "request too large");
+  let body;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return error(400, "body is not JSON");
+  }
+  const text = typeof body?.text === "string" ? body.text.trim() : "";
+  if (text.length === 0 || text.length > MAX_TTS_CHARS) {
+    return error(400, `text must be 1…${MAX_TTS_CHARS} characters`);
+  }
+
+  const voice = encodeURIComponent(env.ELEVENLABS_VOICE_ID);
+  let upstream;
+  try {
+    upstream = await fetchImpl(`${ELEVENLABS}/v1/text-to-speech/${voice}?output_format=${TTS_FORMAT}`, {
+      method: "POST",
+      headers: {
+        "xi-api-key": env.ELEVENLABS_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg",
+      },
+      body: JSON.stringify({ text, model_id: TTS_MODEL }),
+    });
+  } catch {
+    return error(502, "upstream unreachable");
+  }
+  if (upstream.status === 401 || upstream.status === 403) {
+    return error(upstream.status, "upstream rejected the proxy's ElevenLabs key");
+  }
+  if (!upstream.ok) return error(upstream.status, "text to speech failed");
+  return new Response(await upstream.arrayBuffer(), {
+    status: 200,
+    headers: { "Content-Type": "audio/mpeg" },
+  });
 }
 
 /** Chat completions (AI insights): JSON body rebuilt from allowlisted fields. */

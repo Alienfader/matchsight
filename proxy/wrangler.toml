@@ -5,6 +5,8 @@ compatibility_date = "2025-06-01"
 # Secrets (never in this file): set with `npx wrangler secret put <NAME>`
 #   MODEL_API_KEY — Meta Model API key (dev.meta.ai)
 #   APP_TOKEN     — shared token the CopaHUD app sends as X-CopaHUD-Token
+#   ELEVENLABS_API_KEY  — ElevenLabs key (spoken answers, /v1/tts)
+#   ELEVENLABS_VOICE_ID — the ElevenLabs voice the answers are read in
 
 # 30 requests / 60 s per app token. The analyst's own policy is ~1 call/min.
 [[ratelimits]]
