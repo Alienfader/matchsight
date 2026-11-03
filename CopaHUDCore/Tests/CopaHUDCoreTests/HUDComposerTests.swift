@@ -837,13 +837,19 @@ final class HUDComposerTests: XCTestCase {
     }
   }
 
-  func testInputNextMatchesSinglePinch() {
+  func testInputNextMatchesSinglePinchUpToTheFormation() {
+    // Insight, events, home formation: the same. On the formation a pinch
+    // steps into the players and a swipe skips them.
     var a = loaded(), b = loaded()
-    for _ in 1...4 {
+    for _ in 1...3 {
       a.handle(.next, now: t0)
       b.handleTapBurst(count: 1, now: t0)
       XCTAssertEqual(a.frame(now: t0), b.frame(now: t0))
     }
+    a.handle(.next, now: t0)
+    b.handleTapBurst(count: 1, now: t0)
+    XCTAssertEqual(bodyKind(a), "lineup")
+    XCTAssertEqual(bodyKind(b), "playerCard")
   }
 
   func testInputPreviousStepsBackThroughDeckAndWraps() {
@@ -861,7 +867,8 @@ final class HUDComposerTests: XCTestCase {
 
   func testInputPreviousStepsBackThroughLineupCarousel() {
     var c = loaded()
-    for _ in 1...4 { c.handle(.next, now: t0) }   // insight, events, home index, home card 1
+    for _ in 1...3 { c.handle(.next, now: t0) }   // insight, events, home index
+    c.handle(.select, now: t0)                    // home card 1
     XCTAssertEqual(bodyKind(c), "playerCard")
     c.handle(.previous, now: t0)
     XCTAssertEqual(bodyKind(c), "lineup")         // back to the roster index card
@@ -871,7 +878,8 @@ final class HUDComposerTests: XCTestCase {
 
   func testInputHomeGoesToPanelAndDismissesTakeover() {
     var c = loaded()
-    for _ in 1...4 { c.handle(.next, now: t0) }   // deep in the lineup carousel
+    for _ in 1...3 { c.handle(.next, now: t0) }
+    c.handle(.select, now: t0)                    // in the lineup carousel
     c.handle(.home, now: t0)
     XCTAssertEqual(bodyKind(c), "panel")          // home, no carousel step-back
     c.enqueue([goalMoment()], now: t0)
@@ -884,7 +892,8 @@ final class HUDComposerTests: XCTestCase {
     var c = loaded()
     c.handle(.insight, now: t0)                   // from the panel
     XCTAssertEqual(bodyKind(c), "insight")
-    for _ in 1...3 { c.handle(.next, now: t0) }   // events, home index, home card 1
+    for _ in 1...2 { c.handle(.next, now: t0) }   // events, home index
+    c.handle(.select, now: t0)                    // home card 1
     XCTAssertEqual(bodyKind(c), "playerCard")
     c.handle(.insight, now: t0)                   // from the lineup carousel
     XCTAssertEqual(bodyKind(c), "insight")
@@ -898,7 +907,8 @@ final class HUDComposerTests: XCTestCase {
 
   func testInputInsightResetsCarouselPosition() {
     var c = loaded()
-    for _ in 1...4 { c.handle(.next, now: t0) }   // home card 1
+    for _ in 1...3 { c.handle(.next, now: t0) }
+    c.handle(.select, now: t0)                    // home card 1
     c.handle(.insight, now: t0)
     for _ in 1...2 { c.handle(.next, now: t0) }   // events, home lineup
     XCTAssertEqual(bodyKind(c), "lineup")         // roster index card, not a player
@@ -963,6 +973,48 @@ final class HUDComposerTests: XCTestCase {
     XCTAssertEqual(card(c)?.isDetail, false)
   }
 
+  // Players on demand (approved 2026-11-03): swipes pass the formation in
+  // one go; a pinch steps into the players.
+
+  private func isHomeFormation(_ c: HUDComposer) -> Bool {
+    if case .lineup(let l) = c.frame(now: t0).body { return l.rows != ["lineup not available"] }
+    return false
+  }
+
+  func testSwipeRightOnTheFormationGoesToTheNextPage() {
+    var c = onHomeLineup()
+    XCTAssertTrue(isHomeFormation(c))
+    c.handle(.next, now: t0)
+    XCTAssertNil(card(c), "no player card: the XI is skipped")
+    guard case let .lineup(away) = c.frame(now: t0).body else { return XCTFail("the away lineup page") }
+    XCTAssertEqual(away.rows, ["lineup not available"])
+  }
+
+  func testSwipeLeftOnTheFormationGoesToThePreviousPage() {
+    var c = onHomeLineup()
+    c.handle(.previous, now: t0)
+    XCTAssertEqual(bodyKind(c), "events")
+  }
+
+  func testSwipingPastTheLastPlayerReturnsToTheFormation() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0)                    // Becker
+    c.handle(.next, now: t0)                      // Luiz
+    c.handle(.next, now: t0)                      // Junior
+    XCTAssertEqual(card(c)?.lastName, "Junior")
+    c.handle(.next, now: t0)
+    XCTAssertTrue(isHomeFormation(c), "back on the formation, not the next page")
+    c.handle(.next, now: t0)
+    XCTAssertFalse(isHomeFormation(c), "then one more swipe leaves it")
+  }
+
+  func testSwipeLeftFromTheFirstPlayerReturnsToTheFormation() {
+    var c = onHomeLineup()
+    c.handle(.select, now: t0)                    // Becker
+    c.handle(.previous, now: t0)
+    XCTAssertTrue(isHomeFormation(c))
+  }
+
   func testSwipesMovePlayersAndKeepDetailOpen() {
     var c = onHomeLineup()
     c.handle(.select, now: t0); c.handle(.select, now: t0)   // Becker detail
@@ -979,14 +1031,13 @@ final class HUDComposerTests: XCTestCase {
     c.handle(.select, now: t0); c.handle(.select, now: t0)   // Becker detail
     c.handle(.previous, now: t0)                  // back to the roster index
     XCTAssertEqual(bodyKind(c), "lineup")
-    c.handle(.next, now: t0)
+    c.handle(.select, now: t0)
     XCTAssertEqual(card(c)?.isDetail, false)
 
     c.handle(.select, now: t0)                    // Becker detail again
     for _ in 1...3 { c.handle(.next, now: t0) }   // Luiz, Junior, then past the end
     XCTAssertNil(card(c))
-    c.handle(.previous, now: t0)                  // back to the home roster index
-    c.handle(.next, now: t0)
+    c.handle(.select, now: t0)                    // back in from the formation
     XCTAssertEqual(card(c)?.lastName, "Becker")
     XCTAssertEqual(card(c)?.isDetail, false)
   }
@@ -996,7 +1047,8 @@ final class HUDComposerTests: XCTestCase {
     c.handle(.select, now: t0); c.handle(.select, now: t0)
     c.handle(.home, now: t0)
     XCTAssertEqual(bodyKind(c), "panel")
-    for _ in 1...4 { c.handle(.next, now: t0) }
+    for _ in 1...3 { c.handle(.next, now: t0) }
+    c.handle(.select, now: t0)
     XCTAssertEqual(card(c)?.isDetail, false)
     c.handle(.select, now: t0)
     c.handle(.insight, now: t0)

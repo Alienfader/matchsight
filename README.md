@@ -171,9 +171,9 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 
 | Gesture | Action |
 |---|---|
-| Pinch (thumb + index) or swipe right | Next page / next player |
+| Swipe right / left | Next / previous page; inside the starting XI, next / previous player |
+| Pinch on the formation | Step into the players (swiping past either end comes back out) |
 | Pinch on a player card | Open / close that player's match stats |
-| Swipe left | Previous |
 | Swipe up | Home (score capsule) |
 | Swipe down | AI Insight page |
 | Pinch and hold | Ask a question by voice |

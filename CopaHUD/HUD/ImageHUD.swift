@@ -1540,7 +1540,7 @@ private struct DarkBoard: View {
         Text(teamName).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
         if let formation { Text(formation).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim) }
         Spacer(minLength: 4)
-        Text("swipe › players").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+        Text("pinch › players").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
       }
     }
   }

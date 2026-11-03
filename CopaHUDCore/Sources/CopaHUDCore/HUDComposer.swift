@@ -308,8 +308,11 @@ public struct HUDComposer: Sendable {
 
   // MARK: - Neural Band input (DAT 1.0 Inputs)
 
-  /// A resolved Neural Band gesture: pinch / swipe right = next, swipe left =
-  /// previous, swipe up = home.
+  /// A resolved Neural Band gesture: swipe right = next, swipe left =
+  /// previous, swipe up = home, swipe down = insight, pinch = select.
+  /// On a lineup page the swipes pass the formation in one go; a pinch steps
+  /// into the players, the swipes then move player by player, and going past
+  /// either end comes back to the formation.
   public mutating func handle(_ input: HUDInput, now: Date) {
     // The guide takes gestures until it's done; the deck stays put.
     if isGuiding { dismissIntro(); guide(input, now: now); return }
@@ -321,7 +324,12 @@ public struct HUDComposer: Sendable {
     lastActivityAt = now
     switch input {
     case .next:
-      handleTapBurst(count: 1, now: now)
+      if let xi = carouselXI(), playerIndex > 0 {
+        playerIndex = playerIndex < xi.count ? playerIndex + 1 : 0
+      } else {
+        page = page.next
+        playerIndex = 0
+      }
     case .previous:
       // Mid-carousel: step back one card (to the roster index at most);
       // otherwise the previous deck page. Acts on the deck under a takeover.
