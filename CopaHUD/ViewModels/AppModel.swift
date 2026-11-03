@@ -758,6 +758,10 @@ final class AppModel {
   /// The club behind the current lineup page (crest on the formation board).
   var currentXITeam: Team? { composer.currentXITeam }
 
+  /// The other team's XI and which half the page's team takes on the board.
+  var opponentXI: [LineupPlayer]? { composer.opponentXI }
+  var currentXIIsHome: Bool { composer.currentXIIsHome ?? true }
+
   /// The followed match in one line, for the compact scoreboard on deck pages.
   var scoreSummary: ScoreSummary? {
     guard let s = lastSnapshot else { return nil }

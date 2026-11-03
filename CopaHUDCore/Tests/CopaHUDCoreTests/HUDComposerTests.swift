@@ -151,6 +151,18 @@ final class HUDComposerTests: XCTestCase {
     XCTAssertEqual(c.currentXITeam?.id, bra.id)
   }
 
+  func testTheLineupPageKnowsItsSideAndTheOpponentsXI() {
+    var c = loaded()
+    XCTAssertNil(c.currentXIIsHome, "not on a lineup page")
+    XCTAssertNil(c.opponentXI)
+    for _ in 1...3 { c.handle(.next, now: t0) }    // home formation
+    XCTAssertEqual(c.currentXIIsHome, true)
+    XCTAssertEqual(c.opponentXI?.map(\.name), ["Emiliano Martínez"])
+    c.handle(.next, now: t0)                       // away formation
+    XCTAssertEqual(c.currentXIIsHome, false)
+    XCTAssertEqual(c.opponentXI?.map(\.name), ["Alisson Becker"])
+  }
+
   func testLineupPagesAreHomeIndexThenCardsThenAway() {
     var c = loaded()
     c.handleTapBurst(count: 1, now: t0) // insight

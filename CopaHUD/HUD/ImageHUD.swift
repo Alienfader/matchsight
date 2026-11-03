@@ -62,11 +62,11 @@ enum ImageHUD {
 
   /// The STARTING XI board (first card of a lineup page): the formation when
   /// the XI is known, else the text rows ("lineup not available").
-  @MainActor static func roster(_ c: LineupContent, xi: [LineupPlayer]?, crest: UIImage?,
-                                photos: @escaping (Int) -> UIImage?, stats: [Int: PlayerStats],
+  @MainActor static func roster(_ c: LineupContent, xi: [LineupPlayer]?, opponent: [LineupPlayer]?, isHome: Bool,
+                                crest: UIImage?, photos: @escaping (Int) -> UIImage?, stats: [Int: PlayerStats],
                                 toast: String?, deck: DeckPosition?) -> UIImage? {
     render(PageFrame(toast: toast, score: nil) {
-      FormationBoard(c: c, xi: xi, crest: crest, photos: photos, stats: stats)
+      FormationBoard(c: c, xi: xi, opponent: opponent, isHome: isHome, crest: crest, photos: photos, stats: stats)
     }, deck: deck)
   }
 
@@ -832,6 +832,8 @@ private struct MiniPitch: View {
 private struct FormationBoard: View {
   let c: LineupContent
   let xi: [LineupPlayer]?
+  let opponent: [LineupPlayer]?
+  let isHome: Bool
   let crest: UIImage?
   let photos: (Int) -> UIImage?
   let stats: [Int: PlayerStats]
@@ -850,7 +852,8 @@ private struct FormationBoard: View {
         if let formation { Text(formation).font(.system(size: 24, weight: .heavy)) }
       }
       if let xi, !xi.isEmpty {
-        LinePitch(spots: FormationLayout.spots(xi), photos: photos, stats: stats)
+        LinePitch(spots: FormationLayout.spots(xi), opponent: opponent.map(FormationLayout.spots),
+                  isHome: isHome, photos: photos, stats: stats)
           .frame(height: 400)
       } else {
         ForEach(Array(c.rows.enumerated()), id: \.offset) { _, row in
@@ -867,11 +870,14 @@ private struct FormationBoard: View {
   }
 }
 
-/// Line-art pitch over the glass, lying west to east like the TV picture
-/// (keeper on the left, attacking to the right), each starter as a small
-/// headshot with number and surname.
+/// Line-art pitch over the glass, lying west to east like the TV picture,
+/// with both teams in their halves: home on the left attacking right, away
+/// on the right attacking left. The page's team is a small headshot with
+/// number and surname; the other team is a dim number.
 private struct LinePitch: View {
   let spots: [FormationSpot]
+  let opponent: [FormationSpot]?
+  let isHome: Bool
   let photos: (Int) -> UIImage?
   let stats: [Int: PlayerStats]
 
@@ -880,11 +886,15 @@ private struct LinePitch: View {
       let w = g.size.width, h = g.size.height
       ZStack {
         PitchLines(westToEast: true).stroke(.white.opacity(0.45), lineWidth: 1.5)
+        ForEach(Array((opponent ?? []).enumerated()), id: \.offset) { _, spot in
+          OpponentMark(number: spot.player.number)
+            .position(spot.inHalf(home: !isHome, w, h))
+        }
         ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
           FormationPlayer(player: spot.player,
                           photo: spot.player.playerId.flatMap(photos),
                           isCaptain: spot.player.playerId.flatMap { stats[$0] }?.isCaptain == true)
-            .position(spot.westToEast(w, h))
+            .position(spot.inHalf(home: isHome, w, h))
         }
       }
     }
@@ -937,7 +947,7 @@ private struct FormationPlayer: View {
             Image(systemName: "person.fill").resizable().scaledToFit().padding(9).opacity(0.8)
           }
         }
-        .frame(width: 46, height: 46)
+        .frame(width: 40, height: 40)
         .clipShape(Circle())
         .overlay(Circle().strokeBorder(.white.opacity(0.75), lineWidth: 1.2))
         .shadow(color: Palette.cyan.opacity(0.6), radius: 5)
@@ -953,11 +963,11 @@ private struct FormationPlayer: View {
             .offset(x: -36, y: 3)
         }
       }
-      // Five players can share a row: 100 pt each fits the 516 pt pitch.
+      // Lines sit about 72 pt apart in a half pitch, so names stay narrow.
       Text(Face.surname(player.name))
-        .font(.system(size: 18, weight: .heavy))
-        .lineLimit(1).minimumScaleFactor(0.6)
-        .frame(width: 100)
+        .font(.system(size: 17, weight: .heavy))
+        .lineLimit(1).minimumScaleFactor(0.55)
+        .frame(width: 70)
     }
   }
 }
@@ -1258,11 +1268,12 @@ extension ImageHUD {
   }
 
   /// The XI board; `focus` highlights the carousel's player.
-  @MainActor static func darkBoard(xi: [LineupPlayer], focus: Int?, teamName: String, formation: String?,
+  @MainActor static func darkBoard(xi: [LineupPlayer], opponent: [LineupPlayer]?, isHome: Bool, focus: Int?,
+                                   teamName: String, formation: String?,
                                    score: CompactScore?, clock: String, toast: String?,
                                    deck: DeckPosition?) -> UIImage? {
     render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
-      DarkBoard(xi: xi, focus: focus, teamName: teamName, formation: formation)
+      DarkBoard(xi: xi, opponent: opponent, isHome: isHome, focus: focus, teamName: teamName, formation: formation)
     })
   }
 
@@ -1514,6 +1525,8 @@ private struct DarkStory: View {
 
 private struct DarkBoard: View {
   let xi: [LineupPlayer]
+  let opponent: [LineupPlayer]?
+  let isHome: Bool
   let focus: Int?
   let teamName: String
   let formation: String?
@@ -1525,6 +1538,10 @@ private struct DarkBoard: View {
       let w = g.size.width, h = g.size.height
       ZStack {
         PitchLines(westToEast: true).stroke(Palette.cyan.opacity(0.3), lineWidth: 1.2)
+        ForEach(Array(FormationLayout.spots(opponent ?? []).enumerated()), id: \.offset) { _, spot in
+          OpponentMark(number: spot.player.number)
+            .position(spot.inHalf(home: !isHome, w, h))
+        }
         ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
           let on = spot.player == focused
           VStack(spacing: 2) {
@@ -1537,9 +1554,9 @@ private struct DarkBoard: View {
             Text(Face.surname(spot.player.name))
               .font(.system(size: 17, weight: on ? .heavy : .semibold))
               .foregroundStyle(on ? Palette.cyan : .white.opacity(0.85))
-              .lineLimit(1).minimumScaleFactor(0.7).frame(width: 96)
+              .lineLimit(1).minimumScaleFactor(0.55).frame(width: 70)
           }
-          .position(spot.westToEast(w, h))
+          .position(spot.inHalf(home: isHome, w, h))
         }
       }
     }
@@ -1646,6 +1663,29 @@ private extension FormationSpot {
   /// The spot on a west-to-east pitch of this size.
   func westToEast(_ width: CGFloat, _ height: CGFloat) -> CGPoint {
     WestToEast.point(x: x, y: y, width, height)
+  }
+
+  /// The spot in the team's own half of a west-to-east pitch: home from its
+  /// goal on the left up to near halfway, attacking right; away mirrored,
+  /// attacking left, with its left flank at the bottom.
+  func inHalf(home: Bool, _ width: CGFloat, _ height: CGFloat) -> CGPoint {
+    let depth = min(1, max(0, (y - 0.08) / 0.84))     // keeper 0 … forwards 1
+    let across = 0.04 + depth * 0.42                    // stops just short of halfway
+    return home ? CGPoint(x: across * width, y: x * height)
+                : CGPoint(x: (1 - across) * width, y: (1 - x) * height)
+  }
+}
+
+/// The other team on the formation board: a dim shirt number.
+private struct OpponentMark: View {
+  let number: Int?
+
+  var body: some View {
+    Text(number.map(String.init) ?? "")
+      .font(.system(size: 15, weight: .bold)).monospacedDigit()
+      .foregroundStyle(.white.opacity(0.5))
+      .frame(width: 28, height: 28)
+      .overlay(Circle().strokeBorder(.white.opacity(0.3), lineWidth: 1.2))
   }
 }
 

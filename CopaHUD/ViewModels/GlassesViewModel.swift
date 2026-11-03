@@ -348,7 +348,8 @@ final class GlassesViewModel {
       let xi = appModel?.currentXI
       let crestURL = appModel?.currentXITeam.flatMap { TeamStyle.style(for: $0).crestURL }
       remoteImages.prefetch([crestURL] + (xi ?? []).map { $0.playerId.flatMap(photoURL) }, onLoad: redraw)
-      return ImageHUD.roster(c, xi: xi, crest: remoteImages.image(crestURL), photos: photos,
+      return ImageHUD.roster(c, xi: xi, opponent: appModel?.opponentXI, isHome: appModel?.currentXIIsHome ?? true,
+                             crest: remoteImages.image(crestURL), photos: photos,
                              stats: appModel?.playerStats ?? [:], toast: frame.toast, deck: frame.deck)
     case let .takeover(t):
       let url = t.imageURL.flatMap(URL.init(string:))
@@ -389,7 +390,8 @@ final class GlassesViewModel {
     case let .lineup(c):
       guard let xi = appModel.currentXI, !xi.isEmpty else { return nil }
       let parts = c.title.components(separatedBy: " · ")
-      return ImageHUD.darkBoard(xi: xi, focus: nil, teamName: appModel.currentXITeam?.name ?? parts[0],
+      return ImageHUD.darkBoard(xi: xi, opponent: appModel.opponentXI, isHome: appModel.currentXIIsHome,
+                                focus: nil, teamName: appModel.currentXITeam?.name ?? parts[0],
                                 formation: parts.dropFirst().first, score: score, clock: clock,
                                 toast: frame.toast, deck: frame.deck)
     case let .playerCard(card):
@@ -406,7 +408,8 @@ final class GlassesViewModel {
                                    clock: clock, toast: frame.toast, deck: frame.deck)
       }
       let parts = card.teamLine.components(separatedBy: " · ")
-      return ImageHUD.darkBoard(xi: xi, focus: index, teamName: appModel.currentXITeam?.name ?? parts[0],
+      return ImageHUD.darkBoard(xi: xi, opponent: appModel.opponentXI, isHome: appModel.currentXIIsHome,
+                                focus: index, teamName: appModel.currentXITeam?.name ?? parts[0],
                                 formation: parts.dropFirst().first, score: score, clock: clock,
                                 toast: frame.toast, deck: frame.deck)
     case .takeover, .intro, .message, .quiet, .guide:

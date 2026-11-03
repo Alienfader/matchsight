@@ -254,6 +254,29 @@ public struct HUDComposer: Sendable {
     }
   }
 
+  /// On a lineup page: whether its team is the home side (left half of the
+  /// board, attacking right) or the away side (right half, attacking left).
+  public var currentXIIsHome: Bool? {
+    switch page {
+    case .lineupHome: return true
+    case .lineupAway: return false
+    default: return nil
+    }
+  }
+
+  /// On a lineup page: the other team's starting XI, drawn in its own half.
+  public var opponentXI: [LineupPlayer]? {
+    let team: Team?
+    switch page {
+    case .lineupHome: team = followed?.away
+    case .lineupAway: team = followed?.home
+    default: return nil
+    }
+    guard let team, let lineup = lineups.first(where: { $0.team.id == team.id }),
+          !lineup.startXI.isEmpty else { return nil }
+    return lineup.startXI
+  }
+
   public var currentXITeamName: String? {
     switch page {
     case .lineupHome: return followed?.home.name
