@@ -1410,8 +1410,10 @@ private struct DeckDots: View {
     HStack(spacing: 10) {
       if let deck {
         ForEach(0..<deck.count, id: \.self) { i in
-          Circle().fill(i == deck.index ? Dark.accent : Dark.dot).frame(width: 7, height: 7)
-            .shadow(color: i == deck.index && !Dark.a ? Dark.accent.opacity(0.7) : .clear, radius: 5)
+          // The current dot flashes when a gesture reaches the app.
+          let on = i == deck.index, flash = on && deck.pulse
+          Circle().fill(on ? Dark.accent : Dark.dot).frame(width: flash ? 11 : 7, height: flash ? 11 : 7)
+            .shadow(color: flash || (on && !Dark.a) ? Dark.accent.opacity(0.8) : .clear, radius: flash ? 8 : 5)
         }
       }
     }
