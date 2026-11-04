@@ -27,8 +27,6 @@ Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
 | **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Turns the pinch-and-hold question into text for Muse Spark. |
 | **"Hey Meta, start Matchsight"** (Meta AI app launch) | Opens the app by voice, with a Wearables Developer Center build. |
 
-<!-- SCREENSHOTS: glasses pages captured from the in-app glasses mirror -->
-
 ## Who it's for
 
 Fans who want to follow their team's match while away from a screen. Matchsight puts the
