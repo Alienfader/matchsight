@@ -18,6 +18,12 @@ enum ImageHUD {
   static let renderScale: CGFloat = 0.6
   /// Settings → Brightness: every page is drawn at this fraction of its light.
   static var brightness: Double = 1
+  /// Settings → Style → Mono: the Dark glass pages in white and greys.
+  /// Colour stays where it carries meaning (crests, yellow and red cards).
+  static var mono = false
+  /// Mono, on the pages that keep the classic look (goal banner, intro,
+  /// messages): drawn in greyscale.
+  static var greyscale = false
 
   @MainActor static func scorePanel(_ p: PanelContent, toast: String?, deck: DeckPosition?,
                                     homeCrest: UIImage?, awayCrest: UIImage?) -> UIImage? {
@@ -102,7 +108,8 @@ enum ImageHUD {
   @MainActor private static func render(_ view: some View, deck: DeckPosition? = nil) -> UIImage? {
     let page = view.frame(width: 600, height: 600)
       .overlay(alignment: .bottom) { if let deck { PageDots(deck: deck).padding(.bottom, 8) } }
-    let r = ImageRenderer(content: page.background(.black).colorMultiply(Color(white: brightness)))
+    let r = ImageRenderer(content: page.background(.black).saturation(greyscale ? 0 : 1)
+      .colorMultiply(Color(white: brightness)))
     r.scale = renderScale
     return r.uiImage
   }
@@ -278,9 +285,9 @@ private struct PageDots: View {
     HStack(spacing: 9) {
       ForEach(0..<deck.count, id: \.self) { i in
         if i == deck.index {
-          Capsule().fill(deck.pulse ? Palette.cyan : .white)
+          Capsule().fill(deck.pulse && !ImageHUD.mono ? Palette.cyan : .white)
             .frame(width: 26, height: 9)
-            .shadow(color: deck.pulse ? Palette.cyan : .clear, radius: 6)
+            .shadow(color: deck.pulse ? (ImageHUD.mono ? .white : Palette.cyan) : .clear, radius: 6)
         } else {
           Circle().fill(.white.opacity(0.45)).frame(width: 9, height: 9)
         }
@@ -494,11 +501,11 @@ private struct ProbabilityBar: View {
       GeometryReader { g in
         let total = CGFloat(max(1, p.home + p.draw + p.away))
         HStack(spacing: 2) {
-          Capsule().fill(Palette.probabilityCyan).frame(width: g.size.width * CGFloat(p.home) / total)
+          Capsule().fill(ImageHUD.mono ? .white : Palette.probabilityCyan).frame(width: g.size.width * CGFloat(p.home) / total)
           if p.draw > 0 {
-            Capsule().fill(Palette.softPurple).frame(width: g.size.width * CGFloat(p.draw) / total)
+            Capsule().fill(ImageHUD.mono ? Color(hex: 0xA1A1AA) : Palette.softPurple).frame(width: g.size.width * CGFloat(p.draw) / total)
           }
-          Capsule().fill(Palette.coral)
+          Capsule().fill(ImageHUD.mono ? Color(hex: 0x52525B) : Palette.coral)
         }
       }
       .frame(height: 11)
@@ -525,8 +532,8 @@ private struct PossessionBar: View {
       Text("\(home)%").font(.system(size: 16, weight: .semibold))
       GeometryReader { g in
         HStack(spacing: 2) {
-          Capsule().fill(Palette.probabilityCyan).frame(width: g.size.width * CGFloat(home) / 100)
-          Capsule().fill(Palette.coral)
+          Capsule().fill(ImageHUD.mono ? .white : Palette.probabilityCyan).frame(width: g.size.width * CGFloat(home) / 100)
+          Capsule().fill(ImageHUD.mono ? Color(hex: 0x52525B) : Palette.coral)
         }
       }
       .frame(height: 8)
@@ -805,7 +812,8 @@ private struct MiniPitch: View {
           if let heat {
             ForEach(Array(heat.enumerated()), id: \.offset) { _, p in
               Circle()
-                .fill(RadialGradient(colors: [Palette.coral.opacity(0.55), Palette.captain.opacity(0.25), .clear],
+                .fill(RadialGradient(colors: ImageHUD.mono ? [.white.opacity(0.5), .white.opacity(0.15), .clear]
+                                       : [Palette.coral.opacity(0.55), Palette.captain.opacity(0.25), .clear],
                                      center: .center, startRadius: 0, endRadius: 16))
                 .frame(width: 32, height: 32)
                 .position(WestToEast.point(x: p.x, y: p.y, w, h))
@@ -814,7 +822,7 @@ private struct MiniPitch: View {
           }
           PitchLines(westToEast: true).stroke(.white.opacity(0.5), lineWidth: 1.2)
           Circle().fill(.white).frame(width: 12, height: 12)
-            .overlay(Circle().strokeBorder(Palette.sky, lineWidth: 2))
+            .overlay(Circle().strokeBorder(ImageHUD.mono ? Color(hex: 0x71717A) : Palette.sky, lineWidth: 2))
             .position(spot.westToEast(w, h))
         }
       }
@@ -1253,17 +1261,18 @@ extension ImageHUD {
   @MainActor static func darkEvents(_ latest: [LatestEvent], score: CompactScore?, clock: String,
                                     toast: String?, deck: DeckPosition?) -> UIImage? {
     render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
-      DarkTitle(icon: "list.bullet", title: "Events")
+      DarkHeading(title: "Events", note: latest.isEmpty ? nil : "\(latest.count)").padding(.bottom, 10)
       if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
-      ForEach(Array(latest.enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
+      ForEach(Array(latest.prefix(5).enumerated()), id: \.offset) { i, e in
+        DarkEventRow(e: e, homeCode: score?.summary.homeCode, last: i == min(latest.count, 5) - 1)
+      }
     })
   }
 
   @MainActor static func darkList(title: String, lines: [String], score: CompactScore?, clock: String,
                                   toast: String?, deck: DeckPosition?) -> UIImage? {
     render(DarkCard(score: score, clock: clock, toast: toast, deck: deck) {
-      DarkTitle(icon: title == "Other Live" ? "dot.radiowaves.left.and.right" : "chart.bar.fill", title: title)
-      ForEach(Array(lines.prefix(7).enumerated()), id: \.offset) { _, line in DarkListRow(line: line) }
+      if title == "Other Live" { DarkOtherLive(lines: lines) } else { DarkStats(lines: lines, score: score) }
     })
   }
 
@@ -1286,13 +1295,52 @@ extension ImageHUD {
                  scripted: scripted, counter: counter)
     })
   }
+
+  @MainActor static func deckTakeover(_ t: TakeoverContent, score: CompactScore?) -> UIImage? {
+    render(DeckTakeover(t: t, score: score))
+  }
+
+  @MainActor static func deckIntro(_ i: IntroContent, homeCrest: UIImage?, awayCrest: UIImage?) -> UIImage? {
+    render(DeckIntro(i: i, homeCrest: homeCrest, awayCrest: awayCrest))
+  }
+
+  @MainActor static func deckMessage(_ text: String) -> UIImage? {
+    render(DeckMessage(text: text))
+  }
 }
 
+/// The two deck looks from the redesign. Mono (A): black, white and greys,
+/// the page fills the lens with a thin rule under the score. Dark glass (B):
+/// a glass card with a cyan glow, cyan for the home side and lavender for
+/// the away side. Crests and yellow/red cards keep their colour in both.
 private enum Dark {
-  static let fill = Color(hex: 0x07111C)
-  static let dim = Palette.ice.opacity(0.62)
-  static let rim = LinearGradient(colors: [Palette.cyan.opacity(0.7), Palette.lavender.opacity(0.25)],
-                                  startPoint: .topLeading, endPoint: .bottomTrailing)
+  static var a: Bool { ImageHUD.mono }
+  static var ink: Color { a ? .white : Color(hex: 0xF2F5F9) }
+  /// Secondary values: the clock, the away score, minutes.
+  static var soft: Color { a ? Color(hex: 0xC9CDD3) : Color(hex: 0xA7B0BC) }
+  /// Labels.
+  static var dim: Color { a ? Color(hex: 0x8B9097) : Color(hex: 0x7A8390) }
+  /// The rule under the score.
+  static var rule: Color { a ? Color(hex: 0x343438) : .white.opacity(0.08) }
+  /// Hairlines between rows.
+  static var hair: Color { a ? Color(hex: 0x232326) : .white.opacity(0.08) }
+  static var accent: Color { a ? .white : Color(hex: 0x5FE3F0) }
+  static var home: Color { a ? .white : Color(hex: 0x5FE3F0) }
+  static var away: Color { a ? Color(hex: 0xC9CDD3) : Color(hex: 0xB9A6FF) }
+  static var clock: Color { a ? Color(hex: 0xC9CDD3) : Color(hex: 0x5FE3F0) }
+  static var dot: Color { a ? Color(hex: 0x3A3A3E) : .white.opacity(0.18) }
+  static let mono = Font.Design.monospaced
+  /// The page's own background: plain black, or black with B's soft glow.
+  @ViewBuilder static var backdrop: some View {
+    if a { Color.black } else {
+      RadialGradient(colors: [Color(hex: 0x5FE3F0).opacity(0.10), .clear], center: UnitPoint(x: 0.5, y: 0.36),
+                     startRadius: 0, endRadius: 400)
+        .background(Color.black)
+    }
+  }
+  static func side(_ code: String, home: String?) -> Color {
+    a ? dim : (code == home ? Dark.home : Dark.away)
+  }
 }
 
 private struct DarkFlags {
@@ -1300,7 +1348,7 @@ private struct DarkFlags {
   var paused = false
 }
 
-/// The fixed card: toast above it, score strip, the page, the page dots below.
+/// Every deck page: the toast pill on top, the score header, the page, the dots.
 private struct DarkCard<Content: View>: View {
   let score: CompactScore?
   let clock: String
@@ -1310,75 +1358,165 @@ private struct DarkCard<Content: View>: View {
   @ViewBuilder let content: () -> Content
 
   var body: some View {
-    VStack(spacing: 10) {
-      Spacer(minLength: 0)
-      if let toast {
-        Text(toast).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
-          .padding(.horizontal, 18).padding(.vertical, 8)
-          .background(Capsule().fill(Dark.fill.opacity(0.85)).overlay(Capsule().strokeBorder(Dark.rim, lineWidth: 1.5)))
-      }
-      VStack(alignment: .leading, spacing: 14) {
-        if let score {
-          DarkStrip(score: score, clock: clock, flags: flags)
-          Rectangle().fill(Palette.cyan.opacity(0.25)).frame(height: 1)
+    ZStack(alignment: .top) {
+      Dark.backdrop
+      VStack(spacing: 0) {
+        if Dark.a {
+          page.padding(.horizontal, 40)
+        } else {
+          page
+            .padding(.horizontal, 28).padding(.top, 24).padding(.bottom, 20)
+            .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white.opacity(0.045)))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(0.14), lineWidth: 1))
+            .overlay(alignment: .top) {
+              LinearGradient(colors: [.clear, Dark.accent, .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(height: 1).padding(.horizontal, 28)
+            }
+            .padding(.horizontal, 28)
         }
-        VStack(alignment: .leading, spacing: 14) { content() }
-          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        DeckDots(deck: deck).padding(.top, 14)
       }
-      .padding(20)
-      .frame(width: 556, height: 420)
-      .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Dark.fill.opacity(0.78))
-        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(Dark.rim, lineWidth: 1.5)))
-      if let deck { PageDots(deck: deck) } else { Color.clear.frame(height: 9) }
+      .padding(.top, 44).padding(.bottom, Dark.a ? 26 : 24)
+      if let toast {
+        Text(toast).font(.system(size: 17, weight: .regular, design: Dark.mono))
+          .foregroundStyle(Dark.a ? Dark.soft : Dark.accent).lineLimit(1).minimumScaleFactor(0.6)
+          .padding(.horizontal, 14).padding(.vertical, 5)
+          .background(Capsule().fill(.black.opacity(Dark.a ? 1 : 0.6)))
+          .overlay(Capsule().strokeBorder(Dark.a ? Dark.rule : Dark.accent.opacity(0.5), lineWidth: 1))
+          .padding(.top, 8).padding(.horizontal, 30)
+      }
     }
-    .foregroundStyle(.white)
-    .padding(.bottom, 14)
+    .foregroundStyle(Dark.ink)
+  }
+
+  private var page: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      if let score {
+        DarkStrip(score: score, clock: clock, flags: flags)
+          .padding(.bottom, 16)
+          .overlay(alignment: .bottom) { Rectangle().fill(Dark.rule).frame(height: 1) }
+      }
+      VStack(alignment: .leading, spacing: 0) { content() }
+        .padding(.top, 22)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
   }
 }
 
+private struct DeckDots: View {
+  let deck: DeckPosition?
+
+  var body: some View {
+    HStack(spacing: 10) {
+      if let deck {
+        ForEach(0..<deck.count, id: \.self) { i in
+          Circle().fill(i == deck.index ? Dark.accent : Dark.dot).frame(width: 7, height: 7)
+            .shadow(color: i == deck.index && !Dark.a ? Dark.accent.opacity(0.7) : .clear, radius: 5)
+        }
+      }
+    }
+    .frame(height: 8).frame(maxWidth: .infinity)
+  }
+}
+
+/// Crest, code, score, code, crest; the clock on the right.
 private struct DarkStrip: View {
   let score: CompactScore
   let clock: String
   let flags: DarkFlags
 
   var body: some View {
+    let s = score.summary
     HStack(spacing: 12) {
-      Crest(image: score.homeCrest, fallback: score.summary.homeCode, size: 38)
-      Text(score.summary.homeCode).font(.system(size: 26, weight: .bold))
-      Text("\(score.summary.score.home)  \(score.summary.score.away)")
-        .font(.system(size: 34, weight: .heavy)).monospacedDigit()
-      Text(score.summary.awayCode).font(.system(size: 26, weight: .bold))
-      Crest(image: score.awayCrest, fallback: score.summary.awayCode, size: 38)
+      Crest(image: score.homeCrest, fallback: s.homeCode, size: 32)
+      code(s.homeCode)
+      goals(s.score.home)
+      Text("–").font(.system(size: 24, design: Dark.mono)).foregroundStyle(Dark.dim)
+      goals(s.score.away)
+      code(s.awayCode)
+      Crest(image: score.awayCrest, fallback: s.awayCode, size: 32)
       Spacer(minLength: 4)
-      if flags.paused { Image(systemName: "bell.slash.fill").font(.system(size: 22)).foregroundStyle(Dark.dim) }
-      if flags.stale { Text("stale").font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.coral) }
-      Text(clock).font(.system(size: 30, weight: .heavy)).foregroundStyle(Palette.cyan)
-        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+      if flags.paused { Image(systemName: "bell.slash").font(.system(size: 20)).foregroundStyle(Dark.dim) }
+      if flags.stale { Text("stale").font(.system(size: 16, design: Dark.mono)).foregroundStyle(Palette.coral) }
+      HStack(spacing: 8) {
+        if !Dark.a {
+          Circle().fill(Dark.accent).frame(width: 7, height: 7).shadow(color: Dark.accent.opacity(0.8), radius: 5)
+        }
+        Text(clock).font(.system(size: Dark.a ? 30 : 26, design: Dark.mono)).foregroundStyle(Dark.clock)
+          .lineLimit(1).minimumScaleFactor(0.6)
+      }
     }
+  }
+
+  private func code(_ c: String) -> some View {
+    Text(c).font(.system(size: Dark.a ? 22 : 20, weight: .semibold)).tracking(Dark.a ? 0 : 1)
+      .foregroundStyle(Dark.a ? Dark.ink : Dark.soft)
+  }
+
+  private func goals(_ n: Int) -> some View {
+    Text("\(n)").font(.system(size: Dark.a ? 40 : 44, weight: .medium, design: Dark.mono)).padding(.horizontal, 3)
   }
 }
 
-private struct DarkTitle: View {
-  let icon: String
+/// A label row: what this is on the left, a quieter note on the right.
+private struct DarkHeading: View {
   let title: String
+  var note: String? = nil
+  var icon: String? = nil
 
   var body: some View {
     HStack(spacing: 10) {
-      Image(systemName: icon).foregroundStyle(Palette.cyan)
-      Text(title.uppercased()).lineLimit(1).minimumScaleFactor(0.7)
+      if let icon { Image(systemName: icon).font(.system(size: 17)).foregroundStyle(Dark.a ? Dark.dim : Dark.accent) }
+      Text(title).font(.system(size: 18)).foregroundStyle(Dark.a ? Dark.dim : Dark.soft)
+      Spacer(minLength: 4)
+      if let note { Text(note).font(.system(size: 16)).foregroundStyle(Dark.dim).lineLimit(1) }
     }
-    .font(.system(size: 24, weight: .heavy))
   }
 }
 
 private struct DarkNote: View {
   let text: String
-  var body: some View { Text(text).font(.system(size: 24, weight: .semibold)).foregroundStyle(Dark.dim) }
+  var body: some View { Text(text).font(.system(size: 22)).foregroundStyle(Dark.dim).padding(.top, 10) }
 }
 
-private struct DarkLabel: View {
-  let text: String
-  var body: some View { Text(text).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim) }
+/// A two-sided bar: the home share filled, the rest the away side's.
+private struct ShareBar: View {
+  let share: Double
+
+  var body: some View {
+    GeometryReader { g in
+      if Dark.a {
+        ZStack(alignment: .leading) {
+          RoundedRectangle(cornerRadius: 2).strokeBorder(Dark.rule, lineWidth: 1)
+          RoundedRectangle(cornerRadius: 1).fill(Dark.ink)
+            .frame(width: max(0, (g.size.width - 4) * share)).padding(2)
+        }
+      } else {
+        HStack(spacing: 2) {
+          Capsule().fill(Dark.home).frame(width: max(4, (g.size.width - 2) * share))
+          Capsule().fill(Dark.away.opacity(0.55))
+        }
+        .padding(.vertical, 2)
+      }
+    }
+    .frame(height: 12)
+  }
+}
+
+private struct SideBar: View {
+  let homeCode: String
+  let awayCode: String
+  let share: Double
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Text(homeCode).font(.system(size: 16, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.ink : Dark.home)
+        .frame(width: 44, alignment: .leading)
+      ShareBar(share: share)
+      Text(awayCode).font(.system(size: 16, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.soft : Dark.away)
+        .frame(width: 44, alignment: .trailing)
+    }
+  }
 }
 
 private struct DarkLive: View {
@@ -1387,48 +1525,26 @@ private struct DarkLive: View {
   let momentum: Momentum?
 
   var body: some View {
-    if let home = p.possessionHome, let away = p.possessionAway {
-      VStack(alignment: .leading, spacing: 6) {
-        DarkLabel(text: "POSSESSION")
-        PossessionBar(home: home, away: away)
-      }
-    }
-    if let momentum {
-      VStack(alignment: .leading, spacing: 6) {
-        DarkLabel(text: "MOMENTUM · LAST 10' · SHOTS AND CORNERS")
-        MomentumBar(home: p.homeCode, away: p.awayCode, balance: momentum.balance)
-      }
-    }
-    DarkLabel(text: "LATEST")
-    if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
-    // Two lines when the momentum bar takes the room of the third.
-    ForEach(Array(latest.prefix(momentum == nil ? 3 : 2).enumerated()), id: \.offset) { _, e in DarkEventRow(e: e) }
-  }
-}
-
-/// A centre-out bar: it grows toward the side that's been pushing.
-private struct MomentumBar: View {
-  let home: String
-  let away: String
-  let balance: Double
-
-  var body: some View {
-    HStack(spacing: 10) {
-      Text(home).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
-      GeometryReader { g in
-        let half = g.size.width / 2
-        let length = half * min(1, abs(balance))
-        ZStack(alignment: .leading) {
-          Capsule().fill(.white.opacity(0.12))
-          Capsule().fill(balance >= 0 ? Palette.probabilityCyan : Palette.coral)
-            .frame(width: max(6, length), height: 10)
-            .offset(x: balance >= 0 ? half - length : half)
-          Rectangle().fill(.white.opacity(0.7)).frame(width: 2, height: 16).offset(x: half - 1)
+    VStack(alignment: .leading, spacing: 26) {
+      if let momentum {
+        VStack(alignment: .leading, spacing: 12) {
+          DarkHeading(title: "Momentum, last 10 minutes", note: "shots and corners")
+          SideBar(homeCode: p.homeCode, awayCode: p.awayCode,
+                  share: DeckFormat.share(home: momentum.home, away: momentum.away))
         }
-        .frame(height: 16)
+      } else if let home = p.possessionHome {
+        VStack(alignment: .leading, spacing: 12) {
+          DarkHeading(title: "Possession", note: "\(home)% · \(100 - home)%")
+          SideBar(homeCode: p.homeCode, awayCode: p.awayCode, share: Double(home) / 100)
+        }
       }
-      .frame(height: 16)
-      Text(away).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
+      VStack(alignment: .leading, spacing: 0) {
+        DarkHeading(title: "Latest").padding(.bottom, 10)
+        if latest.isEmpty { DarkNote(text: "No goals or cards yet") }
+        ForEach(Array(latest.prefix(3).enumerated()), id: \.offset) { i, e in
+          DarkEventRow(e: e, homeCode: p.homeCode, last: i == min(latest.count, 3) - 1)
+        }
+      }
     }
   }
 }
@@ -1437,71 +1553,151 @@ private struct DarkPreMatch: View {
   let p: PanelContent
 
   var body: some View {
-    DarkLabel(text: "KICKOFF")
-    Text(p.clock).font(.system(size: 64, weight: .heavy)).monospacedDigit()
-    if let w = p.prediction {
-      DarkLabel(text: "WIN PROBABILITY")
-      HStack(spacing: 22) {
-        prob(p.homeCode, w.home)
-        prob("DRAW", w.draw)
-        prob(p.awayCode, w.away)
+    VStack(alignment: .leading, spacing: 22) {
+      DarkHeading(title: "Kickoff")
+      Text(p.clock).font(.system(size: 64, weight: .medium, design: Dark.mono))
+      if let w = p.prediction {
+        DarkHeading(title: "Win probability")
+        HStack(spacing: 28) {
+          prob(p.homeCode, w.home)
+          prob("Draw", w.draw)
+          prob(p.awayCode, w.away)
+        }
       }
     }
   }
 
   private func prob(_ label: String, _ value: Int) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
-      Text("\(value)%").font(.system(size: 32, weight: .heavy)).monospacedDigit()
-      DarkLabel(text: label)
+    VStack(alignment: .leading, spacing: 4) {
+      Text("\(value)%").font(.system(size: 32, weight: .medium, design: Dark.mono))
+      Text(label).font(.system(size: 16)).foregroundStyle(Dark.dim)
     }
   }
 }
 
 private struct DarkEventRow: View {
   let e: LatestEvent
+  let homeCode: String?
+  var last = false
 
   var body: some View {
-    HStack(spacing: 14) {
-      Text(e.minute).font(.system(size: 26, weight: .heavy)).foregroundStyle(Palette.cyan)
-        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7).frame(width: 74, alignment: .leading)
+    HStack(spacing: 16) {
+      Text(e.minute.replacingOccurrences(of: "'", with: "′"))
+        .font(.system(size: 20, design: Dark.mono)).foregroundStyle(Dark.soft)
+        .lineLimit(1).minimumScaleFactor(0.7).frame(width: 56, alignment: .leading)
       icon.frame(width: 24)
-      Text(e.name).font(.system(size: 28, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+      Text(e.name).font(.system(size: 23)).lineLimit(1).minimumScaleFactor(0.7)
       Spacer(minLength: 4)
-      Text(e.team).font(.system(size: 22, weight: .semibold)).foregroundStyle(Dark.dim)
+      Text(e.team).font(.system(size: 16, design: Dark.mono)).foregroundStyle(Dark.side(e.team, home: homeCode))
     }
+    .frame(height: 56)
+    .overlay(alignment: .top) { Rectangle().fill(Dark.hair).frame(height: 1) }
+    .overlay(alignment: .bottom) { if last { Rectangle().fill(Dark.hair).frame(height: 1) } }
   }
 
   @ViewBuilder private var icon: some View {
     switch e.kind {
-    case .goal, .penalty: Image(systemName: "soccerball").font(.system(size: 24, weight: .bold))
-    case .ownGoal: Image(systemName: "soccerball").font(.system(size: 24, weight: .bold)).foregroundStyle(Palette.coral)
-    case .missedPenalty: Image(systemName: "xmark.circle").font(.system(size: 22, weight: .bold)).foregroundStyle(Dark.dim)
-    case .yellow: RoundedRectangle(cornerRadius: 3).fill(Palette.captain).frame(width: 16, height: 22)
-    case .red: RoundedRectangle(cornerRadius: 3).fill(Palette.coral).frame(width: 16, height: 22)
-    case .varCheck: Image(systemName: "tv").font(.system(size: 20, weight: .bold))
+    case .goal, .penalty: Image(systemName: "soccerball").font(.system(size: 21, weight: .light))
+    case .ownGoal: Image(systemName: "soccerball").font(.system(size: 21, weight: .light)).foregroundStyle(Dark.dim)
+    case .missedPenalty: Image(systemName: "xmark.circle").font(.system(size: 20, weight: .light)).foregroundStyle(Dark.dim)
+    case .yellow: RoundedRectangle(cornerRadius: 2).fill(Palette.captain).frame(width: 12, height: 18)
+    case .red: RoundedRectangle(cornerRadius: 2).fill(Palette.coral).frame(width: 12, height: 18)
+    case .varCheck: Image(systemName: "tv").font(.system(size: 19, weight: .light))
     }
   }
 }
 
-private struct DarkListRow: View {
-  let line: String
+/// Team stats: possession as a bar, then one row per figure, home left.
+private struct DarkStats: View {
+  let lines: [String]
+  let score: CompactScore?
 
   var body: some View {
-    let parts = line.components(separatedBy: "  ").filter { !$0.isEmpty }
-    Group {
-      if parts.first == "POSS", let pct = Int(parts.last?.dropLast() ?? "") {
-        PossessionBar(home: pct, away: 100 - pct)
-      } else if parts.count == 2 {
+    let rows = lines.compactMap(DeckFormat.statRow)
+    VStack(alignment: .leading, spacing: 0) {
+      if let poss = lines.lazy.compactMap(DeckFormat.possession).first {
         HStack {
-          Text(parts[0]).foregroundStyle(Dark.dim)
+          Text(score?.summary.homeCode ?? "Home")
           Spacer()
-          Text(parts[1]).fontWeight(.bold)
+          Text("Possession")
+          Spacer()
+          Text(score?.summary.awayCode ?? "Away")
         }
-      } else {
-        Text(line).lineLimit(1).minimumScaleFactor(0.6)
+        .font(.system(size: 18)).foregroundStyle(Dark.dim).padding(.bottom, 10)
+        HStack(spacing: 14) {
+          Text("\(poss)%").font(.system(size: 26, design: Dark.mono)).frame(width: 78, alignment: .leading)
+          ShareBar(share: Double(poss) / 100)
+          Text("\(100 - poss)%").font(.system(size: 26, design: Dark.mono)).foregroundStyle(Dark.soft)
+            .frame(width: 78, alignment: .trailing)
+        }
+        .padding(.bottom, 14)
+      }
+      if rows.isEmpty { DarkNote(text: "No stats yet") }
+      ForEach(Array(rows.prefix(5).enumerated()), id: \.offset) { i, r in
+        HStack {
+          Text(r.home).font(.system(size: 26, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.ink : Dark.home)
+            .frame(width: 96, alignment: .leading)
+          Text(r.label).font(.system(size: 18)).foregroundStyle(Dark.dim).frame(maxWidth: .infinity)
+          Text(r.away).font(.system(size: 26, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.soft : Dark.away)
+            .frame(width: 96, alignment: .trailing)
+        }
+        .frame(height: 52)
+        .overlay(alignment: .top) { Rectangle().fill(Dark.hair).frame(height: 1) }
+        .overlay(alignment: .bottom) { if i == min(rows.count, 5) - 1 { Rectangle().fill(Dark.hair).frame(height: 1) } }
       }
     }
-    .font(.system(size: 24, weight: .medium))
+  }
+}
+
+/// Other live matches: one row each, score in the middle.
+private struct DarkOtherLive: View {
+  let lines: [String]
+
+  var body: some View {
+    let games = lines.compactMap(DeckFormat.otherLive)
+    VStack(alignment: .leading, spacing: 0) {
+      DarkHeading(title: "Other live matches", note: games.isEmpty ? nil : "\(games.count) live").padding(.bottom, 10)
+      if games.isEmpty {
+        ForEach(Array(lines.prefix(4).enumerated()), id: \.offset) { _, l in DarkNote(text: l) }
+      }
+      ForEach(Array(games.prefix(4).enumerated()), id: \.offset) { i, g in
+        HStack(spacing: 14) {
+          Circle().fill(Dark.accent).frame(width: 8, height: 8)
+          Text(g.home).font(.system(size: 22, weight: .semibold))
+          Text(g.homeGoals).font(.system(size: 32, weight: .medium, design: Dark.mono))
+          Text("–").font(.system(size: 20, design: Dark.mono)).foregroundStyle(Dark.dim)
+          Text(g.awayGoals).font(.system(size: 32, weight: .medium, design: Dark.mono))
+          Text(g.away).font(.system(size: 22, weight: .semibold))
+          Spacer(minLength: 4)
+          if let clock = g.clock {
+            Text(clock).font(.system(size: 22, design: Dark.mono)).foregroundStyle(Dark.clock).lineLimit(1)
+          }
+        }
+        .frame(height: 72)
+        .overlay(alignment: .top) { Rectangle().fill(Dark.hair).frame(height: 1) }
+        .overlay(alignment: .bottom) { if i == min(games.count, 4) - 1 { Rectangle().fill(Dark.hair).frame(height: 1) } }
+      }
+      Spacer(minLength: 0)
+      DarkFooter(left: "Followed leagues only", right: "Swipe up for your match")
+    }
+  }
+}
+
+private struct DarkFooter: View {
+  let left: String
+  let right: String
+  var leftIsAction = false
+
+  var body: some View {
+    HStack {
+      Text(left).font(.system(size: 17, design: leftIsAction ? .default : Dark.mono))
+        .foregroundStyle(leftIsAction ? (Dark.a ? Dark.soft : Color(hex: 0xB9A6FF)) : Dark.dim)
+      Spacer(minLength: 8)
+      Text(right).font(.system(size: 17)).foregroundStyle(Dark.a ? Dark.soft : Dark.dim)
+    }
+    .lineLimit(1).minimumScaleFactor(0.7)
+    .padding(.top, 14)
+    .overlay(alignment: .top) { Rectangle().fill(Dark.hair).frame(height: 1) }
   }
 }
 
@@ -1509,17 +1705,23 @@ private struct DarkStory: View {
   let c: InsightContent
 
   var body: some View {
-    if let question = c.question {
-      Text("\u{201C}\(question)\u{201D}").font(.system(size: 22, weight: .semibold)).foregroundStyle(Dark.dim)
-        .lineLimit(2).minimumScaleFactor(0.7)
+    VStack(alignment: .leading, spacing: 18) {
+      DarkHeading(title: sentence(c.title), icon: "sparkles")
+      if let question = c.question {
+        Text("\u{201C}\(question)\u{201D}").font(.system(size: 21)).foregroundStyle(Dark.soft)
+          .lineLimit(2).minimumScaleFactor(0.7)
+      }
+      if !c.body.isEmpty {
+        Text(c.body).font(.system(size: 26)).lineSpacing(6).minimumScaleFactor(0.7)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      Spacer(minLength: 0)
+      DarkFooter(left: c.footer.replacingOccurrences(of: " · ", with: ", "), right: "Pinch and hold to ask")
     }
-    DarkTitle(icon: "sparkles", title: c.title)
-    if !c.body.isEmpty {
-      Text(c.body).font(.system(size: 30, weight: .medium)).lineSpacing(3).minimumScaleFactor(0.75)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    Spacer(minLength: 0)
-    Text(c.footer).font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+  }
+
+  private func sentence(_ s: String) -> String {
+    s.uppercased() == s ? s.prefix(1) + s.dropFirst().lowercased() : s
   }
 }
 
@@ -1534,49 +1736,53 @@ private struct DarkBoard: View {
   var body: some View {
     let spots = FormationLayout.spots(xi)
     let focused = focus.flatMap { xi.indices.contains($0) ? xi[$0] : nil }
-    GeometryReader { g in
-      let w = g.size.width, h = g.size.height
-      ZStack {
-        PitchLines(westToEast: true).stroke(Palette.cyan.opacity(0.3), lineWidth: 1.2)
-        ForEach(Array(FormationLayout.spots(opponent ?? []).enumerated()), id: \.offset) { _, spot in
-          OpponentMark(number: spot.player.number)
-            .position(spot.inHalf(home: !isHome, w, h))
-        }
-        ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
-          let on = spot.player == focused
-          VStack(spacing: 2) {
-            Text(spot.player.number.map(String.init) ?? "")
-              .font(.system(size: 18, weight: .heavy)).monospacedDigit()
-              .foregroundStyle(on ? .black : .white)
-              .frame(width: 34, height: 34)
-              .background(Circle().fill(on ? Palette.cyan : .clear))
-              .overlay(Circle().strokeBorder(on ? Palette.cyan : .white.opacity(0.6), lineWidth: 1.5))
-            Text(Face.surname(spot.player.name))
-              .font(.system(size: 17, weight: on ? .heavy : .semibold))
-              .foregroundStyle(on ? Palette.cyan : .white.opacity(0.85))
-              .lineLimit(1).minimumScaleFactor(0.55).frame(width: 70)
+    let line = Dark.a ? Color(hex: 0x3A3A3E) : Dark.accent.opacity(0.28)
+    VStack(spacing: 0) {
+      GeometryReader { g in
+        let w = g.size.width, h = g.size.height
+        ZStack {
+          Rectangle().strokeBorder(line, lineWidth: 1)
+          PitchLines(westToEast: true).stroke(line, lineWidth: 1)
+          ForEach(Array(FormationLayout.spots(opponent ?? []).enumerated()), id: \.offset) { _, spot in
+            OpponentMark(number: spot.player.number)
+              .position(spot.inHalf(home: !isHome, w, h))
           }
-          .position(spot.inHalf(home: isHome, w, h))
+          ForEach(Array(spots.enumerated()), id: \.offset) { _, spot in
+            let on = spot.player == focused
+            VStack(spacing: 3) {
+              Text(spot.player.number.map(String.init) ?? "")
+                .font(.system(size: 17, weight: .medium, design: Dark.mono))
+                .foregroundStyle(on ? .black : Dark.ink)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(on ? Dark.accent : .black))
+                .overlay(Circle().strokeBorder(on ? Dark.accent : (Dark.a ? Dark.soft : Dark.home.opacity(0.7)), lineWidth: 1))
+              Text(Face.surname(spot.player.name))
+                .font(.system(size: 15, weight: on ? .bold : .regular))
+                .foregroundStyle(on ? Dark.ink : Dark.soft)
+                .lineLimit(1).minimumScaleFactor(0.55).frame(width: 74)
+            }
+            .position(spot.inHalf(home: isHome, w, h))
+          }
         }
       }
-    }
-    HStack(spacing: 10) {
-      if let focused {
-        Text(focused.name).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
-        Text(caption(focused)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim)
-        Spacer(minLength: 4)
-        Text("pinch for stats").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
-      } else {
-        Text(teamName).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
-        if let formation { Text(formation).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim) }
-        Spacer(minLength: 4)
-        Text("pinch › players").font(.system(size: 18, weight: .semibold)).foregroundStyle(Dark.dim)
+      HStack(alignment: .firstTextBaseline, spacing: 10) {
+        if let focused {
+          Text(DarkGlassFormat.displayName(focused.name)).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+          if let n = focused.number { Text("#\(n)").font(.system(size: 18, design: Dark.mono)).foregroundStyle(Dark.soft) }
+          if let pos = focused.position.flatMap(PositionLabel.long) { Text(pos).font(.system(size: 18)).foregroundStyle(Dark.dim) }
+          Spacer(minLength: 4)
+          Text("Pinch for stats").font(.system(size: 17)).foregroundStyle(Dark.a ? Dark.ink : Color(hex: 0xB9A6FF))
+        } else {
+          Text(teamName).font(.system(size: 24, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+          if let formation {
+            Text(formation).font(.system(size: 18, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.dim : Dark.accent)
+          }
+          Spacer(minLength: 4)
+          Text("Pinch for players").font(.system(size: 17)).foregroundStyle(Dark.a ? Dark.soft : Color(hex: 0xB9A6FF))
+        }
       }
+      .padding(.top, 18)
     }
-  }
-
-  private func caption(_ p: LineupPlayer) -> String {
-    [p.number.map { "#\($0)" }, p.position.flatMap(PositionLabel.short)].compactMap { $0 }.joined(separator: " · ")
   }
 }
 
@@ -1587,6 +1793,16 @@ private enum PositionLabel {
     case "D": return "DEF"
     case "M": return "MID"
     case "F": return "FWD"
+    default: return nil
+    }
+  }
+
+  static func long(_ code: String) -> String? {
+    switch code.uppercased().first {
+    case "G": return "Goalkeeper"
+    case "D": return "Defence"
+    case "M": return "Midfield"
+    case "F": return "Forward"
     default: return nil
     }
   }
@@ -1602,60 +1818,235 @@ private struct DarkPlayer: View {
   let counter: String
 
   var body: some View {
-    let name = HUDFormat.splitName(player.name)
     let tiles = DarkGlassFormat.keyFigures(position: player.position, stats: stats)
-    HStack(spacing: 16) {
-      Group {
-        if let photo { Image(uiImage: photo).resizable().scaledToFill() }
-        else { Image(systemName: "person.fill").resizable().scaledToFit().padding(18) }
-      }
-      .frame(width: 84, height: 84).clipShape(Circle())
-      .overlay(Circle().strokeBorder(Palette.cyan.opacity(0.8), lineWidth: 1.5))
-      VStack(alignment: .leading, spacing: 2) {
-        if !name.first.isEmpty {
-          Text(name.first).font(.system(size: 22, weight: .medium)).foregroundStyle(Dark.dim).lineLimit(1)
+    VStack(alignment: .leading, spacing: 22) {
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 10) {
+          Text(DarkGlassFormat.displayName(player.name)).font(.system(size: 36, weight: .bold)).tracking(-0.5)
+            .lineLimit(1).minimumScaleFactor(0.6)
+          HStack(spacing: 12) {
+            if let n = player.number { Text("#\(n)").font(.system(size: 17, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.soft : Dark.accent) }
+            if let pos = player.position.flatMap(PositionLabel.long) { Text(pos).font(.system(size: 17)).foregroundStyle(Dark.dim) }
+            if let m = stats?.minutes { Text("\(m) min").font(.system(size: 17, design: Dark.mono)).foregroundStyle(Dark.soft) }
+            if stats?.yellowCards ?? 0 > 0 { RoundedRectangle(cornerRadius: 2).fill(Palette.captain).frame(width: 10, height: 15) }
+            if stats?.redCards ?? 0 > 0 { RoundedRectangle(cornerRadius: 2).fill(Palette.coral).frame(width: 10, height: 15) }
+            if scripted { Chip(text: "scripted") }
+          }
         }
-        Text(name.last.uppercased()).font(.system(size: 40, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.6)
-        Text(subline).font(.system(size: 20, weight: .semibold)).foregroundStyle(Dark.dim).lineLimit(1)
-      }
-      Spacer(minLength: 4)
-      VStack(alignment: .trailing, spacing: 0) {
-        Text(counter).font(.system(size: 18, weight: .bold)).foregroundStyle(Dark.dim)
-        if let rating = stats?.rating {
-          Text(rating).font(.system(size: 30, weight: .heavy)).foregroundStyle(Palette.cyan)
-          DarkLabel(text: "RATING")
+        Spacer(minLength: 8)
+        VStack(alignment: .trailing, spacing: 6) {
+          if let rating = stats?.rating {
+            Text(rating).font(.system(size: 46, weight: .medium, design: Dark.mono)).foregroundStyle(Dark.accent)
+          }
+          Text(stats?.rating == nil ? counterText : "Rating, \(counterText)").font(.system(size: 16)).foregroundStyle(Dark.dim)
         }
+      }
+      HStack(alignment: .top, spacing: 22) {
+        if tiles.isEmpty {
+          DarkNote(text: stats == nil ? "No match figures yet" : "Nothing on the scoresheet yet")
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+          LazyVGrid(columns: [GridItem(.flexible(), spacing: Dark.a ? 1 : 10), GridItem(.flexible())],
+                    spacing: Dark.a ? 1 : 10) {
+            ForEach(Array(tiles.prefix(4).enumerated()), id: \.offset) { _, t in tile(t) }
+          }
+          .background(Dark.a ? Dark.hair : .clear)
+          .overlay(Dark.a ? Rectangle().strokeBorder(Dark.hair, lineWidth: 1) : nil)
+        }
+        if let spot { DeckPitch(spot: spot, heat: heat).frame(width: 200) }
+      }
+      Spacer(minLength: 0)
+      DarkFooter(left: "Pinch to close", right: "Swipe for next player", leftIsAction: true)
+    }
+  }
+
+  private var counterText: String { counter.replacingOccurrences(of: "/", with: " of ") }
+
+  private func tile(_ t: StatTile) -> some View {
+    let parts = t.label.components(separatedBy: " · ")
+    let label = parts[0].prefix(1).uppercased() + parts[0].dropFirst().lowercased()
+    return VStack(alignment: .leading, spacing: 6) {
+      HStack(alignment: .firstTextBaseline, spacing: 8) {
+        Text(t.value).font(.system(size: 32, design: Dark.mono))
+        if parts.count > 1 {
+          Text(parts[1]).font(.system(size: 15, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.soft : Dark.accent)
+        }
+      }
+      Text(label).font(.system(size: 16)).foregroundStyle(Dark.dim).lineLimit(1).minimumScaleFactor(0.7)
+    }
+    .padding(.horizontal, 16).padding(.vertical, 14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Dark.a ? AnyShapeStyle(Color.black) : AnyShapeStyle(Color.white.opacity(0.03)),
+                in: RoundedRectangle(cornerRadius: Dark.a ? 0 : 12, style: .continuous))
+    .overlay(Dark.a ? nil : RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.white.opacity(0.12), lineWidth: 1))
+  }
+}
+
+private struct Chip: View {
+  let text: String
+  var body: some View {
+    Text(text).font(.system(size: 13, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.dim : Dark.soft)
+      .padding(.horizontal, 7).padding(.vertical, 2)
+      .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Dark.a ? Dark.rule : .white.opacity(0.25), lineWidth: 1))
+  }
+}
+
+/// The player card's small pitch: where the player lines up, and (demo only)
+/// the simulated heat around it, labelled as such.
+private struct DeckPitch: View {
+  let spot: FormationSpot
+  let heat: [HeatPoint]?
+
+  var body: some View {
+    let line = Dark.a ? Color(hex: 0x3A3A3E) : Dark.accent.opacity(0.35)
+    VStack(spacing: 8) {
+      GeometryReader { g in
+        let w = g.size.width, h = g.size.height
+        ZStack {
+          if let heat {
+            ForEach(Array(heat.enumerated()), id: \.offset) { _, p in
+              Circle()
+                .fill(RadialGradient(colors: [Dark.a ? .white.opacity(0.35) : Color(hex: 0xB9A6FF).opacity(0.45), .clear],
+                                     center: .center, startRadius: 0, endRadius: 15))
+                .frame(width: 30, height: 30)
+                .position(WestToEast.point(x: p.x, y: p.y, w, h))
+            }
+          }
+          Rectangle().strokeBorder(line, lineWidth: 1)
+          PitchLines(westToEast: true).stroke(line, lineWidth: 1)
+          Circle().fill(Dark.ink).frame(width: 8, height: 8)
+            .overlay(Circle().strokeBorder(Dark.accent.opacity(0.6), lineWidth: 1).frame(width: 22, height: 22))
+            .position(spot.westToEast(w, h))
+        }
+      }
+      .frame(height: 124)
+      HStack {
+        Text(heat == nil ? "Position" : "Heat").font(.system(size: 15)).foregroundStyle(Dark.dim)
+        Spacer()
+        if heat != nil { Chip(text: "simulated") }
       }
     }
-    HStack(alignment: .top, spacing: 16) {
-      if tiles.isEmpty {
-        DarkNote(text: stats == nil ? "No match figures yet" : "Nothing on the scoresheet yet")
-      } else {
-        LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
-                  spacing: 18) {
-          ForEach(Array(tiles.enumerated()), id: \.offset) { _, t in
-            VStack(alignment: .leading, spacing: 2) {
-              Text(t.value).font(.system(size: 38, weight: .heavy)).monospacedDigit()
-              Text(t.label).font(.system(size: 16, weight: .bold)).foregroundStyle(Dark.dim)
-                .lineLimit(1).minimumScaleFactor(0.7)
+  }
+}
+
+/// Goal banners and other big moments: one calm word, the scorer below.
+private struct DeckTakeover: View {
+  let t: TakeoverContent
+  let score: CompactScore?
+
+  var body: some View {
+    let detail = t.detail.map(BannerFormat.detail)
+    let title = BannerFormat.title(t.headline)
+    let isGoal = title.lowercased().contains("goal") && !title.hasPrefix("VAR")
+    ZStack {
+      Dark.backdrop
+      VStack {
+        if let score {
+          HStack(spacing: 12) {
+            Crest(image: score.homeCrest, fallback: score.summary.homeCode, size: 26)
+            Text(score.summary.homeCode).font(.system(size: 19, weight: .semibold)).foregroundStyle(Dark.soft)
+            Text("\(score.summary.score.home)").font(.system(size: 28, design: Dark.mono))
+            Text("–").font(.system(size: 19, design: Dark.mono)).foregroundStyle(Dark.dim)
+            Text("\(score.summary.score.away)").font(.system(size: 28, design: Dark.mono))
+            Text(score.summary.awayCode).font(.system(size: 19, weight: .semibold)).foregroundStyle(Dark.soft)
+            Crest(image: score.awayCrest, fallback: score.summary.awayCode, size: 26)
+          }
+        } else {
+          Text(t.scoreLine).font(.system(size: 20, design: Dark.mono)).foregroundStyle(Dark.soft)
+        }
+        Spacer(minLength: 0)
+        VStack(spacing: 18) {
+          if isGoal {
+            Image(systemName: "soccerball").font(.system(size: 50, weight: .ultraLight))
+              .frame(width: 72, height: 72)
+              .overlay(Dark.a ? nil : Circle().strokeBorder(Dark.accent.opacity(0.6), lineWidth: 1))
+              .shadow(color: Dark.a ? .clear : Dark.accent.opacity(0.6), radius: 12)
+          }
+          Text(title)
+            .font(.system(size: 112, weight: .bold)).tracking(-4)
+            .lineLimit(1).minimumScaleFactor(0.4)
+        }
+        Spacer(minLength: 0)
+        if let detail {
+          VStack(spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+              Text(detail.who).font(.system(size: 28, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
+              if let minute = detail.minute { Text(minute).font(.system(size: 26, design: Dark.mono)).foregroundStyle(Dark.soft) }
             }
+            if let rest = detail.rest { Text(rest).font(.system(size: 18)).foregroundStyle(Dark.dim).lineLimit(1) }
           }
         }
       }
-      if let spot { MiniPitch(spot: spot, heat: heat) }
+      .padding(40)
     }
-    Spacer(minLength: 0)
-    Text("pinch to close · swipe for next player").font(.system(size: 16, weight: .semibold))
-      .foregroundStyle(Dark.dim).frame(maxWidth: .infinity)
+    .foregroundStyle(Dark.ink)
+  }
+}
+
+/// Before the first page: the two crests, home and away, and the competition.
+private struct DeckIntro: View {
+  let i: IntroContent
+  let homeCrest: UIImage?
+  let awayCrest: UIImage?
+
+  var body: some View {
+    ZStack {
+      Dark.backdrop
+      VStack(spacing: 40) {
+        HStack(alignment: .top, spacing: 36) {
+          side(i.homeCode, crest: homeCrest, label: "home", tint: Dark.home)
+          Text("v").font(.system(size: 22)).foregroundStyle(Dark.dim).padding(.top, 40)
+          side(i.awayCode, crest: awayCrest, label: "away", tint: Dark.away)
+        }
+        if let competition = i.competition {
+          let parts = competition.components(separatedBy: " (")
+          HStack(spacing: 12) {
+            Text(parts[0]).font(.system(size: 18)).foregroundStyle(Dark.soft)
+            if parts.count > 1 {
+              Rectangle().fill(Dark.rule).frame(width: 1, height: 16)
+              Text(parts[1].trimmingCharacters(in: CharacterSet(charactersIn: ")")))
+                .font(.system(size: 16, design: Dark.mono)).foregroundStyle(Dark.dim)
+            }
+          }
+          .padding(.horizontal, 18).padding(.vertical, 8)
+          .overlay(Capsule().strokeBorder(Dark.a ? Dark.rule : .white.opacity(0.14), lineWidth: 1))
+        }
+      }
+    }
+    .foregroundStyle(Dark.ink)
   }
 
-  private var subline: String {
-    var bits = [player.number.map { "#\($0)" }, player.position.flatMap(PositionLabel.short)].compactMap { $0 }
-    if let m = stats?.minutes { bits.append("\(m) min") }
-    if stats?.yellowCards ?? 0 > 0 { bits.append("🟨") }
-    if stats?.redCards ?? 0 > 0 { bits.append("🟥") }
-    if scripted { bits.append("scripted") }
-    return bits.joined(separator: " · ")
+  private func side(_ code: String, crest: UIImage?, label: String, tint: Color) -> some View {
+    VStack(spacing: 14) {
+      Crest(image: crest, fallback: code, size: 64)
+        .frame(width: 104, height: 104)
+        .background(Circle().fill(.white.opacity(Dark.a ? 0 : 0.04)))
+        .overlay(Circle().strokeBorder(Dark.a ? Dark.ink : tint.opacity(0.8), lineWidth: 1))
+        .shadow(color: Dark.a ? .clear : tint.opacity(0.4), radius: 10)
+      Text(code).font(.system(size: 24, weight: .semibold))
+      Text(label).font(.system(size: 16, design: Dark.mono)).foregroundStyle(Dark.a ? Dark.dim : tint)
+    }
+    .frame(width: 150)
+  }
+}
+
+/// "Loading the match…" and other one-line messages.
+private struct DeckMessage: View {
+  let text: String
+
+  var body: some View {
+    ZStack {
+      Dark.backdrop
+      VStack(spacing: 28) {
+        Circle().strokeBorder(Dark.a ? Dark.rule : Dark.accent.opacity(0.5), lineWidth: 1)
+          .frame(width: 56, height: 56)
+          .overlay(Circle().fill(Dark.accent).frame(width: 8, height: 8))
+        Text(text.trimmingCharacters(in: CharacterSet(charactersIn: ".…")))
+          .font(.system(size: 30, weight: .semibold)).multilineTextAlignment(.center)
+          .minimumScaleFactor(0.6).padding(.horizontal, 40)
+      }
+    }
+    .foregroundStyle(Dark.ink)
   }
 }
 

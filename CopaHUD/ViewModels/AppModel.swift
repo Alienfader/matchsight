@@ -298,7 +298,7 @@ final class AppModel {
   }
 
   /// Look of the glasses pages (Settings → HUD style).
-  enum HUDStyle: String, CaseIterable { case classic, darkGlass }
+  enum HUDStyle: String, CaseIterable { case classic, darkGlass, mono }
   private(set) var hudStyle: HUDStyle =
     UserDefaults.standard.string(forKey: Keys.hudStyle).flatMap(HUDStyle.init(rawValue:)) ?? .classic
 

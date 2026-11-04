@@ -286,11 +286,12 @@ struct SettingsView: View {
             // HUD style
             settingsGroup(
               header: "HUD style",
-              footer: "Dark glass draws every page in one dark card in the same place, with the score always on top, fewer words and bigger figures. It adds less light over the TV. Goal banners keep their look."
+              footer: "Dark glass draws every page in one dark card in the same place, with the score always on top, fewer words and bigger figures. It adds less light over the TV. Goal banners keep their look. Mono is Dark glass in white and greys, with colour kept only for crests and cards."
             ) {
               Picker("HUD style", selection: $hudStyle) {
                 Text("Classic").tag(AppModel.HUDStyle.classic)
                 Text("Dark glass").tag(AppModel.HUDStyle.darkGlass)
+                Text("Mono").tag(AppModel.HUDStyle.mono)
               }
               .pickerStyle(.segmented)
               .padding(.horizontal, 12)

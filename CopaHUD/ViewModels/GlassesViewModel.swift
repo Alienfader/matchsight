@@ -336,9 +336,13 @@ final class GlassesViewModel {
       score = CompactScore(summary: s, homeCrest: remoteImages.image(s.homeCrestURL),
                            awayCrest: remoteImages.image(s.awayCrestURL))
     }
-    if appModel?.hudStyle == .darkGlass, let picture = darkPicture(for: frame, score: score, photos: photos) {
+    let style = appModel?.hudStyle ?? .classic
+    ImageHUD.mono = style == .mono
+    if style != .classic, let picture = darkPicture(for: frame, score: score, photos: photos, redraw: redraw) {
       return picture
     }
+    ImageHUD.greyscale = style == .mono
+    defer { ImageHUD.greyscale = false }
     switch frame.body {
     case let .panel(p):
       remoteImages.prefetch([p.homeCrestURL, p.awayCrestURL], onLoad: redraw)
@@ -392,10 +396,11 @@ final class GlassesViewModel {
   }
 
 
-  /// Dark glass pages; nil for the bodies that keep their classic look
-  /// (goal banners, the crest intro, messages, the quiet page).
+  /// Dark glass and Mono pages; nil for the bodies that keep their classic
+  /// look (the quiet page and the gesture guide).
   private func darkPicture(for frame: HUDFrame, score: CompactScore?,
-                           photos: @escaping (Int) -> UIImage?) -> UIImage? {
+                           photos: @escaping (Int) -> UIImage?,
+                           redraw: @escaping @MainActor () -> Void) -> UIImage? {
     guard let appModel else { return nil }
     let clock = appModel.hudClock
     switch frame.body {
@@ -435,7 +440,15 @@ final class GlassesViewModel {
                                 focus: index, teamName: appModel.currentXITeam?.name ?? parts[0],
                                 formation: parts.dropFirst().first, score: score, clock: clock,
                                 toast: frame.toast, deck: frame.deck)
-    case .takeover, .intro, .message, .quiet, .guide:
+    case let .takeover(t):
+      return ImageHUD.deckTakeover(t, score: score)
+    case let .intro(i):
+      remoteImages.prefetch([i.homeCrestURL, i.awayCrestURL], onLoad: redraw)
+      return ImageHUD.deckIntro(i, homeCrest: remoteImages.image(i.homeCrestURL),
+                                awayCrest: remoteImages.image(i.awayCrestURL))
+    case let .message(text):
+      return ImageHUD.deckMessage(text)
+    case .quiet, .guide:
       return nil
     }
   }
