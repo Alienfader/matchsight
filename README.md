@@ -14,6 +14,20 @@ Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
 
 **Demo video:** <!-- FOUNDER: video link -->
 
+## Meta technologies used
+
+| Meta technology | What Matchsight does with it |
+|---|---|
+| **Meta Ray-Ban Display** (Wearables Device Access Toolkit 1.0.1, display) | Every page (score, events, both lineups on one pitch, player cards, goal banners) is drawn on the phone and sent to the display. Battery saver dims it or turns it off between moments. |
+| **Meta Neural Band** (toolkit inputs) | All navigation: swipes between pages, a pinch to step into the players and open a stats card, pinch and hold to ask by voice. |
+| **Glasses speakers** | Goal, red-card and VAR chimes, the spoken goal call ("Goal! Fernandes, 67 minutes…") and spoken answers. |
+| **Glasses camera** (toolkit camera, experimental) | Look at a player: say "who's this?" and the phone reads the shirt number from one photo. |
+| **Muse Spark** (`muse-spark-1.3`) | The match assistant: one-line insights and answers to spoken questions, grounded in numbered match facts and checked by a validator before they reach the glasses. |
+| **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Turns the pinch-and-hold question into text for Muse Spark. |
+| **"Hey Meta, start Matchsight"** (Meta AI app launch) | Opens the app by voice, with a Wearables Developer Center build. |
+
+<!-- SCREENSHOTS: glasses pages captured from the in-app glasses mirror -->
+
 ## Who it's for
 
 Fans who want to follow their team's match while away from a screen. Matchsight puts the

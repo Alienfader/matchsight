@@ -74,6 +74,8 @@ final class AppModel {
   private(set) var soundsOn: Bool
   /// Read the answers to the fan's questions aloud (Settings → Sound).
   private(set) var speakAnswers: Bool
+  /// Settings → Sound: read a goal call after the chime ("Goal! Fernandes, 67 minutes…").
+  private(set) var callGoals: Bool
 
   // MARK: Bookkeeping
   @ObservationIgnored private var scheduleTask: Task<Void, Never>?
@@ -132,6 +134,7 @@ final class AppModel {
     self.lookAtPlayerEnabled = d.bool(forKey: Keys.lookAtPlayer)
     self.soundsOn = d.object(forKey: Keys.sounds) as? Bool ?? true
     self.speakAnswers = d.object(forKey: Keys.speakAnswers) as? Bool ?? true
+    self.callGoals = d.object(forKey: Keys.callGoals) as? Bool ?? true
     self.tvDelayLine = BroadcastDelay(seconds: d.double(forKey: Keys.tvDelaySeconds))
     self.composer = HUDComposer(config: cfg)
     self.feed = AppModel.makeFeed(demoMode: demo, apiKey: SecretsStore.apiFootballKey)
@@ -370,6 +373,11 @@ final class AppModel {
     audio.voiceId = id
     UserDefaults.standard.set(id, forKey: Keys.voiceId)
     audio.speak("This is how Matchsight will read your answers.")
+  }
+
+  func setCallGoals(_ value: Bool) {
+    callGoals = value
+    UserDefaults.standard.set(value, forKey: Keys.callGoals)
   }
 
   func setSpeakAnswers(_ value: Bool) {
@@ -1094,6 +1102,14 @@ final class AppModel {
       composer.showMatchIntro(now: Date())
       composer.enqueue(moments, now: Date())
       if soundsOn, !composer.alertsPaused, let cue = AudioCue.loudest(moments) { audio.play(cue) }
+      // The goal call follows the chime (about a second long).
+      if soundsOn, callGoals, !composer.alertsPaused, let s = lastSnapshot,
+         let call = moments.reversed().lazy.compactMap({ GoalCall.text($0, home: s.home, away: s.away) }).first {
+        Task { [weak self] in
+          try? await Task.sleep(for: .milliseconds(1100))
+          self?.audio.speak(call)
+        }
+      }
       // Full time: Muse Spark sums the match up on the insight page, under
       // the banner, read aloud when answers are.
       if moments.contains(where: { $0.kind == .fullTime }) { askAnalyst(.fullTimeRecap) }
@@ -1248,6 +1264,7 @@ final class AppModel {
     static let minorNotices = "minorNotices"
     static let gestureGuideDone = "gestureGuideDone"
     static let speakAnswers = "speakAnswers"
+    static let callGoals = "callGoals"
     static let voiceId = "voiceId"
   }
 }

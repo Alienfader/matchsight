@@ -163,8 +163,26 @@ final class GlassesViewModel {
 
   // MARK: - Battery saver (display off when idle)
 
+  /// The last page sent to the glasses, for Settings → Glasses mirror (nil
+  /// while the display is off or a page fell back to the DSL layout).
+  private(set) var mirrorImage: UIImage?
+  /// Debug: while the mirror is open, each page is saved to
+  /// Documents/mirror/<page>.png (latest wins) for README screenshots.
+  @ObservationIgnored var mirrorSaving = false
+
+  #if DEBUG
+  private func saveMirror(_ picture: UIImage, page: String) {
+    let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+      .appendingPathComponent("mirror", isDirectory: true)
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let name = page.lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" }
+    try? picture.pngData()?.write(to: dir.appendingPathComponent(String(name) + ".png"))
+  }
+  #endif
+
   private func sleepDisplay(_ display: Display) {
     guard !displayAsleep else { return }
+    mirrorImage = nil
     displayAsleep = true
     wakeStartedAt = nil
     dbg("battery saver: display off")
@@ -212,6 +230,10 @@ final class GlassesViewModel {
     do {
       if let picture = picture(for: frame) {
         dbg("render: \(Self.pageName(frame))")
+        mirrorImage = picture
+        #if DEBUG
+        if mirrorSaving { saveMirror(picture, page: Self.pageName(frame)) }
+        #endif
         // Phone-drawn page: one picture, with the same single whole-card tap
         // target as HUDBuilder (the fallback when Inputs is unavailable).
         try await display.send(MWDATDisplay.FlexBox(direction: .column) {
@@ -221,6 +243,7 @@ final class GlassesViewModel {
         })
         return
       }
+      mirrorImage = nil
       try await display.send(HUDBuilder.build(frame: frame, onCardTap: { [weak self] in
         Task { @MainActor in self?.cardTapped() }
       }))

@@ -53,3 +53,36 @@ public enum SpokenAnswer {
     return lower.prefix(1).uppercased() + lower.dropFirst()
   }
 }
+
+/// The goal call read after the chime, like a commentator: who scored, when,
+/// and who leads. Only feed facts; a fact the feed lacks is left out.
+public enum GoalCall {
+  public static func text(_ moment: MatchMoment, home: Team, away: Team) -> String? {
+    guard case let .goal(scorer, _, detail) = moment.kind, detail != .missedPenalty else { return nil }
+    var who = [String]()
+    if let scorer, !scorer.isEmpty { who.append(surname(scorer)) }
+    if detail == .penalty, !who.isEmpty { who.append("from the penalty spot") }
+    if let minute = moment.minute { who.append("\(minute) minutes") }
+    let opener = detail == .ownGoal ? "Own goal!" : "Goal!"
+    let call = who.isEmpty ? opener : "\(opener) \(who.joined(separator: ", "))."
+    return "\(call) \(standing(moment.score, home: home, away: away))"
+  }
+
+  private static func standing(_ s: ScoreLine, home: Team, away: Team) -> String {
+    if s.home == s.away { return "All square, \(spoken(s.home)) all." }
+    let (leader, high, low) = s.home > s.away ? (home, s.home, s.away) : (away, s.away, s.home)
+    return "\(leader.name) lead \(spoken(high)) \(low == 0 ? "nil" : spoken(low))."
+  }
+
+  private static func spoken(_ n: Int) -> String {
+    let words = ["nil", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+    return words.indices.contains(n) ? words[n] : "\(n)"
+  }
+
+  /// "B. Fernandes" → "Fernandes"; one-word and full names stay as they are.
+  private static func surname(_ name: String) -> String {
+    let parts = name.split(separator: " ")
+    guard parts.count > 1, let first = parts.first, first.hasSuffix("."), first.count <= 3 else { return name }
+    return parts.dropFirst().joined(separator: " ")
+  }
+}

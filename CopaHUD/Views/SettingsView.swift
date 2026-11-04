@@ -22,6 +22,7 @@ struct SettingsView: View {
   @State private var tvDelay: Double = 0
   @State private var lookAtPlayer = false
   @State private var showTVSync = false
+  @State private var showMirror = false
   @State private var toastsEnabled = true
   @State private var minorNotices = true
   @State private var batterySaver: BatterySaver = .dim
@@ -29,6 +30,7 @@ struct SettingsView: View {
   @State private var brightness: Double = 1
   @State private var soundsOn = true
   @State private var speakAnswers = true
+  @State private var callGoals = true
   @State private var voiceId: String?
   @State private var voiceReadyWhenLocked = true
   @State private var demoMode = false
@@ -221,7 +223,7 @@ struct SettingsView: View {
             // Sound on the glasses
             settingsGroup(
               header: "Sound",
-              footer: "Plays through the glasses' speakers while they're connected (otherwise the phone). A rising chime for a goal, two low notes for a red card, two beeps for VAR, a whistle at half and full time. Turning sounds on plays the goal chime once."
+              footer: "Plays through the glasses' speakers while they're connected (otherwise the phone). A rising chime for a goal, two low notes for a red card, two beeps for VAR, a whistle at half and full time. After a goal's chime, the goal call names the scorer, the minute and who leads, in the voice below. Turning sounds on plays the goal chime once."
             ) {
               settingsRow(last: false) {
                 Text("Goal and card sounds")
@@ -229,6 +231,13 @@ struct SettingsView: View {
                   .frame(maxWidth: .infinity, alignment: .leading)
                 Toggle("", isOn: $soundsOn).labelsHidden().tint(Color.actionBlue)
                   .onChange(of: soundsOn) { _, new in if new != appModel.soundsOn { appModel.setSoundsOn(new) } }
+              }
+              settingsRow(last: false) {
+                Text("Call goals aloud")
+                  .font(.system(size: 15)).foregroundStyle(.white)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("", isOn: $callGoals).labelsHidden().tint(Color.actionBlue)
+                  .onChange(of: callGoals) { _, new in if new != appModel.callGoals { appModel.setCallGoals(new) } }
               }
               settingsRow(last: true) {
                 Text("Read answers aloud")
@@ -259,6 +268,18 @@ struct SettingsView: View {
                 }
                 .tint(Color.cyan)
                 .onChange(of: voiceId) { _, new in if new != appModel.voiceId { appModel.setVoice(new) } }
+              }
+            }
+
+            // Glasses mirror
+            settingsGroup(
+              header: "Glasses mirror",
+              footer: "Shows exactly what the glasses show, live, on black. To see or record it on a Mac, connect the iPhone by cable and open QuickTime Player → File → New Movie Recording, then pick the iPhone in the menu next to the record button."
+            ) {
+              settingsRow(last: true) {
+                SwiftUI.Button("Open the glasses mirror") { showMirror = true }
+                  .font(.system(size: 15, weight: .semibold))
+                Spacer()
               }
             }
 
@@ -420,6 +441,7 @@ struct SettingsView: View {
       .navigationBarTitleDisplayMode(.large)
       .toolbarColorScheme(.dark, for: .navigationBar)
       .onAppear { syncFromModel() }
+      .fullScreenCover(isPresented: $showMirror) { GlassesMirror(glasses: glasses) }
       .sheet(isPresented: $showTVSync, onDismiss: { syncFromModel() }) {
         TVSyncSheet(appModel: appModel)
       }
@@ -536,6 +558,7 @@ struct SettingsView: View {
     voiceId = appModel.voiceId
     soundsOn = appModel.soundsOn
     speakAnswers = appModel.speakAnswers
+    callGoals = appModel.callGoals
     voiceReadyWhenLocked = appModel.voiceReadyWhenLocked
     demoMode = appModel.demoMode
     hasKey = SecretsStore.apiFootballKey?.isEmpty == false
@@ -654,5 +677,37 @@ struct ApiKeySheet: View {
       .toolbar { ToolbarItem(placement: .topBarLeading) { SwiftUI.Button("Cancel") { dismiss() } } }
       .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { fieldFocused = true } }
     }
+  }
+}
+
+/// Settings → Glasses mirror: the page the glasses are showing, full screen
+/// on black, for watching or recording the HUD from the phone or a Mac.
+/// Tap anywhere to close; the screen stays awake while it's open.
+private struct GlassesMirror: View {
+  @Bindable var glasses: GlassesViewModel
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    ZStack {
+      Color.black.ignoresSafeArea()
+      if let image = glasses.mirrorImage {
+        Image(uiImage: image)
+          .resizable()
+          .interpolation(.high)
+          .aspectRatio(1, contentMode: .fit)
+          .padding(8)
+      } else {
+        Text("Nothing on the glasses yet. Connect them, or wake the display with a gesture.")
+          .multilineTextAlignment(.center).padding(32)
+          .font(.system(size: 15, weight: .medium))
+          .foregroundStyle(.white.opacity(0.35))
+      }
+    }
+    .statusBarHidden()
+    .persistentSystemOverlays(.hidden)
+    .contentShape(Rectangle())
+    .onTapGesture { dismiss() }
+    .onAppear { UIApplication.shared.isIdleTimerDisabled = true; glasses.mirrorSaving = true }
+    .onDisappear { UIApplication.shared.isIdleTimerDisabled = false; glasses.mirrorSaving = false }
   }
 }
