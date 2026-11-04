@@ -13,7 +13,7 @@ the match by voice; Meta's Muse Spark answers from the live match data only.
 
 Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
 
-**Demo video:** <!-- FOUNDER: video link -->
+**Demo video:** coming soon.
 
 ## Meta technologies used
 
