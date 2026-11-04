@@ -4,10 +4,11 @@ Your team's live match, floating in front of you on **Meta Ray-Ban Display** gla
 
 Pick your Premier League, Champions League, DFB-Pokal and Brazilian (Série A, Série B,
 Copa do Brasil) clubs once. When one of them plays,
-Matchsight follows the match automatically and shows it in a frosted, cyan-to-lavender
-glass style: the score capsule with the event timeline, goal / red-card / VAR
-celebrations, a stacked starting-XI card carousel with live player stats, and a line-art
-formation board. Navigate with the **Neural Band**. Pinch and hold to ask a question about
+Matchsight follows the match automatically and shows it on the glasses: the score and clock,
+the latest goals and cards, goal / red-card / VAR banners, both starting XIs on one pitch
+with live player stats, team stats and other live scores. Three styles: Classic (frosted
+cyan-to-lavender glass), Dark glass (a glass card with a soft cyan glow) and Mono (black,
+white and grey). Navigate with the **Neural Band**. Pinch and hold to ask a question about
 the match by voice; Meta's Muse Spark answers from the live match data only.
 
 Submitted to the **Meta Global AI Developer Hackathon 2026**, Startup track.
@@ -118,7 +119,7 @@ Learned on real glasses:
   uses bright fills on black.
 - AI calls never block rendering or gestures; they run behind the current page and fail
   back to data.
-- `CopaHUDCore` holds the logic as a plain Swift package with 432 unit tests, using recorded
+- `CopaHUDCore` holds the logic as a plain Swift package with 477 unit tests, using recorded
   API-Football responses as fixtures.
 
 ## Demo
@@ -147,11 +148,14 @@ The feed gives whole minutes, so the live clock is pinned to the moment the minu
 30 s of the live clock gets no delay: goals reach the feed after a live broadcast shows them, so
 any delay would only make the alert later. The phone's Today list is not delayed.
 
-**Settings → HUD style → Dark glass** draws every page in one near-black card in the same
-place, with the score and minute always on top, fewer words and bigger figures: the latest
-goals and cards by the names players are known by, the XI board as the player browser, and
-four key figures per player picked for the position, without the zeros. It adds less light
-over the TV. Classic stays the default.
+**Settings → HUD style → Dark glass or Mono** draws every page the same way, with the score
+and minute always on top, fewer words and bigger figures: the latest goals and cards by the
+names players are known by, the XI board as the player browser, and four key figures per
+player picked for the position, without the zeros. Dark glass puts the page in a glass card
+with a soft cyan glow, cyan for the home side and lavender for the away side. Mono fills the
+lens in black, white and grey, with colour only for crests and cards. Both add less light
+over the TV than Classic, which stays the default. The phone follows the style: Dark glass
+gives it cyan accents.
 
 **Settings → Battery saver** saves the glasses' battery during a long match. After 20 seconds
 with no gestures and nothing new, **Dim** (the default) shows only a faint score line on black;
@@ -199,7 +203,7 @@ Application ID and Client Token are read from the macOS Keychain, never from the
 Thumb + middle-finger pinch is the glasses' own back gesture and leaves the app.
 
 Dots along the bottom of each page show where you are in the deck, and the current dot
-lights up cyan for a moment whenever a gesture reaches the app. If a swipe doesn't light it,
+lights up for a moment whenever a gesture reaches the app. If a swipe doesn't light it,
 the band didn't send it: swipe again, or pinch, which moves through every page.
 
 ## Data and trademarks
@@ -216,7 +220,19 @@ ID and Swift package are named CopaHUD.
 The Muse Spark and Muse Voice Transcribe integration was added during the hackathon, once
 Meta issued the API credits.
 
-<!-- FOUNDER: what was built during the hackathon window -->
+Built during the hackathon window (Oct 26 – Nov 4, 2026), from the commit history:
+
+- **Glasses:** the Dark glass and Mono styles, swipe down to AI Insight, both teams on one
+  west-to-east formation board, a pinch into the players and their match stats card, the mini
+  pitch (simulated heat in demo mode only), page dots, a gesture guide, small notices for cards,
+  substitutions and shots on target, a full-time recap, a battery saver and page brightness.
+- **Sound and voice:** goal, red-card and VAR chimes through the glasses' speakers, the spoken
+  goal call, spoken answers (iPhone voices or ElevenLabs through the Worker), and general
+  football questions answered from Muse Spark's general knowledge, labelled as such.
+- **Match:** TV delay and Sync with TV, a goal alert as soon as the score rises, live polling
+  every 8 s, the DFB-Pokal and the Brazilian competitions, a day strip and Coming up on the
+  Today tab, and Look at a player (experimental, off by default).
+- **Tools:** the glasses mirror, a debug log on the phone, and a reliability run.
 
 <!-- FOUNDER: AI-tools disclosure wording -->
 
