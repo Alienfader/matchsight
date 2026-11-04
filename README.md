@@ -234,8 +234,6 @@ Built during the hackathon window (Oct 26 – Nov 4, 2026), from the commit hist
   Today tab, and Look at a player (experimental, off by default).
 - **Tools:** the glasses mirror, a debug log on the phone, and a reliability run.
 
-<!-- FOUNDER: AI-tools disclosure wording -->
-
 **ElevenLabs (non-Meta).** Spoken answers can be read aloud with ElevenLabs text to speech
 (`eleven_flash_v2_5`). It's called through the same Cloudflare Worker, which holds the
 ElevenLabs key, so the key never ships in the app. ElevenLabs only receives the text of Muse
