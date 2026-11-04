@@ -179,7 +179,7 @@ struct TodayView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 22, style: .continuous)
-          .stroke(isFollowed ? Color.yellow.opacity(0.35) : Color.white.opacity(0.12), lineWidth: 1)
+          .stroke(isFollowed ? Color.white.opacity(0.35) : Color.white.opacity(0.12), lineWidth: 1)
       )
     }
     .buttonStyle(.plain)
@@ -200,7 +200,7 @@ struct TodayView: View {
 
   private var liveNowSection: some View {
     VStack(alignment: .leading, spacing: 10) {
-      SectionHeader(title: "Live Now", count: liveNowFiltered.count, isLive: true)
+      SectionHeader(title: "Live now", count: liveNowFiltered.count, isLive: true)
       VStack(spacing: 8) {
         ForEach(liveNowFiltered, id: \.fixtureId) { snap in
           matchRow(snap)
@@ -246,7 +246,7 @@ struct TodayView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(isFollowed ? Color.yellow.opacity(0.45) : Color.alertRed.opacity(0.30), lineWidth: 1)
+          .stroke(isFollowed ? Color.white.opacity(0.45) : Color.alertRed.opacity(0.30), lineWidth: 1)
       )
     }
     .buttonStyle(.plain)
@@ -297,7 +297,7 @@ struct TodayView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(isFollowed ? Color.yellow.opacity(0.45) : Color.white.opacity(0.10), lineWidth: 1)
+          .stroke(isFollowed ? Color.white.opacity(0.45) : Color.white.opacity(0.10), lineWidth: 1)
       )
     }
     .buttonStyle(.plain)

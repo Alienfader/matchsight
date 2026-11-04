@@ -595,7 +595,7 @@ struct TVSyncSheet: View {
               message = Self.describe(appModel.syncTV(tvMinute: minute))
             } label: {
               Text("Tap at \(minute):00")
-                .font(.system(size: 28, weight: .heavy).monospacedDigit()).foregroundStyle(.white)
+                .font(.system(size: 28, weight: .heavy).monospacedDigit()).foregroundStyle(Color.navy900)
                 .padding(.vertical, 28).frame(maxWidth: .infinity)
                 .background(Color.actionBlue, in: RoundedRectangle(cornerRadius: 20))
             }
@@ -666,8 +666,8 @@ struct ApiKeySheet: View {
             .font(.system(size: 14, weight: .medium))
         }
         SwiftUI.Button(action: onSave) {
-          Text("Save to Keychain").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-            .padding(.vertical, 12).frame(maxWidth: .infinity).background(.blue, in: Capsule())
+          Text("Save to Keychain").font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.navy900)
+            .padding(.vertical, 12).frame(maxWidth: .infinity).background(Color.live, in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(!allowEmpty && pastedKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

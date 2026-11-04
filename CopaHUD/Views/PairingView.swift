@@ -6,14 +6,7 @@ struct PairingView: View {
 
   var body: some View {
     ZStack(alignment: .top) {
-      LinearGradient(
-        colors: [
-          Color(red: 0.03, green: 0.08, blue: 0.22),
-          Color(red: 0.08, green: 0.14, blue: 0.35)
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-      )
+      LinearGradient.appBackground
       .ignoresSafeArea()
 
       ScrollView {
@@ -41,8 +34,8 @@ struct PairingView: View {
         .frame(width: 96, height: 96)
         .background(
           RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(LinearGradient(colors: [.green, Color(red: 0.0, green: 0.45, blue: 0.85)],
-                                 startPoint: .topLeading, endPoint: .bottomTrailing))
+            .fill(Color.navy600)
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.navy400, lineWidth: 1))
         )
         .shadow(color: .black.opacity(0.45), radius: 18, x: 0, y: 10)
         .overlay(
@@ -119,18 +112,10 @@ struct PairingView: View {
           Text("Pair Glasses")
         }
         .font(.system(size: 16, weight: .semibold))
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.navy900)
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity)
-        .background(
-          LinearGradient(
-            colors: [.blue, Color(red: 0.25, green: 0.45, blue: 0.95)],
-            startPoint: .leading,
-            endPoint: .trailing
-          ),
-          in: Capsule()
-        )
-        .shadow(color: .blue.opacity(0.35), radius: 12, x: 0, y: 6)
+        .background(Color.live, in: Capsule())
       }
       .buttonStyle(.plain)
     case .registering:
@@ -183,8 +168,8 @@ struct PairingView: View {
   private var glassesIconBackground: LinearGradient {
     LinearGradient(
       colors: glasses.registrationState == .registered
-        ? [.green, Color(red: 0.0, green: 0.55, blue: 0.4)]
-        : [Color.blue.opacity(0.7), Color.indigo.opacity(0.7)],
+        ? [Color.navy400, Color.navy500]
+        : [Color.navy500, Color.navy600],
       startPoint: .topLeading,
       endPoint: .bottomTrailing
     )

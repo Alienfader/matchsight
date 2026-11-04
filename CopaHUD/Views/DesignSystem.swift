@@ -18,28 +18,37 @@ func flagEmoji(for teamName: String) -> String {
 // MARK: - Color Tokens
 
 extension Color {
-  // Navy surfaces (darkest → lightest)
-  static let navy900 = Color(red: 0.020, green: 0.078, blue: 0.220)
-  static let navy800 = Color(red: 0.039, green: 0.059, blue: 0.122)
-  static let navy700 = Color(red: 0.059, green: 0.122, blue: 0.302)
-  static let navy600 = Color(red: 0.078, green: 0.141, blue: 0.349)
-  static let navy500 = Color(red: 0.102, green: 0.149, blue: 0.302)
-  static let navy400 = Color(red: 0.122, green: 0.200, blue: 0.451)
+  // Mono: black surfaces with a slight zinc bias (darkest → lightest). The
+  // names are from the earlier navy palette.
+  static let navy900 = Color(red: 0.000, green: 0.000, blue: 0.000) // #000000
+  static let navy800 = Color(red: 0.039, green: 0.039, blue: 0.039) // #0A0A0A
+  static let navy700 = Color(red: 0.078, green: 0.078, blue: 0.078) // #141414
+  static let navy600 = Color(red: 0.094, green: 0.094, blue: 0.106) // #18181B
+  static let navy500 = Color(red: 0.153, green: 0.153, blue: 0.165) // #27272A
+  static let navy400 = Color(red: 0.247, green: 0.247, blue: 0.275) // #3F3F46
 
-  // Broadcast accents
-  static let goal    = Color(red: 1.000, green: 0.851, blue: 0.102) // #FFD91A
-  static let goalDeep = Color(red: 1.000, green: 0.651, blue: 0.102) // #FFA61A half-time amber
-  static let live    = Color(red: 0.302, green: 1.000, blue: 0.502) // #4DFF80
-  static let cyan    = Color(red: 0.400, green: 0.851, blue: 1.000) // #66D9FF
+  // Accents: white and greys with Mono and Classic, cyan with Dark glass
+  // (PhoneLook.glow); red only for errors and recording.
+  static let goal    = Color(red: 1.000, green: 1.000, blue: 1.000) // #FFFFFF
+  static let goalDeep = Color(red: 0.631, green: 0.631, blue: 0.667) // #A1A1AA half time
+  static var live: Color { PhoneLook.glow ? .glowCyan : Color(red: 0.957, green: 0.957, blue: 0.961) } // #F4F4F5
+  static var cyan: Color { PhoneLook.glow ? .glowCyan : Color(red: 0.894, green: 0.894, blue: 0.906) } // #E4E4E7
   static let alertRed = Color(red: 1.000, green: 0.302, blue: 0.302) // #FF4D4D
-  static let actionBlue = Color(red: 0.149, green: 0.502, blue: 1.000) // #2680FF
+  static var actionBlue: Color { PhoneLook.glow ? .glowCyan : Color(red: 0.831, green: 0.831, blue: 0.847) } // #D4D4D8
+  static let glowCyan = Color(red: 0.373, green: 0.890, blue: 0.941) // #5FE3F0
+  static let glowLavender = Color(red: 0.725, green: 0.651, blue: 1.000) // #B9A6FF
+}
+
+/// The phone follows the glasses style: Dark glass brings its cyan accents.
+enum PhoneLook {
+  static var glow: Bool { UserDefaults.standard.string(forKey: "hudStyle") == "darkGlass" }
 }
 
 // MARK: - App Gradient
 
 extension LinearGradient {
   static let appBackground = LinearGradient(
-    colors: [Color(red: 0.031, green: 0.078, blue: 0.220), Color(red: 0.078, green: 0.141, blue: 0.349)],
+    colors: [Color.navy900, Color.navy800],
     startPoint: .top, endPoint: .bottom
   )
 }
@@ -68,8 +77,8 @@ struct GlassCard<Content: View>: View {
     switch variant {
     case .default:  return .white.opacity(0.05)
     case .strong:   return .white.opacity(0.10)
-    case .followed: return Color(red: 0.851, green: 0.102, blue: 0.102).opacity(0.16)
-    case .live:     return Color(red: 0.851, green: 0.102, blue: 0.102).opacity(0.12)
+    case .followed: return .white.opacity(0.08)
+    case .live:     return .white.opacity(0.06)
     }
   }
 
@@ -77,8 +86,8 @@ struct GlassCard<Content: View>: View {
     switch variant {
     case .default:  return .white.opacity(0.10)
     case .strong:   return .white.opacity(0.12)
-    case .followed: return Color.yellow.opacity(0.45)
-    case .live:     return Color.alertRed.opacity(0.35)
+    case .followed: return .white.opacity(0.45)
+    case .live:     return .white.opacity(0.25)
     }
   }
 }
@@ -152,7 +161,7 @@ struct LivePill: View {
     HStack(spacing: 6) {
       if showsDot { Circle().fill(pillColor).frame(width: 6, height: 6) }
       Text(pillText)
-        .font(.system(size: 12, weight: .bold))
+        .font(.system(size: 12, weight: .medium, design: .monospaced))
         .foregroundStyle(pillColor)
         .monospacedDigit()
         .tracking(0.4)
@@ -174,7 +183,7 @@ struct LivePill: View {
     return minute.map { "\($0)'" } ?? "LIVE"
   }
 
-  // Design StatusPill: live green · HT amber · FT dim grey.
+  // Design StatusPill: live white · HT grey · FT dim grey.
   private var pillColor: Color {
     if isHT { return .goalDeep }
     if isFT { return .white.opacity(0.55) }
@@ -191,7 +200,7 @@ struct GradientPossBar: View {
     VStack(spacing: 7) {
       GeometryReader { geo in
         HStack(spacing: 0) {
-          LinearGradient(colors: [.cyan, .actionBlue], startPoint: .leading, endPoint: .trailing)
+          Color.live
             .frame(width: geo.size.width * CGFloat(home) / 100)
           Color.white.opacity(0.18)
         }
@@ -203,7 +212,7 @@ struct GradientPossBar: View {
         Spacer()
         Text("\(100 - home)%")
       }
-      .font(.system(size: 11, weight: .semibold))
+      .font(.system(size: 11, weight: .medium, design: .monospaced))
       .foregroundStyle(.white.opacity(0.55))
       .tracking(0.4)
     }
@@ -220,15 +229,12 @@ struct SectionHeader: View {
   var body: some View {
     HStack(spacing: 8) {
       if isLive {
-        Circle().fill(Color.alertRed)
+        Circle().fill(Color.live)
           .frame(width: 7, height: 7)
-          .shadow(color: .alertRed, radius: 4)
       }
       Text(title)
-        .font(.system(size: 12, weight: .bold))
-        .foregroundStyle(isLive ? Color.alertRed : Color.white.opacity(0.70))
-        .tracking(0.4)
-        .textCase(.uppercase)
+        .font(.system(size: 14, weight: .regular))
+        .foregroundStyle(isLive ? Color.live : (PhoneLook.glow ? Color.glowLavender : Color.white.opacity(0.55)))
       if let n = count {
         Text("\(n)")
           .font(.system(size: 11, weight: .semibold))

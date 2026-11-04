@@ -362,7 +362,7 @@ struct LiveView: View {
 
   private var analystCard: some View {
     VStack(alignment: .leading, spacing: 11) {
-      SectionHeader(title: "AI Insight")
+      SectionHeader(title: "AI insight")
       card {
         VStack(alignment: .leading, spacing: 12) {
           LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -479,7 +479,7 @@ struct LiveView: View {
 
   private var momentsCard: some View {
     VStack(alignment: .leading, spacing: 11) {
-      SectionHeader(title: "Recent Moments")
+      SectionHeader(title: "Recent moments")
       card {
         if appModel.lastMoments.isEmpty {
           Text("Nothing yet — moments appear here as they happen.")
@@ -532,7 +532,7 @@ struct LiveView: View {
       VStack(alignment: .leading, spacing: 6) {
         Text("DEBUG LOG")
           .font(.system(size: 10, weight: .bold))
-          .foregroundStyle(.yellow.opacity(0.7))
+          .foregroundStyle(.white.opacity(0.7))
           .tracking(0.4)
         ScrollViewReader { proxy in
           ScrollView {
